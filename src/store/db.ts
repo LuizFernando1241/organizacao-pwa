@@ -3,6 +3,7 @@ import type { InboxItem } from '../types/inbox'
 import type { Note } from '../types/note'
 import type { NoteTaskLink } from '../types/link'
 import type { Task } from '../types/task'
+import type { OpsQueueStatus } from '../types/ops'
 
 export type OpsQueueItem = {
   opId: string
@@ -10,7 +11,7 @@ export type OpsQueueItem = {
   entityId: string
   opType: 'create' | 'update' | 'delete'
   payload: Record<string, unknown>
-  status: 'pending'
+  status: OpsQueueStatus
   createdAt: string
 }
 

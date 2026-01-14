@@ -72,7 +72,9 @@ function TaskSheet({ isOpen, task, notes, onClose, onUpdate, onToggleDone, onDel
       return
     }
     const updatedSubtasks = task.subtasks.map((item) =>
-      item.id === subtask.id ? { ...item, status: item.status === 'DONE' ? 'PENDING' : 'DONE' } : item,
+      item.id === subtask.id
+        ? ({ ...item, status: item.status === 'DONE' ? 'PENDING' : 'DONE' } as Subtask)
+        : item,
     )
     onUpdate(task.id, { subtasks: updatedSubtasks })
   }

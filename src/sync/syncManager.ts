@@ -1,6 +1,7 @@
 import type { Note } from '../types/note'
 import type { NoteTaskLink } from '../types/link'
 import type { Task } from '../types/task'
+import type { OpsQueueStatus } from '../types/ops'
 import { db, getMetaValue, setMetaValue } from '../store/db'
 import { useAppStore } from '../store/useAppStore'
 
@@ -10,7 +11,7 @@ type SyncOp = {
   entityId: string
   opType: 'create' | 'update' | 'delete'
   payload: Record<string, unknown>
-  status: 'pending' | 'acked'
+  status: OpsQueueStatus
 }
 
 type PullResponse = {
