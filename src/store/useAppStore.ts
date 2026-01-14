@@ -175,7 +175,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           nextTask.timeLabel = buildTimeLabel(nextStart, nextEnd)
           const nextDayKey = updates.dayKey ?? task.dayKey
           if ((task.status === 'active' || task.status === 'overdue') && isFutureTime(nextDayKey, nextStart)) {
-            nextTask.status = 'planned'
+            nextTask.status = 'planned' as Task['status']
           }
         }
         void db.tasks.put(nextTask)
@@ -196,7 +196,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         if (task.id !== id) {
           return task
         }
-        const nextTask = { ...task, status: 'done', updatedAt: now }
+        const nextTask: Task = { ...task, status: 'done' as Task['status'], updatedAt: now }
         void db.tasks.put(nextTask)
         void enqueueOp({
           entityType: 'task',
