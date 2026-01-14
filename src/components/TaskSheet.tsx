@@ -1,0 +1,235 @@
+import { useEffect, useState } from 'react'
+import type { Note } from '../types/note'
+import type { Recurrence, Subtask, Task } from '../types/task'
+import './TaskSheet.css'
+
+type TaskSheetProps = {
+  isOpen: boolean
+  task: Task | null
+  notes: Note[]
+  onClose: () => void
+  onUpdate: (id: string, updates: Partial<Task>) => void
+  onToggleDone: (id: string) => void
+  onDelete: (id: string) => void
+  onOpenLinkedNotes: () => void
+}
+
+const buildSubtaskId = () => `subtask-${Date.now()}-${Math.random().toString(16).slice(2)}`
+
+function TaskSheet({ isOpen, task, notes, onClose, onUpdate, onToggleDone, onDelete, onOpenLinkedNotes }: TaskSheetProps) {
+  const [title, setTitle] = useState('')
+  const [timeStart, setTimeStart] = useState('')
+  const [timeEnd, setTimeEnd] = useState('')
+  const [recurrence, setRecurrence] = useState<Recurrence>('none')
+  const [subtasksOpen, setSubtasksOpen] = useState(false)
+
+  useEffect(() => {
+    if (!task) {
+      return
+    }
+    setTitle(task.title)
+    setTimeStart(task.timeStart)
+    setTimeEnd(task.timeEnd)
+    setRecurrence(task.recurrence)
+    setSubtasksOpen(false)
+  }, [task])
+
+  useEffect(() => {
+    if (!task || title === task.title) {
+      return
+    }
+    const handle = window.setTimeout(() => onUpdate(task.id, { title }), 300)
+    return () => window.clearTimeout(handle)
+  }, [task, title, onUpdate])
+
+  useEffect(() => {
+    if (!task) {
+      return
+    }
+    const updates: Partial<Task> = {}
+    if (timeStart !== task.timeStart) {
+      updates.timeStart = timeStart
+    }
+    if (timeEnd !== task.timeEnd) {
+      updates.timeEnd = timeEnd
+    }
+    if (Object.keys(updates).length === 0) {
+      return
+    }
+    const handle = window.setTimeout(() => onUpdate(task.id, updates), 300)
+    return () => window.clearTimeout(handle)
+  }, [task, timeStart, timeEnd, onUpdate])
+
+  const handleRecurrenceChange = (value: Recurrence) => {
+    setRecurrence(value)
+    if (task) {
+      onUpdate(task.id, { recurrence: value })
+    }
+  }
+
+  const handleToggleSubtask = (subtask: Subtask) => {
+    if (!task) {
+      return
+    }
+    const updatedSubtasks = task.subtasks.map((item) =>
+      item.id === subtask.id ? { ...item, status: item.status === 'DONE' ? 'PENDING' : 'DONE' } : item,
+    )
+    onUpdate(task.id, { subtasks: updatedSubtasks })
+  }
+
+  const handleAddSubtask = () => {
+    if (!task) {
+      return
+    }
+    const newSubtask: Subtask = {
+      id: buildSubtaskId(),
+      title: 'Nova subtarefa',
+      status: 'PENDING',
+    }
+    onUpdate(task.id, { subtasks: [...task.subtasks, newSubtask] })
+  }
+
+  const handleToggleDone = () => {
+    if (!task) {
+      return
+    }
+    onToggleDone(task.id)
+    onClose()
+  }
+
+  const handleDelete = () => {
+    if (!task) {
+      return
+    }
+    onDelete(task.id)
+    onClose()
+  }
+
+  const linkedNotes = task ? notes.filter((note) => task.linkedNoteIds.includes(note.id)) : []
+
+  return (
+    <>
+      <div className={`task-sheet-backdrop${isOpen ? ' task-sheet-backdrop--open' : ''}`} onClick={onClose} />
+      <section className={`task-sheet${isOpen ? ' task-sheet--open' : ''}`} aria-hidden={!isOpen}>
+        <header className="task-sheet__header">
+          <div className="task-sheet__title">Detalhes</div>
+          <div className="task-sheet__header-actions">
+            <button type="button" className="task-sheet__text-button" onClick={onClose}>
+              Fechar
+            </button>
+            <button type="button" className="task-sheet__primary-button" onClick={handleToggleDone}>
+              Concluir
+            </button>
+          </div>
+        </header>
+        <div className="task-sheet__body">
+          <label className="field">
+            <span className="field__label">Titulo</span>
+            <input
+              type="text"
+              className="field__input"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+            />
+          </label>
+
+          <div className="time-range">
+            <label className="field">
+              <span className="field__label">Hora inicio</span>
+              <input
+                type="time"
+                className="field__input"
+                value={timeStart}
+                onChange={(event) => setTimeStart(event.target.value)}
+              />
+            </label>
+            <label className="field">
+              <span className="field__label">Hora fim</span>
+              <input
+                type="time"
+                className="field__input"
+                value={timeEnd}
+                onChange={(event) => setTimeEnd(event.target.value)}
+              />
+            </label>
+          </div>
+
+          <div className={`subtasks${subtasksOpen ? ' subtasks--open' : ''}`}>
+            <button type="button" className="subtasks__toggle" onClick={() => setSubtasksOpen(!subtasksOpen)}>
+              Subtarefas
+              <span className="subtasks__chevron">{subtasksOpen ? '-' : '+'}</span>
+            </button>
+            {subtasksOpen && (
+              <div className="subtasks__content">
+                {task && task.subtasks.length === 0 ? (
+                  <div className="subtasks__empty">Sem subtarefas.</div>
+                ) : (
+                  <div className="subtasks__list">
+                    {task?.subtasks.map((subtask) => (
+                      <label key={subtask.id} className="subtasks__item">
+                        <input
+                          type="checkbox"
+                          checked={subtask.status === 'DONE'}
+                          onChange={() => handleToggleSubtask(subtask)}
+                        />
+                        <span className={subtask.status === 'DONE' ? 'subtasks__text subtasks__text--done' : 'subtasks__text'}>
+                          {subtask.title}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                <button type="button" className="subtasks__add" onClick={handleAddSubtask}>
+                  + Adicionar subtarefa
+                </button>
+              </div>
+            )}
+          </div>
+
+          <label className="field">
+            <span className="field__label">Recorrencia</span>
+            <select
+              className="field__select"
+              value={recurrence}
+              onChange={(event) => handleRecurrenceChange(event.target.value as Recurrence)}
+            >
+              <option value="none">Nenhuma</option>
+              <option value="daily">Diaria</option>
+              <option value="weekly">Semanal</option>
+              <option value="monthly">Mensal</option>
+            </select>
+          </label>
+
+          <div className="linked-notes">
+            <div className="linked-notes__header">
+              <div className="linked-notes__title">Notas vinculadas</div>
+              <button type="button" className="linked-notes__button" onClick={onOpenLinkedNotes} disabled={!task}>
+                Ver todas as notas
+              </button>
+            </div>
+            {linkedNotes.length === 0 ? (
+              <div className="linked-notes__empty">Sem notas vinculadas.</div>
+            ) : (
+              <div className="linked-notes__grid">
+                {linkedNotes.slice(0, 3).map((note) => (
+                  <div key={note.id} className="mini-sticky-note">
+                    {note.title && <div className="mini-sticky-note__title">{note.title}</div>}
+                    <div className="mini-sticky-note__body">{note.body}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="danger-zone">
+            <button type="button" className="danger-zone__button" onClick={handleDelete}>
+              Excluir tarefa
+            </button>
+          </div>
+        </div>
+      </section>
+    </>
+  )
+}
+
+export default TaskSheet

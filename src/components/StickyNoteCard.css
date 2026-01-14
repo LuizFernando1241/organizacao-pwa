@@ -1,0 +1,29 @@
+.sticky-note {
+  width: 100%;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: rgba(17, 24, 39, 0.03);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.sticky-note__title {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.sticky-note__body {
+  font-size: var(--font-size-body);
+  color: var(--color-text-secondary);
+  line-height: var(--font-line-height-base);
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

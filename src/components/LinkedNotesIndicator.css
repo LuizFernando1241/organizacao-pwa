@@ -1,0 +1,12 @@
+.linked-notes-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-pill);
+  background: var(--color-background-highlight);
+  color: var(--color-text-link);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+}

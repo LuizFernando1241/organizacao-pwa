@@ -1,0 +1,14 @@
+.notes-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.notes-grid__empty {
+  border: 1px dashed var(--color-border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  text-align: center;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}

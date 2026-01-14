@@ -1,0 +1,11 @@
+name = "organizacao-sync"
+main = "src/index.ts"
+compatibility_date = "2026-01-14"
+
+[assets]
+directory = "./public"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "organizacao_app_db"
+database_id = "010eebad-4a9f-4bcd-923b-7420756826ba"

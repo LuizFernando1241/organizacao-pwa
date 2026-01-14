@@ -1,0 +1,118 @@
+:root {
+  --color-background-default: #fafafa;
+  --color-background-elevated: #ffffff;
+  --color-background-overlay: rgba(17, 24, 39, 0.25);
+  --color-background-hover-fill: rgba(17, 24, 39, 0.04);
+  --color-background-pressed-fill: rgba(17, 24, 39, 0.06);
+  --color-background-highlight: rgba(37, 99, 235, 0.08);
+
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #9ca3af;
+  --color-text-inverse: #ffffff;
+  --color-text-link: #2563eb;
+  --color-text-danger: #ef4444;
+
+  --color-border-default: #e5e7eb;
+  --color-border-focus: rgba(37, 99, 235, 0.25);
+  --color-border-selected: rgba(37, 99, 235, 0.25);
+  --color-border-today: rgba(37, 99, 235, 0.35);
+  --color-border-danger: rgba(239, 68, 68, 0.35);
+
+  --color-state-planned: #2563eb;
+  --color-state-active: #f59e0b;
+  --color-state-overdue: #ef4444;
+  --color-state-done: #9ca3af;
+
+  --shadow-subtle: 0 6px 18px rgba(17, 24, 39, 0.06);
+  --shadow-none: none;
+
+  --font-family-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-size-caption: 12px;
+  --font-size-body: 14px;
+  --font-size-body-lg: 15px;
+  --font-size-h2: 16px;
+  --font-size-h1: 20px;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-line-height-tight: 1.35;
+  --font-line-height-base: 1.45;
+  --font-line-height-relaxed: 1.55;
+  --font-letter-spacing-normal: 0em;
+  --font-letter-spacing-tight: -0.01em;
+
+  --radius-sm: 12px;
+  --radius-md: 14px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  --space-0: 0px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  --size-top-bar-height: 56px;
+  --size-icon-button: 36px;
+  --size-icon: 20px;
+  --size-input-height: 40px;
+  --size-search-height: 44px;
+  --size-chip-height: 32px;
+  --size-day-chip-desktop-width: 72px;
+  --size-day-chip-desktop-height: 52px;
+  --size-day-chip-mobile-width: 64px;
+  --size-day-chip-mobile-height: 52px;
+  --size-task-state-bar-width: 3px;
+  --size-drawer-width: 400px;
+  --size-modal-width: 600px;
+  --size-calendar-cell-desktop: 40px;
+  --size-calendar-cell-mobile: 36px;
+
+  --grid-columns-desktop: 12;
+  --grid-columns-mobile: 4;
+  --grid-gutter-desktop: 24px;
+  --grid-gutter-mobile: 16px;
+  --grid-page-padding-desktop: 32px;
+  --grid-page-padding-mobile: 18px;
+
+  --motion-duration-fast: 140ms;
+  --motion-duration-base: 200ms;
+  --motion-duration-slow: 260ms;
+  --motion-easing-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-easing-linear: linear;
+  --motion-transition-fade: opacity 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-transition-slide-right: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-transition-slide-up: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-transition-scale-fade: opacity 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --component-card-radius: var(--radius-md);
+  --component-card-padding: 14px;
+  --component-card-border-width: 1px;
+  --component-card-border-color: var(--color-border-default);
+  --component-card-background: var(--color-background-elevated);
+  --component-card-shadow: var(--shadow-subtle);
+
+  --component-input-height: var(--size-input-height);
+  --component-input-radius: var(--radius-sm);
+  --component-input-padding-x: 12px;
+  --component-input-border-color: var(--color-border-default);
+  --component-input-background: var(--color-background-elevated);
+  --component-input-focus-ring: var(--color-border-focus);
+
+  --component-task-card-radius: var(--radius-md);
+  --component-task-card-padding: 14px;
+  --component-task-card-state-bar-width: var(--size-task-state-bar-width);
+  --component-task-card-title-max-lines: 1;
+  --component-task-card-meta-max-lines: 1;
+
+  --component-drawer-width: var(--size-drawer-width);
+  --component-drawer-padding: 16px;
+  --component-drawer-header-height: 56px;
+  --component-drawer-border-color: var(--color-border-default);
+  --component-drawer-background: var(--color-background-elevated);
+}

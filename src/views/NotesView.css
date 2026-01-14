@@ -1,0 +1,21 @@
+.notes-screen {
+  min-height: 100vh;
+}
+
+.notes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.notes-header__button {
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 8px 14px;
+  background: var(--color-state-planned);
+  color: var(--color-text-inverse);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}

@@ -1,0 +1,32 @@
+.app-shell {
+  min-height: 100vh;
+  background: var(--color-background-default);
+  color: var(--color-text-primary);
+}
+
+.app-content {
+  padding: var(--grid-page-padding-mobile);
+  padding-top: calc(var(--grid-page-padding-mobile) + var(--size-top-bar-height));
+  padding-bottom: calc(var(--grid-page-padding-mobile) + 64px);
+}
+
+.page-title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--font-line-height-base);
+  letter-spacing: var(--font-letter-spacing-tight);
+}
+
+.page-subtitle {
+  margin: 0;
+  font-size: var(--font-size-body);
+  color: var(--color-text-secondary);
+  line-height: var(--font-line-height-base);
+}
+
+.home-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}

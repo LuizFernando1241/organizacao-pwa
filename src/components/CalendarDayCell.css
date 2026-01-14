@@ -1,0 +1,21 @@
+.calendar-day {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.calendar-day:hover {
+  background: var(--color-background-hover-fill);
+}
+
+.calendar-day--today {
+  border-color: var(--color-border-today);
+}

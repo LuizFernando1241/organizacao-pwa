@@ -1,0 +1,33 @@
+.inbox-item {
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  background: var(--color-background-elevated);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.inbox-item__text {
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+}
+
+.inbox-item__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.inbox-item__action {
+  border: 1px solid var(--color-border-default);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.inbox-item__action:hover {
+  background: var(--color-background-hover-fill);
+}

@@ -1,0 +1,42 @@
+.day-chip {
+  min-width: var(--size-day-chip-mobile-width);
+  height: var(--size-day-chip-mobile-height);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-background-elevated);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  transition: background var(--motion-duration-fast) var(--motion-easing-standard),
+    border-color var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.day-chip:hover {
+  background: var(--color-background-hover-fill);
+}
+
+.day-chip--selected {
+  border-color: var(--color-border-selected);
+  background: var(--color-background-highlight);
+}
+
+.day-chip--today:not(.day-chip--selected) {
+  border-color: var(--color-border-today);
+}
+
+.day-chip__label {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  line-height: var(--font-line-height-tight);
+}
+
+.day-chip__number {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--font-line-height-tight);
+  color: var(--color-text-primary);
+}

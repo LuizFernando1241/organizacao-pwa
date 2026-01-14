@@ -1,0 +1,71 @@
+.settings-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--color-background-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 22;
+}
+
+.settings-modal {
+  width: min(92vw, 520px);
+  background: var(--color-background-elevated);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  box-shadow: var(--shadow-subtle);
+}
+
+.settings-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-modal__title {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-semibold);
+}
+
+.settings-modal__close {
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-caption);
+  cursor: pointer;
+}
+
+.settings-modal__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.settings-modal__section-title {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+}
+
+.settings-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.settings-modal__label {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}
+
+.settings-modal__input {
+  height: var(--component-input-height);
+  border-radius: var(--component-input-radius);
+  border: 1px solid var(--component-input-border-color);
+  padding: 0 var(--component-input-padding-x);
+  background: var(--component-input-background);
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+}
