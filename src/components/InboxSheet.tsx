@@ -10,9 +10,10 @@ type InboxSheetProps = {
   onAddItem: (text: string) => void
   onConvertToTask: (id: string) => void
   onConvertToNote: (id: string) => void
+  onDeleteItem: (id: string) => void
 }
 
-function InboxSheet({ isOpen, items, onClose, onAddItem, onConvertToTask, onConvertToNote }: InboxSheetProps) {
+function InboxSheet({ isOpen, items, onClose, onAddItem, onConvertToTask, onConvertToNote, onDeleteItem }: InboxSheetProps) {
   return (
     <>
       <div className={`sheet-backdrop${isOpen ? ' sheet-backdrop--open' : ''}`} onClick={onClose} />
@@ -21,7 +22,7 @@ function InboxSheet({ isOpen, items, onClose, onAddItem, onConvertToTask, onConv
         <QuickCaptureInput onSubmit={onAddItem} />
         <div className="inbox-sheet__list">
           {items.length === 0 ? (
-            <div className="inbox-sheet__empty">Sem itens capturados.</div>
+            <div className="inbox-sheet__empty">Caixa de entrada limpa!</div>
           ) : (
             items.map((item) => (
               <InboxItem
@@ -29,6 +30,7 @@ function InboxSheet({ isOpen, items, onClose, onAddItem, onConvertToTask, onConv
                 item={item}
                 onConvertToTask={onConvertToTask}
                 onConvertToNote={onConvertToNote}
+                onDelete={onDeleteItem}
               />
             ))
           )}

@@ -11,7 +11,7 @@ function NotesGrid({ notes, onSelectNote }: NotesGridProps) {
   return (
     <section className="notes-grid" aria-label="Notas">
       {notes.length === 0 ? (
-        <div className="notes-grid__empty">Sem notas ainda.</div>
+        <div className="notes-grid__empty">Suas notas aparecerao aqui.</div>
       ) : (
         notes.map((note) => <StickyNoteCard key={note.id} note={note} onSelect={onSelectNote} />)
       )}

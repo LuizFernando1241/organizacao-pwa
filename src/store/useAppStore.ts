@@ -17,12 +17,15 @@ type AppState = {
   init: () => Promise<void>
   refreshFromDb: () => Promise<void>
   addInboxItem: (text: string) => void
+  deleteInboxItem: (id: string) => void
   setSelectedDayKey: (dayKey: string) => void
   updateRoutine: (updates: { wakeTime?: string; sleepTime?: string }) => void
+  runTimeTick: () => void
   updateTask: (id: string, updates: Partial<Task>) => void
   toggleTaskDone: (id: string) => void
   deleteTask: (id: string) => void
   convertInboxToTask: (id: string, dayKey: string) => void
+  convertInboxToNote: (id: string) => void
   createNote: (data: Pick<Note, 'title' | 'body'>) => string
   updateNote: (id: string, updates: Partial<Note>) => void
   deleteNote: (id: string) => void
@@ -131,6 +134,18 @@ export const useAppStore = create<AppState>((set, get) => ({
       payload: item,
     })
   },
+  deleteInboxItem: (id) => {
+    set((state) => ({
+      inboxItems: state.inboxItems.filter((item) => item.id !== id),
+    }))
+    void db.inbox_items.delete(id)
+    void enqueueOp({
+      entityType: 'inbox',
+      entityId: id,
+      opType: 'delete',
+      payload: { updatedAt: new Date().toISOString() },
+    })
+  },
   setSelectedDayKey: (dayKey) => {
     set({ selectedDayKey: dayKey })
     void setMetaValue('selectedDayKey', dayKey)
@@ -158,6 +173,47 @@ export const useAppStore = create<AppState>((set, get) => ({
         payload: { sleepTime: updates.sleepTime },
       })
     }
+  },
+  runTimeTick: () => {
+    const now = new Date()
+    const todayKey = now.toISOString().slice(0, 10)
+    const nowMinutes = now.getHours() * 60 + now.getMinutes()
+    set((state) => ({
+      tasks: state.tasks.map((task) => {
+        if (task.dayKey !== todayKey || task.status === 'done') {
+          return task
+        }
+        if (!task.timeStart || !task.timeEnd) {
+          return task
+        }
+        const startMinutes = parseTimeToMinutes(task.timeStart)
+        const endMinutes = parseTimeToMinutes(task.timeEnd)
+        if (startMinutes === null || endMinutes === null) {
+          return task
+        }
+        let nextStatus = task.status
+        if (nowMinutes > endMinutes) {
+          nextStatus = 'overdue'
+        } else if (nowMinutes >= startMinutes && nowMinutes <= endMinutes) {
+          nextStatus = 'active'
+        } else if (nowMinutes < startMinutes) {
+          nextStatus = 'planned'
+        }
+        if (nextStatus === task.status) {
+          return task
+        }
+        const updatedAt = new Date().toISOString()
+        const nextTask: Task = { ...task, status: nextStatus as Task['status'], updatedAt }
+        void db.tasks.put(nextTask)
+        void enqueueOp({
+          entityType: 'task',
+          entityId: nextTask.id,
+          opType: 'update',
+          payload: nextTask,
+        })
+        return nextTask
+      }),
+    }))
   },
   updateTask: (id, updates) => {
     const now = new Date().toISOString()
@@ -261,6 +317,34 @@ export const useAppStore = create<AppState>((set, get) => ({
       entityId: task.id,
       opType: 'create',
       payload: task,
+    })
+  },
+  convertInboxToNote: (id) => {
+    const item = get().inboxItems.find((inbox) => inbox.id === id)
+    if (!item) {
+      return
+    }
+    const now = new Date().toISOString()
+    const note: Note = { id: buildId('note'), title: '', body: item.text, createdAt: now, updatedAt: now }
+    set((state) => ({
+      inboxItems: state.inboxItems.filter((inbox) => inbox.id !== id),
+      notes: [note, ...state.notes],
+    }))
+    void db.transaction('rw', db.inbox_items, db.notes, async () => {
+      await db.inbox_items.delete(id)
+      await db.notes.add(note)
+    })
+    void enqueueOp({
+      entityType: 'inbox',
+      entityId: id,
+      opType: 'delete',
+      payload: { updatedAt: now },
+    })
+    void enqueueOp({
+      entityType: 'note',
+      entityId: note.id,
+      opType: 'create',
+      payload: note,
     })
   },
   createNote: (data) => {

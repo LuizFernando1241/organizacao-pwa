@@ -12,3 +12,32 @@
   border-radius: var(--radius-md);
   text-align: center;
 }
+
+.task-list__done {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.task-list__done-toggle {
+  align-self: flex-start;
+  border: 1px solid var(--color-border-default);
+  background: transparent;
+  border-radius: var(--radius-pill);
+  padding: 6px 12px;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background var(--motion-duration-fast) var(--motion-easing-standard),
+    border-color var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.task-list__done-toggle:hover {
+  background: var(--color-background-hover-fill);
+}
+
+.task-list__done-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}

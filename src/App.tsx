@@ -46,6 +46,9 @@ function App() {
     isReady,
     init,
     addInboxItem,
+    deleteInboxItem,
+    convertInboxToNote,
+    runTimeTick,
     convertInboxToTask,
     updateTask,
     toggleTaskDone,
@@ -79,13 +82,35 @@ function App() {
     return startSync()
   }, [isReady])
 
+  useEffect(() => {
+    if (!isReady) {
+      return
+    }
+    const interval = window.setInterval(() => {
+      runTimeTick()
+    }, 60_000)
+    runTimeTick()
+    return () => window.clearInterval(interval)
+  }, [isReady, runTimeTick])
+
+  const closeAllOverlays = () => {
+    setIsInboxOpen(false)
+    setIsTaskSheetOpen(false)
+    setIsLinkedNotesOpen(false)
+    setIsCalendarOpen(false)
+    setIsSettingsOpen(false)
+  }
+
   const handleSelectTab = (tab: 'today' | 'notes' | 'inbox') => {
+    closeAllOverlays()
     setActiveTab(tab)
-    setIsInboxOpen(tab === 'inbox')
+    if (tab === 'inbox') {
+      setIsInboxOpen(true)
+    }
   }
 
   const handleCloseInbox = () => {
-    setIsInboxOpen(false)
+    closeAllOverlays()
     setActiveTab('today')
   }
 
@@ -94,9 +119,16 @@ function App() {
     handleCloseInbox()
   }
 
-  const handleConvertToNote = (_id: string) => {}
+  const handleConvertToNote = (id: string) => {
+    convertInboxToNote(id)
+  }
+
+  const handleDeleteInboxItem = (id: string) => {
+    deleteInboxItem(id)
+  }
 
   const handleSelectTask = (task: Task) => {
+    closeAllOverlays()
     setActiveTaskId(task.id)
     setIsTaskSheetOpen(true)
   }
@@ -106,13 +138,28 @@ function App() {
   }
 
   const handleOpenCalendar = () => {
+    closeAllOverlays()
     setCalendarMonth(new Date(selectedDayKey))
     setIsCalendarOpen(true)
   }
 
   const handleSelectCalendarDay = (date: Date) => {
-    setSelectedDayKey(date.toISOString().slice(0, 10))
     setIsCalendarOpen(false)
+    setSelectedDayKey(date.toISOString().slice(0, 10))
+  }
+
+  const handleOpenSettings = () => {
+    closeAllOverlays()
+    setIsSettingsOpen(true)
+  }
+
+  const handleOpenLinkedNotes = () => {
+    setIsTaskSheetOpen(false)
+    setIsLinkedNotesOpen(true)
+  }
+
+  const handleCloseLinkedNotes = () => {
+    setIsLinkedNotesOpen(false)
   }
 
   const overbookedKeys = useMemo(() => {
@@ -129,7 +176,7 @@ function App() {
         <NotesView />
       ) : (
         <>
-          <TopBar title="Semana 14-20" onCalendarClick={handleOpenCalendar} onSettingsClick={() => setIsSettingsOpen(true)} />
+          <TopBar title="Semana 14-20" onCalendarClick={handleOpenCalendar} onSettingsClick={handleOpenSettings} />
           <main className="app-content">
             <div className="home-stack">
               <h1 className="page-title">Hoje / Semana</h1>
@@ -153,6 +200,7 @@ function App() {
         onAddItem={addInboxItem}
         onConvertToTask={handleConvertToTask}
         onConvertToNote={handleConvertToNote}
+        onDeleteItem={handleDeleteInboxItem}
       />
       <TaskSheet
         isOpen={isTaskSheetOpen}
@@ -162,13 +210,13 @@ function App() {
         onUpdate={updateTask}
         onToggleDone={toggleTaskDone}
         onDelete={deleteTask}
-        onOpenLinkedNotes={() => setIsLinkedNotesOpen(true)}
+        onOpenLinkedNotes={handleOpenLinkedNotes}
       />
       <LinkedNotesSheet
         isOpen={isLinkedNotesOpen}
         task={activeTask}
         notes={notes}
-        onClose={() => setIsLinkedNotesOpen(false)}
+        onClose={handleCloseLinkedNotes}
       />
       <MonthCalendarModal
         isOpen={isCalendarOpen}
