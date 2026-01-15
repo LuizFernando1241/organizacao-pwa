@@ -150,6 +150,7 @@ const markDeleted = async (db: D1Database, table: string, id: string, opUpdatedA
 }
 
 router.options('*', () => new Response(null, { status: 204, headers: { 'access-control-allow-origin': '*' } }))
+router.get('/favicon.ico', () => new Response(null, { status: 204 }))
 
 router.post('/sync/push', async (request: Request, env: Env) => {
   const body = await parseJson(request)
@@ -224,5 +225,7 @@ router.get('/sync/pull', async (request: Request, env: Env) => {
 router.all('*', () => jsonResponse({ error: 'Not Found' }, { status: 404 }))
 
 export default {
-  fetch: (request: Request, env: Env, _ctx: ExecutionContext) => router.handle(request, env),
+  fetch: async (request: Request, env: Env, _ctx: ExecutionContext) => {
+    return router.handle(request, env)
+  },
 }
