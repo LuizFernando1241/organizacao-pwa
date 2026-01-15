@@ -110,6 +110,7 @@ function App() {
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false)
   const [linkNoteId, setLinkNoteId] = useState<string | null>(null)
   const [isSyncing, setIsSyncing] = useState(false)
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
   const visibleTasks = tasks.filter((task) => {
     if (task.dayKey === selectedDayKey) {
@@ -262,16 +263,30 @@ function App() {
 
   const handleForceSync = async () => {
     if (isSyncing || !navigator.onLine) {
+      if (!navigator.onLine) {
+        setToast({ type: 'error', message: 'Sem conexao com a internet.' })
+      }
       return
     }
     setIsSyncing(true)
     try {
       await pushChanges()
       await pullChanges()
+      setToast({ type: 'success', message: 'Sincronizacao concluida.' })
+    } catch {
+      setToast({ type: 'error', message: 'Falha ao sincronizar.' })
     } finally {
       setIsSyncing(false)
     }
   }
+
+  useEffect(() => {
+    if (!toast) {
+      return
+    }
+    const handle = window.setTimeout(() => setToast(null), 2400)
+    return () => window.clearTimeout(handle)
+  }, [toast])
 
   const handleOpenLinkedNotes = () => {
     setIsTaskSheetOpen(false)
@@ -334,6 +349,7 @@ function App() {
 
   return (
     <div className="app-shell">
+      {toast && <div className={`toast toast--${toast.type}`}>{toast.message}</div>}
       {activeTab === 'notes' ? (
         <NotesView />
       ) : (

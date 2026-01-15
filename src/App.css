@@ -31,3 +31,38 @@
   flex-direction: column;
   gap: var(--space-5);
 }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 92px;
+  transform: translateX(-50%);
+  background: rgba(30, 30, 30, 0.9);
+  color: #ffffff;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  z-index: 2000;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  animation: toast-in 180ms var(--motion-easing-standard);
+}
+
+.toast--success {
+  border: 1px solid rgba(99, 102, 241, 0.5);
+}
+
+.toast--error {
+  border: 1px solid rgba(239, 68, 68, 0.6);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
