@@ -60,11 +60,14 @@ function InboxItem({ item, onConvertToTask, onConvertToNote, onDelete }: InboxIt
       >
         <div className="inbox-item__text">{item.text}</div>
         <div className="inbox-item__actions">
-          <button type="button" className="inbox-item__action" onClick={() => onConvertToTask(item.id)}>
-            Virar tarefa
+          <button type="button" className="inbox-item__action" onClick={() => onConvertToTask(item.id)} aria-label="Virar tarefa">
+            T
           </button>
-          <button type="button" className="inbox-item__action" onClick={() => onConvertToNote(item.id)}>
-            Virar nota
+          <button type="button" className="inbox-item__action" onClick={() => onConvertToNote(item.id)} aria-label="Virar nota">
+            N
+          </button>
+          <button type="button" className="inbox-item__action" onClick={() => onDelete(item.id)} aria-label="Excluir">
+            X
           </button>
         </div>
       </div>

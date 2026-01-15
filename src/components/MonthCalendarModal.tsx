@@ -4,6 +4,7 @@ import './MonthCalendarModal.css'
 type MonthCalendarModalProps = {
   isOpen: boolean
   monthDate: Date
+  selectedDayKey: string
   onClose: () => void
   onPrev: () => void
   onNext: () => void
@@ -13,7 +14,7 @@ type MonthCalendarModalProps = {
 const monthNames = [
   'Janeiro',
   'Fevereiro',
-  'Marco',
+  'Março',
   'Abril',
   'Maio',
   'Junho',
@@ -45,7 +46,15 @@ const buildCalendarDays = (monthDate: Date) => {
   return days
 }
 
-function MonthCalendarModal({ isOpen, monthDate, onClose, onPrev, onNext, onSelectDay }: MonthCalendarModalProps) {
+function MonthCalendarModal({
+  isOpen,
+  monthDate,
+  selectedDayKey,
+  onClose,
+  onPrev,
+  onNext,
+  onSelectDay,
+}: MonthCalendarModalProps) {
   if (!isOpen) {
     return null
   }
@@ -55,18 +64,15 @@ function MonthCalendarModal({ isOpen, monthDate, onClose, onPrev, onNext, onSele
   const monthLabel = `${monthNames[monthDate.getMonth()]} ${monthDate.getFullYear()}`
 
   return (
-    <div className="month-calendar__backdrop">
-      <section className="month-calendar">
+    <div className="month-calendar__backdrop" onClick={onClose}>
+      <section className="month-calendar" onClick={(event) => event.stopPropagation()}>
         <header className="month-calendar__header">
           <button type="button" className="month-calendar__nav" onClick={onPrev} aria-label="Mes anterior">
-            ‹
+            {'<'}
           </button>
           <div className="month-calendar__title">{monthLabel}</div>
           <button type="button" className="month-calendar__nav" onClick={onNext} aria-label="Proximo mes">
-            ›
-          </button>
-          <button type="button" className="month-calendar__close" onClick={onClose} aria-label="Fechar calendario">
-            Fechar
+            {'>'}
           </button>
         </header>
         <div className="month-calendar__grid">
@@ -76,6 +82,7 @@ function MonthCalendarModal({ isOpen, monthDate, onClose, onPrev, onNext, onSele
                 key={entry.date.toISOString()}
                 day={entry.date.getDate()}
                 isToday={entry.date.toISOString().slice(0, 10) === todayKey}
+                isSelected={entry.date.toISOString().slice(0, 10) === selectedDayKey}
                 onSelect={() => onSelectDay(entry.date)}
               />
             ) : (

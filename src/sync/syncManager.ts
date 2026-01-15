@@ -35,7 +35,7 @@ const normalizeTask = (row: Record<string, unknown>): Task => {
   return {
     id: String(row.id),
     title: String(row.title ?? ''),
-    timeLabel: row.time_start && row.time_end ? `${row.time_start}-${row.time_end}` : 'Sem horario',
+    timeLabel: row.time_start && row.time_end ? `${row.time_start}-${row.time_end}` : 'Sem horário',
     timeStart: String(row.time_start ?? ''),
     timeEnd: String(row.time_end ?? ''),
     status: (row.status as Task['status']) ?? 'planned',

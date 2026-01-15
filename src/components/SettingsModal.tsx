@@ -4,11 +4,29 @@ type SettingsModalProps = {
   isOpen: boolean
   wakeTime: string
   sleepTime: string
+  applyRoutineAllDays: boolean
+  warnOverbooked: boolean
+  blockOverbooked: boolean
   onClose: () => void
-  onChange: (updates: { wakeTime?: string; sleepTime?: string }) => void
+  onChange: (updates: {
+    wakeTime?: string
+    sleepTime?: string
+    applyRoutineAllDays?: boolean
+    warnOverbooked?: boolean
+    blockOverbooked?: boolean
+  }) => void
 }
 
-function SettingsModal({ isOpen, wakeTime, sleepTime, onClose, onChange }: SettingsModalProps) {
+function SettingsModal({
+  isOpen,
+  wakeTime,
+  sleepTime,
+  applyRoutineAllDays,
+  warnOverbooked,
+  blockOverbooked,
+  onClose,
+  onChange,
+}: SettingsModalProps) {
   if (!isOpen) {
     return null
   }
@@ -41,6 +59,33 @@ function SettingsModal({ isOpen, wakeTime, sleepTime, onClose, onChange }: Setti
               value={sleepTime}
               onChange={(event) => onChange({ sleepTime: event.target.value })}
             />
+          </label>
+          <label className="settings-modal__toggle">
+            <input
+              type="checkbox"
+              checked={applyRoutineAllDays}
+              onChange={(event) => onChange({ applyRoutineAllDays: event.target.checked })}
+            />
+            <span>Aplicar para todos os dias</span>
+          </label>
+        </div>
+        <div className="settings-modal__section">
+          <div className="settings-modal__section-title">Comportamento</div>
+          <label className="settings-modal__toggle">
+            <input
+              type="checkbox"
+              checked={warnOverbooked}
+              onChange={(event) => onChange({ warnOverbooked: event.target.checked })}
+            />
+            <span>Alertar quando exceder o tempo do dia</span>
+          </label>
+          <label className="settings-modal__toggle">
+            <input
+              type="checkbox"
+              checked={blockOverbooked}
+              onChange={(event) => onChange({ blockOverbooked: event.target.checked })}
+            />
+            <span>Bloquear (modo avancado)</span>
           </label>
         </div>
       </section>

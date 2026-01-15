@@ -78,7 +78,7 @@ const seedTasks: Task[] = [
   {
     id: 'task-3',
     title: 'Responder mensagens pendentes',
-    timeLabel: 'Sem horario',
+    timeLabel: 'Sem horário',
     timeStart: '',
     timeEnd: '',
     status: 'overdue',
@@ -145,6 +145,18 @@ export const initDb = async () => {
   const sleepTime = await db.meta.get('sleepTime')
   if (!sleepTime) {
     await db.meta.put({ key: 'sleepTime', value: '23:00' })
+  }
+  const applyRoutineAllDays = await db.meta.get('applyRoutineAllDays')
+  if (!applyRoutineAllDays) {
+    await db.meta.put({ key: 'applyRoutineAllDays', value: 'false' })
+  }
+  const warnOverbooked = await db.meta.get('warnOverbooked')
+  if (!warnOverbooked) {
+    await db.meta.put({ key: 'warnOverbooked', value: 'true' })
+  }
+  const blockOverbooked = await db.meta.get('blockOverbooked')
+  if (!blockOverbooked) {
+    await db.meta.put({ key: 'blockOverbooked', value: 'false' })
   }
   const lastSyncCursor = await db.meta.get('lastSyncCursor')
   if (!lastSyncCursor) {

@@ -23,7 +23,7 @@
 
 .month-calendar__header {
   display: grid;
-  grid-template-columns: auto 1fr auto auto;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: var(--space-2);
 }
@@ -43,14 +43,6 @@
   cursor: pointer;
 }
 
-.month-calendar__close {
-  border: none;
-  background: transparent;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-caption);
-  cursor: pointer;
-}
-
 .month-calendar__grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -58,7 +50,15 @@
 }
 
 .month-calendar__empty {
-  aspect-ratio: 1;
+  width: var(--size-calendar-cell-mobile);
+  height: var(--size-calendar-cell-mobile);
+}
+
+@media (min-width: 768px) {
+  .month-calendar__empty {
+    width: var(--size-calendar-cell-desktop);
+    height: var(--size-calendar-cell-desktop);
+  }
 }
 
 @keyframes modal-fade {

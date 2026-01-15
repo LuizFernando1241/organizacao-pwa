@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import type { InboxItem } from '../types/inbox'
 import type { Note } from '../types/note'
 import type { NoteTaskLink } from '../types/link'
-import type { Task } from '../types/task'
+import type { Subtask, Task } from '../types/task'
 import { db, enqueueOp, getMetaValue, initDb, setMetaValue } from './db'
 
 type AppState = {
@@ -13,19 +13,28 @@ type AppState = {
   selectedDayKey: string
   wakeTime: string
   sleepTime: string
+  applyRoutineAllDays: boolean
+  warnOverbooked: boolean
+  blockOverbooked: boolean
   isReady: boolean
   init: () => Promise<void>
   refreshFromDb: () => Promise<void>
   addInboxItem: (text: string) => void
   deleteInboxItem: (id: string) => void
   setSelectedDayKey: (dayKey: string) => void
-  updateRoutine: (updates: { wakeTime?: string; sleepTime?: string }) => void
+  updateRoutine: (updates: {
+    wakeTime?: string
+    sleepTime?: string
+    applyRoutineAllDays?: boolean
+    warnOverbooked?: boolean
+    blockOverbooked?: boolean
+  }) => void
   runTimeTick: () => void
   updateTask: (id: string, updates: Partial<Task>) => void
   toggleTaskDone: (id: string) => void
   deleteTask: (id: string) => void
   convertInboxToTask: (id: string, dayKey: string) => void
-  convertInboxToNote: (id: string) => void
+  convertInboxToNote: (id: string, data: Pick<Note, 'title' | 'body'>) => string | null
   createNote: (data: Pick<Note, 'title' | 'body'>) => string
   updateNote: (id: string, updates: Partial<Note>) => void
   deleteNote: (id: string) => void
@@ -48,6 +57,16 @@ const parseTimeToMinutes = (value: string) => {
   return hours * 60 + minutes
 }
 
+const parseBool = (value: string | null | undefined, fallback: boolean) => {
+  if (value === 'true') {
+    return true
+  }
+  if (value === 'false') {
+    return false
+  }
+  return fallback
+}
+
 const diffMinutes = (start: string, end: string) => {
   const startMinutes = parseTimeToMinutes(start)
   const endMinutes = parseTimeToMinutes(end)
@@ -64,7 +83,7 @@ const buildTimeLabel = (start: string, end: string) => {
   if (start && end) {
     return `${start}-${end}`
   }
-  return 'Sem horario'
+  return 'Sem horário'
 }
 
 const isFutureTime = (dayKey: string, start: string) => {
@@ -94,6 +113,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   selectedDayKey: getTodayKey(),
   wakeTime: '07:00',
   sleepTime: '23:00',
+  applyRoutineAllDays: false,
+  warnOverbooked: true,
+  blockOverbooked: false,
   isReady: false,
   init: async () => {
     await initDb()
@@ -113,6 +135,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     const selectedDayKey = (await getMetaValue('selectedDayKey')) ?? getTodayKey()
     const wakeTime = (await getMetaValue('wakeTime')) ?? '07:00'
     const sleepTime = (await getMetaValue('sleepTime')) ?? '23:00'
+    const applyRoutineAllDays = parseBool(await getMetaValue('applyRoutineAllDays'), false)
+    const warnOverbooked = parseBool(await getMetaValue('warnOverbooked'), true)
+    const blockOverbooked = parseBool(await getMetaValue('blockOverbooked'), false)
     set({
       tasks: normalizedTasks,
       notes,
@@ -121,6 +146,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       selectedDayKey,
       wakeTime,
       sleepTime,
+      applyRoutineAllDays,
+      warnOverbooked,
+      blockOverbooked,
     })
   },
   addInboxItem: (text) => {
@@ -154,6 +182,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((state) => ({
       wakeTime: updates.wakeTime ?? state.wakeTime,
       sleepTime: updates.sleepTime ?? state.sleepTime,
+      applyRoutineAllDays: updates.applyRoutineAllDays ?? state.applyRoutineAllDays,
+      warnOverbooked: updates.warnOverbooked ?? state.warnOverbooked,
+      blockOverbooked: updates.blockOverbooked ?? state.blockOverbooked,
     }))
     if (updates.wakeTime !== undefined) {
       void setMetaValue('wakeTime', updates.wakeTime)
@@ -171,6 +202,36 @@ export const useAppStore = create<AppState>((set, get) => ({
         entityId: 'sleepTime',
         opType: 'update',
         payload: { sleepTime: updates.sleepTime },
+      })
+    }
+    if (updates.applyRoutineAllDays !== undefined) {
+      const value = String(updates.applyRoutineAllDays)
+      void setMetaValue('applyRoutineAllDays', value)
+      void enqueueOp({
+        entityType: 'meta',
+        entityId: 'applyRoutineAllDays',
+        opType: 'update',
+        payload: { applyRoutineAllDays: value },
+      })
+    }
+    if (updates.warnOverbooked !== undefined) {
+      const value = String(updates.warnOverbooked)
+      void setMetaValue('warnOverbooked', value)
+      void enqueueOp({
+        entityType: 'meta',
+        entityId: 'warnOverbooked',
+        opType: 'update',
+        payload: { warnOverbooked: value },
+      })
+    }
+    if (updates.blockOverbooked !== undefined) {
+      const value = String(updates.blockOverbooked)
+      void setMetaValue('blockOverbooked', value)
+      void enqueueOp({
+        entityType: 'meta',
+        entityId: 'blockOverbooked',
+        opType: 'update',
+        payload: { blockOverbooked: value },
       })
     }
   },
@@ -252,7 +313,14 @@ export const useAppStore = create<AppState>((set, get) => ({
         if (task.id !== id) {
           return task
         }
-        const nextTask: Task = { ...task, status: 'done' as Task['status'], updatedAt: now }
+        const nextTask: Task = {
+          ...task,
+          status: 'done' as Task['status'],
+          subtasks: task.subtasks.map((subtask) =>
+            subtask.status === 'DONE' ? subtask : { ...subtask, status: 'DONE' as Subtask['status'] },
+          ),
+          updatedAt: now,
+        }
         void db.tasks.put(nextTask)
         void enqueueOp({
           entityType: 'task',
@@ -288,7 +356,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const task: Task = {
       id: buildId('task'),
       title: item.text,
-      timeLabel: 'Sem horario',
+      timeLabel: 'Sem horário',
       timeStart: '',
       timeEnd: '',
       status: 'planned',
@@ -319,13 +387,14 @@ export const useAppStore = create<AppState>((set, get) => ({
       payload: task,
     })
   },
-  convertInboxToNote: (id) => {
+  convertInboxToNote: (id, data) => {
     const item = get().inboxItems.find((inbox) => inbox.id === id)
     if (!item) {
-      return
+      return null
     }
     const now = new Date().toISOString()
-    const note: Note = { id: buildId('note'), title: '', body: item.text, createdAt: now, updatedAt: now }
+    const noteId = buildId('note')
+    const note: Note = { id: noteId, title: data.title, body: data.body, createdAt: now, updatedAt: now }
     set((state) => ({
       inboxItems: state.inboxItems.filter((inbox) => inbox.id !== id),
       notes: [note, ...state.notes],
@@ -346,6 +415,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       opType: 'create',
       payload: note,
     })
+    return noteId
   },
   createNote: (data) => {
     const id = buildId('note')
@@ -462,6 +532,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     }, 0)
   },
   isOverbookedForDay: (dayKey) => {
+    if (!get().warnOverbooked) {
+      return false
+    }
     const capacity = get().getDailyCapacityMinutes()
     const planned = get().getPlannedDurationMinutesForDay(dayKey)
     return planned > capacity

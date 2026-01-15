@@ -41,11 +41,23 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-2);
 }
 
-.task-sheet__title {
+.task-sheet__title-input {
+  flex: 1;
+  border: none;
+  border-bottom: 1px solid transparent;
+  background: transparent;
   font-size: var(--font-size-h2);
   font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  padding: 4px 0;
+}
+
+.task-sheet__title-input:focus {
+  outline: none;
+  border-bottom-color: var(--color-border-focus);
 }
 
 .task-sheet__header-actions {
@@ -64,9 +76,9 @@
 
 .task-sheet__primary-button {
   border: none;
-  background: var(--color-state-planned);
+  background: var(--color-text-primary);
   color: var(--color-text-inverse);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
   padding: 6px 12px;
   font-size: var(--font-size-caption);
   font-weight: var(--font-weight-semibold);
@@ -85,6 +97,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+}
+
+.field--inline {
+  flex: 1;
 }
 
 .field__label {
@@ -107,6 +123,34 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--space-2);
+}
+
+.time-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.time-section__row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.time-section__action {
+  border: 1px solid var(--color-border-default);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  height: 36px;
+  padding: 0 12px;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.time-section__action:hover {
+  background: var(--color-background-hover-fill);
 }
 
 .subtasks {
@@ -184,6 +228,53 @@
   cursor: pointer;
 }
 
+.confirm-dialog__backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--color-background-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 12;
+}
+
+.confirm-dialog {
+  width: min(85vw, 320px);
+  background: var(--color-background-elevated);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  box-shadow: var(--shadow-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.confirm-dialog__title {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+}
+
+.confirm-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.confirm-dialog__button {
+  border: 1px solid var(--color-border-default);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.confirm-dialog__button--danger {
+  border-color: var(--color-border-danger);
+  color: var(--color-text-danger);
+}
+
 .linked-notes {
   display: flex;
   flex-direction: column;
@@ -227,12 +318,15 @@
 
 .mini-sticky-note {
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   padding: var(--space-2);
   background: var(--color-background-note);
   display: flex;
   flex-direction: column;
   gap: 4px;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
 }
 
 .mini-sticky-note__title {

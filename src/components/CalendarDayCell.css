@@ -1,6 +1,6 @@
 .calendar-day {
-  width: 100%;
-  aspect-ratio: 1;
+  width: var(--size-calendar-cell-mobile);
+  height: var(--size-calendar-cell-mobile);
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -16,6 +16,17 @@
   background: var(--color-background-hover-fill);
 }
 
+.calendar-day--selected {
+  background: var(--color-background-hover-fill);
+}
+
 .calendar-day--today {
   border-color: var(--color-border-today);
+}
+
+@media (min-width: 768px) {
+  .calendar-day {
+    width: var(--size-calendar-cell-desktop);
+    height: var(--size-calendar-cell-desktop);
+  }
 }

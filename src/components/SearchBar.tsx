@@ -8,13 +8,18 @@ type SearchBarProps = {
 
 function SearchBar({ value, onChange, placeholder = 'Buscar' }: SearchBarProps) {
   return (
-    <input
-      type="search"
-      className="search-bar"
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      placeholder={placeholder}
-    />
+    <label className="search-bar" aria-label={placeholder}>
+      <span className="search-bar__icon" aria-hidden="true">
+        L
+      </span>
+      <input
+        type="search"
+        className="search-bar__input"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+      />
+    </label>
   )
 }
 

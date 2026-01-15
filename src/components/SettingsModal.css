@@ -72,6 +72,19 @@
   color: var(--color-text-primary);
 }
 
+.settings-modal__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}
+
+.settings-modal__toggle input {
+  width: 16px;
+  height: 16px;
+}
+
 @keyframes modal-fade {
   from {
     opacity: 0;

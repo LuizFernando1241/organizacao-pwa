@@ -12,27 +12,42 @@ type TaskSheetProps = {
   onToggleDone: (id: string) => void
   onDelete: (id: string) => void
   onOpenLinkedNotes: () => void
+  onSelectNote?: (note: Note) => void
 }
 
 const buildSubtaskId = () => `subtask-${Date.now()}-${Math.random().toString(16).slice(2)}`
 
-function TaskSheet({ isOpen, task, notes, onClose, onUpdate, onToggleDone, onDelete, onOpenLinkedNotes }: TaskSheetProps) {
+function TaskSheet({
+  isOpen,
+  task,
+  notes,
+  onClose,
+  onUpdate,
+  onToggleDone,
+  onDelete,
+  onOpenLinkedNotes,
+  onSelectNote,
+}: TaskSheetProps) {
   const [title, setTitle] = useState('')
+  const [dayKey, setDayKey] = useState('')
   const [timeStart, setTimeStart] = useState('')
   const [timeEnd, setTimeEnd] = useState('')
   const [recurrence, setRecurrence] = useState<Recurrence>('none')
   const [subtasksOpen, setSubtasksOpen] = useState(false)
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
 
   useEffect(() => {
     if (!task) {
       return
     }
     setTitle(task.title)
+    setDayKey(task.dayKey)
     setTimeStart(task.timeStart)
     setTimeEnd(task.timeEnd)
     setRecurrence(task.recurrence)
     setSubtasksOpen(false)
-  }, [task])
+    setIsConfirmingDelete(false)
+  }, [task, isOpen])
 
   useEffect(() => {
     if (!task || title === task.title) {
@@ -47,6 +62,9 @@ function TaskSheet({ isOpen, task, notes, onClose, onUpdate, onToggleDone, onDel
       return
     }
     const updates: Partial<Task> = {}
+    if (dayKey !== task.dayKey) {
+      updates.dayKey = dayKey
+    }
     if (timeStart !== task.timeStart) {
       updates.timeStart = timeStart
     }
@@ -58,13 +76,20 @@ function TaskSheet({ isOpen, task, notes, onClose, onUpdate, onToggleDone, onDel
     }
     const handle = window.setTimeout(() => onUpdate(task.id, updates), 300)
     return () => window.clearTimeout(handle)
-  }, [task, timeStart, timeEnd, onUpdate])
+  }, [task, dayKey, timeStart, timeEnd, onUpdate])
 
   const handleRecurrenceChange = (value: Recurrence) => {
     setRecurrence(value)
     if (task) {
       onUpdate(task.id, { recurrence: value })
     }
+  }
+
+  const handleReschedule = () => {
+    if (!task) {
+      return
+    }
+    onUpdate(task.id, { dayKey, timeStart, timeEnd })
   }
 
   const handleToggleSubtask = (subtask: Subtask) => {
@@ -99,7 +124,7 @@ function TaskSheet({ isOpen, task, notes, onClose, onUpdate, onToggleDone, onDel
     onClose()
   }
 
-  const handleDelete = () => {
+  const handleConfirmDelete = () => {
     if (!task) {
       return
     }
@@ -114,7 +139,13 @@ function TaskSheet({ isOpen, task, notes, onClose, onUpdate, onToggleDone, onDel
       <div className={`task-sheet-backdrop${isOpen ? ' task-sheet-backdrop--open' : ''}`} onClick={onClose} />
       <section className={`task-sheet${isOpen ? ' task-sheet--open' : ''}`} aria-hidden={!isOpen}>
         <header className="task-sheet__header">
-          <div className="task-sheet__title">Detalhes</div>
+          <input
+            type="text"
+            className="task-sheet__title-input"
+            placeholder="Titulo da tarefa"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+          />
           <div className="task-sheet__header-actions">
             <button type="button" className="task-sheet__text-button" onClick={onClose}>
               Fechar
@@ -125,35 +156,67 @@ function TaskSheet({ isOpen, task, notes, onClose, onUpdate, onToggleDone, onDel
           </div>
         </header>
         <div className="task-sheet__body">
-          <label className="field">
-            <span className="field__label">Titulo</span>
-            <input
-              type="text"
-              className="field__input"
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-            />
-          </label>
+          <div className="time-section">
+            <div className="time-section__row">
+              <label className="field field--inline">
+                <span className="field__label">Dia</span>
+                <input
+                  type="date"
+                  className="field__input"
+                  value={dayKey}
+                  onChange={(event) => setDayKey(event.target.value)}
+                />
+              </label>
+              <button type="button" className="time-section__action" onClick={handleReschedule}>
+                Reprogramar
+              </button>
+            </div>
+            <div className="time-range">
+              <label className="field">
+                <span className="field__label">Hora inicio</span>
+                <input
+                  type="time"
+                  className="field__input"
+                  value={timeStart}
+                  onChange={(event) => setTimeStart(event.target.value)}
+                />
+              </label>
+              <label className="field">
+                <span className="field__label">Hora fim</span>
+                <input
+                  type="time"
+                  className="field__input"
+                  value={timeEnd}
+                  onChange={(event) => setTimeEnd(event.target.value)}
+                />
+              </label>
+            </div>
+          </div>
 
-          <div className="time-range">
-            <label className="field">
-              <span className="field__label">Hora inicio</span>
-              <input
-                type="time"
-                className="field__input"
-                value={timeStart}
-                onChange={(event) => setTimeStart(event.target.value)}
-              />
-            </label>
-            <label className="field">
-              <span className="field__label">Hora fim</span>
-              <input
-                type="time"
-                className="field__input"
-                value={timeEnd}
-                onChange={(event) => setTimeEnd(event.target.value)}
-              />
-            </label>
+          <div className="linked-notes">
+            <div className="linked-notes__header">
+              <div className="linked-notes__title">Notas vinculadas</div>
+              <button type="button" className="linked-notes__button" onClick={onOpenLinkedNotes} disabled={!task}>
+                Ver todas as notas
+              </button>
+            </div>
+            {linkedNotes.length === 0 ? (
+              <div className="linked-notes__empty">Sem notas vinculadas.</div>
+            ) : (
+              <div className="linked-notes__grid">
+                {linkedNotes.slice(0, 3).map((note) => (
+                  <button
+                    key={note.id}
+                    type="button"
+                    className="mini-sticky-note"
+                    onClick={() => onSelectNote?.(note)}
+                  >
+                    {note.title && <div className="mini-sticky-note__title">{note.title}</div>}
+                    <div className="mini-sticky-note__body">{note.body}</div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className={`subtasks${subtasksOpen ? ' subtasks--open' : ''}`}>
@@ -202,33 +265,27 @@ function TaskSheet({ isOpen, task, notes, onClose, onUpdate, onToggleDone, onDel
             </select>
           </label>
 
-          <div className="linked-notes">
-            <div className="linked-notes__header">
-              <div className="linked-notes__title">Notas vinculadas</div>
-              <button type="button" className="linked-notes__button" onClick={onOpenLinkedNotes} disabled={!task}>
-                Ver todas as notas
-              </button>
-            </div>
-            {linkedNotes.length === 0 ? (
-              <div className="linked-notes__empty">Sem notas vinculadas.</div>
-            ) : (
-              <div className="linked-notes__grid">
-                {linkedNotes.slice(0, 3).map((note) => (
-                  <div key={note.id} className="mini-sticky-note">
-                    {note.title && <div className="mini-sticky-note__title">{note.title}</div>}
-                    <div className="mini-sticky-note__body">{note.body}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
           <div className="danger-zone">
-            <button type="button" className="danger-zone__button" onClick={handleDelete}>
+            <button type="button" className="danger-zone__button" onClick={() => setIsConfirmingDelete(true)}>
               Excluir tarefa
             </button>
           </div>
         </div>
+        {isConfirmingDelete && (
+          <div className="confirm-dialog__backdrop" onClick={() => setIsConfirmingDelete(false)}>
+            <div className="confirm-dialog" onClick={(event) => event.stopPropagation()}>
+              <div className="confirm-dialog__title">Excluir tarefa?</div>
+              <div className="confirm-dialog__actions">
+                <button type="button" className="confirm-dialog__button" onClick={() => setIsConfirmingDelete(false)}>
+                  Cancelar
+                </button>
+                <button type="button" className="confirm-dialog__button confirm-dialog__button--danger" onClick={handleConfirmDelete}>
+                  Excluir
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
     </>
   )

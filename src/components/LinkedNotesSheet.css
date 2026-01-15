@@ -41,11 +41,26 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-2);
 }
 
 .linked-notes-sheet__title {
   font-size: var(--font-size-h2);
   font-weight: var(--font-weight-semibold);
+}
+
+.linked-notes-sheet__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.linked-notes-sheet__link {
+  border: none;
+  background: transparent;
+  color: var(--color-text-link);
+  font-size: var(--font-size-caption);
+  cursor: pointer;
 }
 
 .linked-notes-sheet__close {

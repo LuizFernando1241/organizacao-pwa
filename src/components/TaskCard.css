@@ -11,12 +11,18 @@
   cursor: pointer;
   font: inherit;
   justify-content: space-between;
+  transition: background var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.task-card:hover {
+  background: var(--color-background-hover-fill);
 }
 
 .task-card__state-bar {
   width: var(--component-task-card-state-bar-width);
-  border-radius: 999px;
+  border-radius: var(--component-task-card-radius);
   background: var(--color-state-planned);
+  align-self: stretch;
 }
 
 .task-card__content {
@@ -64,4 +70,6 @@
 
 .task-card--done .task-card__title {
   color: var(--color-text-secondary);
+  text-decoration: line-through;
+  text-decoration-color: var(--color-text-muted);
 }

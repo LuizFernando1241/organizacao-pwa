@@ -26,7 +26,7 @@ function TaskList({ tasks, onSelectTask }: TaskListProps) {
       {doneTasks.length > 0 && (
         <div className="task-list__done">
           <button type="button" className="task-list__done-toggle" onClick={() => setShowDone(!showDone)}>
-            {showDone ? 'Ocultar concluidas' : `Concluidas (${doneTasks.length})`}
+            {showDone ? 'Ocultar concluídas' : `Concluídas (${doneTasks.length})`}
           </button>
           {showDone && (
             <div className="task-list__done-items">

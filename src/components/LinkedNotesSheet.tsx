@@ -9,9 +9,10 @@ type LinkedNotesSheetProps = {
   notes: Note[]
   onClose: () => void
   onSelectNote?: (note: Note) => void
+  onLinkNote?: () => void
 }
 
-function LinkedNotesSheet({ isOpen, task, notes, onClose, onSelectNote }: LinkedNotesSheetProps) {
+function LinkedNotesSheet({ isOpen, task, notes, onClose, onSelectNote, onLinkNote }: LinkedNotesSheetProps) {
   if (!isOpen || !task) {
     return null
   }
@@ -23,10 +24,15 @@ function LinkedNotesSheet({ isOpen, task, notes, onClose, onSelectNote }: Linked
       <div className={`linked-notes-backdrop${isOpen ? ' linked-notes-backdrop--open' : ''}`} onClick={onClose} />
       <section className={`linked-notes-sheet${isOpen ? ' linked-notes-sheet--open' : ''}`}>
         <header className="linked-notes-sheet__header">
-          <div className="linked-notes-sheet__title">Notas vinculadas</div>
-          <button type="button" className="linked-notes-sheet__close" onClick={onClose}>
-            Fechar
-          </button>
+          <div className="linked-notes-sheet__title">Notas desta tarefa</div>
+          <div className="linked-notes-sheet__actions">
+            <button type="button" className="linked-notes-sheet__link" onClick={onLinkNote}>
+              Vincular nova nota
+            </button>
+            <button type="button" className="linked-notes-sheet__close" onClick={onClose}>
+              Fechar
+            </button>
+          </div>
         </header>
         <div className="linked-notes-sheet__grid">
           {linkedNotes.length === 0 ? (

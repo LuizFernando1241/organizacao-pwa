@@ -47,18 +47,26 @@
 .inbox-item__text {
   font-size: var(--font-size-body);
   color: var(--color-text-primary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .inbox-item__actions {
   display: flex;
   gap: var(--space-2);
+  opacity: 0.45;
+  transition: opacity var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
 .inbox-item__action {
-  border: 1px solid var(--color-border-default);
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
   background: transparent;
-  border-radius: var(--radius-sm);
-  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  padding: 0;
   font-size: var(--font-size-caption);
   color: var(--color-text-secondary);
   cursor: pointer;
@@ -68,4 +76,8 @@
 
 .inbox-item__action:hover {
   background: var(--color-background-hover-fill);
+}
+
+.inbox-item:hover .inbox-item__actions {
+  opacity: 1;
 }

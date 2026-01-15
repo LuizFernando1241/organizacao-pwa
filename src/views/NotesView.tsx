@@ -9,24 +9,38 @@ import type { Note } from '../types/note'
 import './NotesView.css'
 
 function NotesView() {
-  const { notes, tasks, createNote, updateNote, linkNoteToTask } = useAppStore()
+  const { notes, tasks, links, createNote, updateNote, linkNoteToTask } = useAppStore()
   const [query, setQuery] = useState('')
+  const [filter, setFilter] = useState<'all' | 'linked' | 'recent'>('all')
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false)
   const [activeNote, setActiveNote] = useState<Note | null>(null)
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false)
   const [linkNoteId, setLinkNoteId] = useState<string | null>(null)
 
+  const linkedNoteIds = useMemo(() => new Set(links.map((link) => link.noteId)), [links])
+  const recentCutoff = useMemo(() => {
+    const now = Date.now()
+    return new Date(now - 7 * 24 * 60 * 60 * 1000)
+  }, [])
+
   const filteredNotes = useMemo(() => {
     const term = query.trim().toLowerCase()
-    if (!term) {
-      return notes
+    let result = notes
+    if (filter === 'linked') {
+      result = result.filter((note) => linkedNoteIds.has(note.id))
     }
-    return notes.filter((note) => {
+    if (filter === 'recent') {
+      result = result.filter((note) => new Date(note.updatedAt) >= recentCutoff)
+    }
+    if (!term) {
+      return result
+    }
+    return result.filter((note) => {
       const titleMatch = note.title.toLowerCase().includes(term)
       const bodyMatch = note.body.toLowerCase().includes(term)
       return titleMatch || bodyMatch
     })
-  }, [notes, query])
+  }, [notes, query, filter, linkedNoteIds, recentCutoff])
 
   const handleCreateNote = () => {
     setActiveNote(null)
@@ -36,6 +50,11 @@ function NotesView() {
   const handleSelectNote = (note: Note) => {
     setActiveNote(note)
     setIsNoteModalOpen(true)
+  }
+
+  const handleLinkNote = (note: Note) => {
+    setLinkNoteId(note.id)
+    setIsLinkModalOpen(true)
   }
 
   const handleSaveNote = (data: { title: string; body: string }) => {
@@ -76,7 +95,30 @@ function NotesView() {
             Criar nota
           </button>
         </div>
-        <NotesGrid notes={filteredNotes} onSelectNote={handleSelectNote} />
+        <div className="notes-filters" role="tablist" aria-label="Filtros de notas">
+          <button
+            type="button"
+            className={`notes-filter${filter === 'all' ? ' notes-filter--active' : ''}`}
+            onClick={() => setFilter('all')}
+          >
+            Todas
+          </button>
+          <button
+            type="button"
+            className={`notes-filter${filter === 'linked' ? ' notes-filter--active' : ''}`}
+            onClick={() => setFilter('linked')}
+          >
+            Vinculadas
+          </button>
+          <button
+            type="button"
+            className={`notes-filter${filter === 'recent' ? ' notes-filter--active' : ''}`}
+            onClick={() => setFilter('recent')}
+          >
+            Recentes
+          </button>
+        </div>
+        <NotesGrid notes={filteredNotes} onSelectNote={handleSelectNote} onEditNote={handleSelectNote} onLinkNote={handleLinkNote} />
       </main>
       <NoteModal
         isOpen={isNoteModalOpen}

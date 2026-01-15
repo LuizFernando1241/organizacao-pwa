@@ -3,14 +3,15 @@ import './CalendarDayCell.css'
 type CalendarDayCellProps = {
   day: number
   isToday?: boolean
+  isSelected?: boolean
   onSelect?: () => void
 }
 
-function CalendarDayCell({ day, isToday = false, onSelect }: CalendarDayCellProps) {
+function CalendarDayCell({ day, isToday = false, isSelected = false, onSelect }: CalendarDayCellProps) {
   return (
     <button
       type="button"
-      className={`calendar-day${isToday ? ' calendar-day--today' : ''}`}
+      className={`calendar-day${isSelected ? ' calendar-day--selected' : ''}${isToday ? ' calendar-day--today' : ''}`}
       onClick={onSelect}
     >
       {day}

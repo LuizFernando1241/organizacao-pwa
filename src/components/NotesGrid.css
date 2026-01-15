@@ -1,6 +1,6 @@
 .notes-grid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: var(--space-3);
 }
 
@@ -11,4 +11,16 @@
   text-align: center;
   font-size: var(--font-size-caption);
   color: var(--color-text-secondary);
+}
+
+@media (min-width: 768px) {
+  .notes-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .notes-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }

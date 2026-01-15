@@ -1,4 +1,3 @@
-import OverbookingIndicator from './OverbookingIndicator'
 import './DayChip.css'
 
 type DayChipProps = {
@@ -19,7 +18,7 @@ function DayChip({ label, number, selected = false, today = false, overbooked = 
     >
       <span className="day-chip__label">{label}</span>
       <span className="day-chip__number">{number}</span>
-      {overbooked && <OverbookingIndicator />}
+      <span className={`day-chip__load${overbooked ? ' day-chip__load--overbooked' : ''}`} />
     </button>
   )
 }
