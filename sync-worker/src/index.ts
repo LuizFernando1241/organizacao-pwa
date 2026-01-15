@@ -66,8 +66,8 @@ const upsertTask = async (db: D1Database, userId: string, payload: Record<string
   }
   await db
     .prepare(
-      `INSERT INTO tasks (id, user_id, title, time_start, time_end, status, day_key, recurrence, subtasks, linked_note_ids, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `INSERT INTO tasks (id, user_id, title, time_start, time_end, status, day_key, recurrence, subtasks, linked_note_ids, time_spent, is_timer_running, last_timer_start, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(id) DO UPDATE SET
          title = excluded.title,
          time_start = excluded.time_start,
@@ -77,6 +77,9 @@ const upsertTask = async (db: D1Database, userId: string, payload: Record<string
          recurrence = excluded.recurrence,
          subtasks = excluded.subtasks,
          linked_note_ids = excluded.linked_note_ids,
+         time_spent = excluded.time_spent,
+         is_timer_running = excluded.is_timer_running,
+         last_timer_start = excluded.last_timer_start,
          updated_at = excluded.updated_at,
          deleted_at = NULL`,
     )
@@ -91,6 +94,9 @@ const upsertTask = async (db: D1Database, userId: string, payload: Record<string
       payload.recurrence ?? 'none',
       JSON.stringify(payload.subtasks ?? []),
       JSON.stringify(payload.linkedNoteIds ?? payload.linked_note_ids ?? []),
+      payload.timeSpent ?? payload.time_spent ?? 0,
+      payload.isTimerRunning ?? payload.is_timer_running ?? 0,
+      payload.lastTimerStart ?? payload.last_timer_start ?? null,
       opUpdatedAt,
     )
     .run()
