@@ -196,7 +196,21 @@
   color: var(--color-text-primary);
 }
 
-.subtasks__text--done {
+.subtasks__input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-body);
+  padding: 4px 0;
+}
+
+.subtasks__input:focus {
+  outline: none;
+  border-bottom: 1px solid var(--color-border-focus);
+}
+
+.subtasks__input--done {
   color: var(--color-text-secondary);
   text-decoration: line-through;
 }

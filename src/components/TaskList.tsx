@@ -6,9 +6,11 @@ import './TaskList.css'
 type TaskListProps = {
   tasks: Task[]
   onSelectTask?: (task: Task) => void
+  onAddTask?: () => void
+  onToggleDone?: (id: string) => void
 }
 
-function TaskList({ tasks, onSelectTask }: TaskListProps) {
+function TaskList({ tasks, onSelectTask, onAddTask, onToggleDone }: TaskListProps) {
   const [showDone, setShowDone] = useState(false)
   const { openTasks, doneTasks } = useMemo(() => {
     const open = tasks.filter((task) => task.status !== 'done')
@@ -21,7 +23,9 @@ function TaskList({ tasks, onSelectTask }: TaskListProps) {
       {openTasks.length === 0 ? (
         <div className="task-list__empty">Nenhuma tarefa para hoje. Aproveite o dia!</div>
       ) : (
-        openTasks.map((task) => <TaskCard key={task.id} task={task} onSelect={onSelectTask} />)
+        openTasks.map((task) => (
+          <TaskCard key={task.id} task={task} onSelect={onSelectTask} onToggleDone={onToggleDone} />
+        ))
       )}
       {doneTasks.length > 0 && (
         <div className="task-list__done">
@@ -31,11 +35,20 @@ function TaskList({ tasks, onSelectTask }: TaskListProps) {
           {showDone && (
             <div className="task-list__done-items">
               {doneTasks.map((task) => (
-                <TaskCard key={task.id} task={task} onSelect={onSelectTask} />
+                <TaskCard key={task.id} task={task} onSelect={onSelectTask} onToggleDone={onToggleDone} />
               ))}
             </div>
           )}
         </div>
+      )}
+      {onAddTask && (
+        <button
+          type="button"
+          className={`task-list__add${openTasks.length === 0 ? ' task-list__add--cta' : ''}`}
+          onClick={onAddTask}
+        >
+          + Nova tarefa
+        </button>
       )}
     </section>
   )

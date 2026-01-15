@@ -9,17 +9,24 @@ type InboxSheetProps = {
   onClose: () => void
   onAddItem: (text: string) => void
   onConvertToTask: (id: string) => void
-  onConvertToNote: (id: string) => void
   onDeleteItem: (id: string) => void
+  onUpdateItem: (id: string, text: string) => void
 }
 
-function InboxSheet({ isOpen, items, onClose, onAddItem, onConvertToTask, onConvertToNote, onDeleteItem }: InboxSheetProps) {
+function InboxSheet({
+  isOpen,
+  items,
+  onClose,
+  onAddItem,
+  onConvertToTask,
+  onDeleteItem,
+  onUpdateItem,
+}: InboxSheetProps) {
   return (
     <>
       <div className={`sheet-backdrop${isOpen ? ' sheet-backdrop--open' : ''}`} onClick={onClose} />
       <section className={`inbox-sheet${isOpen ? ' inbox-sheet--open' : ''}`}>
-        <div className="inbox-sheet__handle" />
-        <QuickCaptureInput onSubmit={onAddItem} />
+        <QuickCaptureInput onSubmit={onAddItem} placeholder="Digite algo..." />
         <div className="inbox-sheet__list">
           {items.length === 0 ? (
             <div className="inbox-sheet__empty">Caixa de entrada limpa!</div>
@@ -29,8 +36,8 @@ function InboxSheet({ isOpen, items, onClose, onAddItem, onConvertToTask, onConv
                 key={item.id}
                 item={item}
                 onConvertToTask={onConvertToTask}
-                onConvertToNote={onConvertToNote}
                 onDelete={onDeleteItem}
+                onUpdate={onUpdateItem}
               />
             ))
           )}

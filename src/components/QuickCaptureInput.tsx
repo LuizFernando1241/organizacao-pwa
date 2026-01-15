@@ -3,9 +3,10 @@ import './QuickCaptureInput.css'
 
 type QuickCaptureInputProps = {
   onSubmit: (value: string) => void
+  placeholder?: string
 }
 
-function QuickCaptureInput({ onSubmit }: QuickCaptureInputProps) {
+function QuickCaptureInput({ onSubmit, placeholder = 'Digite algo...' }: QuickCaptureInputProps) {
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key !== 'Enter') {
       return
@@ -22,7 +23,7 @@ function QuickCaptureInput({ onSubmit }: QuickCaptureInputProps) {
     <input
       type="text"
       className="quick-capture"
-      placeholder="Digite qualquer coisa..."
+      placeholder={placeholder}
       onKeyDown={handleKeyDown}
     />
   )

@@ -1,3 +1,4 @@
+import { Check, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { Task } from '../types/task'
 import './LinkNoteModal.css'
@@ -63,13 +64,16 @@ function LinkNoteModal({ isOpen, noteId, tasks, onClose, onLink }: LinkNoteModal
             Fechar
           </button>
         </div>
-        <input
-          type="search"
-          className="link-modal__search"
-          placeholder="Buscar tarefas..."
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-        />
+        <div className="link-modal__search-wrap">
+          <Search size={16} aria-hidden="true" />
+          <input
+            type="search"
+            className="link-modal__search"
+            placeholder="Buscar tarefas..."
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </div>
         <div className="link-modal__group">
           <div className="link-modal__group-title">Hoje</div>
           {todayTasks.length === 0 ? (
@@ -85,7 +89,10 @@ function LinkNoteModal({ isOpen, noteId, tasks, onClose, onLink }: LinkNoteModal
                   onClose()
                 }}
               >
-                {task.title}
+                <span className="link-modal__item-title">{task.title}</span>
+                <span className="link-modal__item-check" aria-hidden="true">
+                  <Check size={16} />
+                </span>
               </button>
             ))
           )}
@@ -105,7 +112,10 @@ function LinkNoteModal({ isOpen, noteId, tasks, onClose, onLink }: LinkNoteModal
                   onClose()
                 }}
               >
-                {task.title}
+                <span className="link-modal__item-title">{task.title}</span>
+                <span className="link-modal__item-check" aria-hidden="true">
+                  <Check size={16} />
+                </span>
               </button>
             ))
           )}

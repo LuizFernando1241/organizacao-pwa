@@ -41,3 +41,27 @@
   flex-direction: column;
   gap: var(--space-3);
 }
+
+.task-list__add {
+  border: none;
+  background: transparent;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: var(--font-size-body);
+  color: var(--primary);
+  cursor: pointer;
+  align-self: center;
+  margin-top: var(--space-4);
+  transition: background var(--motion-duration-fast) var(--motion-easing-standard),
+    border-color var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.task-list__add:hover {
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.task-list__add--cta {
+  background: transparent;
+  border: none;
+  color: var(--primary);
+}

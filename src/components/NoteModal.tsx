@@ -32,16 +32,23 @@ function NoteModal({ isOpen, note, onSave, onClose, onLink }: NoteModalProps) {
     <div className="note-modal__backdrop">
       <section className="note-modal">
         <div className="note-modal__header">
-          <div className="note-modal__title">Nota</div>
-          <button type="button" className="note-modal__link" onClick={() => onLink({ title, body })}>
-            Vincular
+          <button type="button" className="note-modal__close" onClick={onClose}>
+            Fechar
           </button>
+          <div className="note-modal__actions">
+            <button type="button" className="note-modal__link" onClick={() => onLink({ title, body })}>
+              Vincular
+            </button>
+            <button type="button" className="note-modal__save" onClick={() => onSave({ title, body })}>
+              Salvar
+            </button>
+          </div>
         </div>
         <div className="note-modal__body">
           <input
             type="text"
             className="note-modal__input"
-            placeholder="Titulo (opcional)"
+            placeholder="Titulo"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
           />
@@ -51,14 +58,6 @@ function NoteModal({ isOpen, note, onSave, onClose, onLink }: NoteModalProps) {
             value={body}
             onChange={(event) => setBody(event.target.value)}
           />
-        </div>
-        <div className="note-modal__actions">
-          <button type="button" className="note-modal__button note-modal__button--ghost" onClick={onClose}>
-            Fechar
-          </button>
-          <button type="button" className="note-modal__button" onClick={() => onSave({ title, body })}>
-            Salvar
-          </button>
         </div>
       </section>
     </div>

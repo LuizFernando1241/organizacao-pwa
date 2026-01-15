@@ -7,7 +7,7 @@
 .app-content {
   padding: var(--grid-page-padding-mobile);
   padding-top: calc(var(--grid-page-padding-mobile) + var(--size-top-bar-height));
-  padding-bottom: calc(var(--grid-page-padding-mobile) + 64px);
+  padding-bottom: calc(var(--grid-page-padding-mobile) + 80px);
 }
 
 .page-title {

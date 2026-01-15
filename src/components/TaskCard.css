@@ -4,12 +4,13 @@
   gap: var(--space-3);
   padding: var(--component-task-card-padding);
   border-radius: var(--component-task-card-radius);
-  border: 1px solid var(--color-border-default);
-  background: var(--color-background-elevated);
+  border: none;
+  background: #1c1c1e;
   position: relative;
   text-align: left;
   cursor: pointer;
   font: inherit;
+  align-items: center;
   justify-content: space-between;
   transition: background var(--motion-duration-fast) var(--motion-easing-standard);
 }
@@ -23,6 +24,43 @@
   border-radius: var(--component-task-card-radius);
   background: var(--color-state-planned);
   align-self: stretch;
+}
+
+.task-card__check {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1.5px solid #48484a;
+  background: transparent;
+  color: transparent;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  flex: 0 0 auto;
+  transition: transform 180ms var(--motion-easing-standard);
+}
+
+.task-card__check::after {
+  content: '';
+  width: 7px;
+  height: 11px;
+  border-right: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  transform: rotate(45deg);
+}
+
+.task-card__check--done {
+  background: var(--primary);
+  border: none;
+  color: #ffffff;
+  animation: check-bounce 200ms var(--motion-easing-standard);
+}
+
+.task-card__check--done::after {
+  border-color: #ffffff;
 }
 
 .task-card__content {
@@ -39,17 +77,18 @@
 }
 
 .task-card__title {
-  font-size: var(--font-size-body);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-primary);
+  font-size: 17px;
+  font-weight: 500;
+  color: #ffffff;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .task-card__meta {
-  font-size: var(--font-size-caption);
-  color: var(--color-text-secondary);
+  font-size: 13px;
+  color: #8e8e93;
+  margin-top: 4px;
 }
 
 .task-card--planned .task-card__state-bar {
@@ -65,11 +104,31 @@
 }
 
 .task-card--done .task-card__state-bar {
-  background: var(--color-state-done);
+  background: transparent;
 }
 
 .task-card--done .task-card__title {
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   text-decoration: line-through;
   text-decoration-color: var(--color-text-muted);
+}
+
+.task-card--done .task-card__meta {
+  color: var(--color-text-muted);
+}
+
+.task-card--done {
+  opacity: 0.5;
+}
+
+@keyframes check-bounce {
+  0% {
+    transform: scale(1);
+  }
+  60% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }

@@ -1,8 +1,8 @@
 import './BottomNavigation.css'
 
 type BottomNavigationProps = {
-  activeTab: 'today' | 'notes' | 'inbox'
-  onSelect: (tab: 'today' | 'notes' | 'inbox') => void
+  activeTab: 'today' | 'notes'
+  onSelect: (tab: 'today' | 'notes') => void
 }
 
 function BottomNavigation({ activeTab, onSelect }: BottomNavigationProps) {
@@ -23,14 +23,6 @@ function BottomNavigation({ activeTab, onSelect }: BottomNavigationProps) {
       >
         <span className="bottom-nav__icon">N</span>
         <span className="bottom-nav__label">Notas</span>
-      </button>
-      <button
-        type="button"
-        className={`bottom-nav__item${activeTab === 'inbox' ? ' bottom-nav__item--active' : ''}`}
-        onClick={() => onSelect('inbox')}
-      >
-        <span className="bottom-nav__icon">I</span>
-        <span className="bottom-nav__label">Inbox</span>
       </button>
     </nav>
   )

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Note } from '../types/note'
 import type { Recurrence, Subtask, Task } from '../types/task'
 import './TaskSheet.css'
@@ -35,6 +35,8 @@ function TaskSheet({
   const [recurrence, setRecurrence] = useState<Recurrence>('none')
   const [subtasksOpen, setSubtasksOpen] = useState(false)
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
+  const [focusSubtaskId, setFocusSubtaskId] = useState<string | null>(null)
+  const prevTaskIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     if (!task) {
@@ -45,8 +47,12 @@ function TaskSheet({
     setTimeStart(task.timeStart)
     setTimeEnd(task.timeEnd)
     setRecurrence(task.recurrence)
-    setSubtasksOpen(false)
     setIsConfirmingDelete(false)
+    if (prevTaskIdRef.current !== task.id) {
+      setSubtasksOpen(false)
+      setFocusSubtaskId(null)
+      prevTaskIdRef.current = task.id
+    }
   }, [task, isOpen])
 
   useEffect(() => {
@@ -104,16 +110,28 @@ function TaskSheet({
     onUpdate(task.id, { subtasks: updatedSubtasks })
   }
 
+  const handleUpdateSubtaskTitle = (subtask: Subtask, title: string) => {
+    if (!task) {
+      return
+    }
+    const updatedSubtasks = task.subtasks.map((item) =>
+      item.id === subtask.id ? ({ ...item, title } as Subtask) : item,
+    )
+    onUpdate(task.id, { subtasks: updatedSubtasks })
+  }
+
   const handleAddSubtask = () => {
     if (!task) {
       return
     }
     const newSubtask: Subtask = {
       id: buildSubtaskId(),
-      title: 'Nova subtarefa',
+      title: '',
       status: 'PENDING',
     }
     onUpdate(task.id, { subtasks: [...task.subtasks, newSubtask] })
+    setSubtasksOpen(true)
+    setFocusSubtaskId(newSubtask.id)
   }
 
   const handleToggleDone = () => {
@@ -237,9 +255,18 @@ function TaskSheet({
                           checked={subtask.status === 'DONE'}
                           onChange={() => handleToggleSubtask(subtask)}
                         />
-                        <span className={subtask.status === 'DONE' ? 'subtasks__text subtasks__text--done' : 'subtasks__text'}>
-                          {subtask.title}
-                        </span>
+                        <input
+                          className={
+                            subtask.status === 'DONE'
+                              ? 'subtasks__input subtasks__input--done'
+                              : 'subtasks__input'
+                          }
+                          value={subtask.title}
+                          placeholder="Nova subtarefa"
+                          onChange={(event) => handleUpdateSubtaskTitle(subtask, event.target.value)}
+                          onBlur={(event) => handleUpdateSubtaskTitle(subtask, event.target.value.trim())}
+                          autoFocus={focusSubtaskId === subtask.id}
+                        />
                       </label>
                     ))}
                   </div>

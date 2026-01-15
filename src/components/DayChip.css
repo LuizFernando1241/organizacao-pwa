@@ -1,19 +1,20 @@
 .day-chip {
   min-width: var(--size-day-chip-mobile-width);
-  height: var(--size-day-chip-mobile-height);
+  height: 60px;
   padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-default);
-  background: var(--color-background-elevated);
+  border-radius: 999px;
+  border: none;
+  background: transparent;
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   gap: 2px;
   cursor: pointer;
   transition: background var(--motion-duration-fast) var(--motion-easing-standard),
     border-color var(--motion-duration-fast) var(--motion-easing-standard);
+  text-align: center;
 }
 
 .day-chip:hover {
@@ -21,17 +22,25 @@
 }
 
 .day-chip--selected {
-  border-color: var(--color-border-selected);
-  background: var(--color-background-note);
+  background: var(--primary);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }
 
-.day-chip--today:not(.day-chip--selected) {
-  border-color: var(--color-border-today);
+.day-chip--today:not(.day-chip--selected)::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--primary);
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .day-chip__label {
   font-size: var(--font-size-caption);
-  color: var(--color-text-secondary);
+  color: #8e8e93;
   line-height: var(--font-line-height-tight);
 }
 
@@ -39,7 +48,13 @@
   font-size: var(--font-size-h2);
   font-weight: var(--font-weight-semibold);
   line-height: var(--font-line-height-tight);
-  color: var(--color-text-primary);
+  color: #8e8e93;
+}
+
+.day-chip--selected .day-chip__label,
+.day-chip--selected .day-chip__number {
+  color: #ffffff;
+  font-weight: 700;
 }
 
 .day-chip__load {

@@ -1,31 +1,43 @@
 :root {
-  --color-background-default: #fafafa;
-  --color-background-elevated: #ffffff;
-  --color-background-overlay: rgba(17, 24, 39, 0.25);
-  --color-background-hover-fill: rgba(17, 24, 39, 0.04);
-  --color-background-pressed-fill: rgba(17, 24, 39, 0.06);
-  --color-background-highlight: rgba(37, 99, 235, 0.08);
-  --color-background-note: rgba(17, 24, 39, 0.03);
+  --bg-app: #121212;
+  --bg-surface: #1e1e1e;
+  --bg-surface-hover: #2c2c2c;
+  --text-primary: #ededed;
+  --text-secondary: #a0a0a0;
+  --border-subtle: #333333;
+  --border-strong: #555555;
+  --primary: #6366f1;
+  --success: #10b981;
+  --danger: #ef4444;
+  --radius-card: 16px;
 
-  --color-text-primary: #111827;
-  --color-text-secondary: #6b7280;
-  --color-text-muted: #9ca3af;
-  --color-text-inverse: #ffffff;
-  --color-text-link: #2563eb;
-  --color-text-danger: #ef4444;
+  --color-background-default: var(--bg-app);
+  --color-background-elevated: var(--bg-surface);
+  --color-background-overlay: rgba(0, 0, 0, 0.55);
+  --color-background-hover-fill: var(--bg-surface-hover);
+  --color-background-pressed-fill: #343434;
+  --color-background-highlight: rgba(99, 102, 241, 0.16);
+  --color-background-note: #242424;
 
-  --color-border-default: #e5e7eb;
-  --color-border-focus: rgba(37, 99, 235, 0.25);
-  --color-border-selected: rgba(37, 99, 235, 0.25);
-  --color-border-today: rgba(37, 99, 235, 0.35);
-  --color-border-danger: rgba(239, 68, 68, 0.35);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: #7c7c7c;
+  --color-text-inverse: #0f0f0f;
+  --color-text-link: var(--primary);
+  --color-text-danger: var(--danger);
 
-  --color-state-planned: #2563eb;
-  --color-state-active: #f59e0b;
-  --color-state-overdue: #ef4444;
-  --color-state-done: #9ca3af;
+  --color-border-default: var(--border-subtle);
+  --color-border-focus: rgba(99, 102, 241, 0.55);
+  --color-border-selected: rgba(99, 102, 241, 0.65);
+  --color-border-today: rgba(99, 102, 241, 0.65);
+  --color-border-danger: rgba(239, 68, 68, 0.55);
 
-  --shadow-subtle: 0 6px 18px rgba(17, 24, 39, 0.06);
+  --color-state-planned: var(--primary);
+  --color-state-active: var(--primary);
+  --color-state-overdue: var(--danger);
+  --color-state-done: var(--success);
+
+  --shadow-subtle: 0 6px 18px rgba(0, 0, 0, 0.35);
   --shadow-none: none;
 
   --font-family-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -105,9 +117,9 @@
   --component-input-background: var(--color-background-elevated);
   --component-input-focus-ring: var(--color-border-focus);
 
-  --component-task-card-radius: var(--radius-md);
-  --component-task-card-padding: 14px;
-  --component-task-card-state-bar-width: var(--size-task-state-bar-width);
+  --component-task-card-radius: var(--radius-card);
+  --component-task-card-padding: 16px;
+  --component-task-card-state-bar-width: 4px;
   --component-task-card-title-max-lines: 1;
   --component-task-card-meta-max-lines: 1;
 

@@ -21,6 +21,7 @@ type AppState = {
   refreshFromDb: () => Promise<void>
   addInboxItem: (text: string) => void
   deleteInboxItem: (id: string) => void
+  updateInboxItem: (id: string, text: string) => void
   setSelectedDayKey: (dayKey: string) => void
   updateRoutine: (updates: {
     wakeTime?: string
@@ -33,7 +34,8 @@ type AppState = {
   updateTask: (id: string, updates: Partial<Task>) => void
   toggleTaskDone: (id: string) => void
   deleteTask: (id: string) => void
-  convertInboxToTask: (id: string, dayKey: string) => void
+  createTask: (dayKey: string) => string
+  convertInboxToTask: (id: string, dayKey: string) => string | null
   convertInboxToNote: (id: string, data: Pick<Note, 'title' | 'body'>) => string | null
   createNote: (data: Pick<Note, 'title' | 'body'>) => string
   updateNote: (id: string, updates: Partial<Note>) => void
@@ -44,7 +46,13 @@ type AppState = {
   isOverbookedForDay: (dayKey: string) => boolean
 }
 
-const getTodayKey = () => new Date().toISOString().slice(0, 10)
+const getTodayKey = () => {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
 
 const parseTimeToMinutes = (value: string) => {
   if (!value) {
@@ -172,6 +180,23 @@ export const useAppStore = create<AppState>((set, get) => ({
       entityId: id,
       opType: 'delete',
       payload: { updatedAt: new Date().toISOString() },
+    })
+  },
+  updateInboxItem: (id, text) => {
+    const existing = get().inboxItems.find((item) => item.id === id)
+    if (!existing) {
+      return
+    }
+    const updatedItem = { ...existing, text }
+    set((state) => ({
+      inboxItems: state.inboxItems.map((item) => (item.id === id ? updatedItem : item)),
+    }))
+    void db.inbox_items.put(updatedItem)
+    void enqueueOp({
+      entityType: 'inbox',
+      entityId: id,
+      opType: 'update',
+      payload: { ...updatedItem },
     })
   },
   setSelectedDayKey: (dayKey) => {
@@ -313,12 +338,16 @@ export const useAppStore = create<AppState>((set, get) => ({
         if (task.id !== id) {
           return task
         }
+        const isDone = task.status === 'done'
+        const nextStatus: Task['status'] = isDone ? 'planned' : 'done'
         const nextTask: Task = {
           ...task,
-          status: 'done' as Task['status'],
-          subtasks: task.subtasks.map((subtask) =>
-            subtask.status === 'DONE' ? subtask : { ...subtask, status: 'DONE' as Subtask['status'] },
-          ),
+          status: nextStatus,
+          subtasks: isDone
+            ? task.subtasks
+            : task.subtasks.map((subtask) =>
+                subtask.status === 'DONE' ? subtask : { ...subtask, status: 'DONE' as Subtask['status'] },
+              ),
           updatedAt: now,
         }
         void db.tasks.put(nextTask)
@@ -347,14 +376,43 @@ export const useAppStore = create<AppState>((set, get) => ({
       payload: { updatedAt: now },
     })
   },
+  createTask: (dayKey) => {
+    const now = new Date().toISOString()
+    const taskId = buildId('task')
+    const task: Task = {
+      id: taskId,
+      title: '',
+      timeLabel: 'Sem horário',
+      timeStart: '',
+      timeEnd: '',
+      status: 'planned',
+      dayKey,
+      recurrence: 'none',
+      subtasks: [],
+      linkedNoteIds: [],
+      updatedAt: now,
+    }
+    set((state) => ({
+      tasks: [task, ...state.tasks],
+    }))
+    void db.tasks.add(task)
+    void enqueueOp({
+      entityType: 'task',
+      entityId: task.id,
+      opType: 'create',
+      payload: task,
+    })
+    return taskId
+  },
   convertInboxToTask: (id, dayKey) => {
     const item = get().inboxItems.find((inbox) => inbox.id === id)
     if (!item) {
-      return
+      return null
     }
     const now = new Date().toISOString()
+    const taskId = buildId('task')
     const task: Task = {
-      id: buildId('task'),
+      id: taskId,
       title: item.text,
       timeLabel: 'Sem horário',
       timeStart: '',
@@ -386,6 +444,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       opType: 'create',
       payload: task,
     })
+    return taskId
   },
   convertInboxToNote: (id, data) => {
     const item = get().inboxItems.find((inbox) => inbox.id === id)

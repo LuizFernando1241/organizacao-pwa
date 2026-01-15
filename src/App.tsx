@@ -19,8 +19,20 @@ import { startSync } from './sync/syncManager'
 
 const dayNames = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom']
 
+const formatLocalDayKey = (date: Date) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const parseDayKeyToDate = (dayKey: string) => {
+  const [year, month, day] = dayKey.split('-').map(Number)
+  return new Date(year, (month ?? 1) - 1, day ?? 1)
+}
+
 const buildWeekDays = (baseDate: Date) => {
-  const todayKey = baseDate.toISOString().slice(0, 10)
+  const todayKey = formatLocalDayKey(baseDate)
   const dayIndex = (baseDate.getDay() + 6) % 7
   const start = new Date(baseDate)
   start.setDate(baseDate.getDate() - dayIndex)
@@ -29,7 +41,7 @@ const buildWeekDays = (baseDate: Date) => {
     const date = new Date(start)
     date.setDate(start.getDate() + index)
     return {
-      key: date.toISOString().slice(0, 10),
+      key: formatLocalDayKey(date),
       label: dayNames[index],
       number: date.getDate(),
     }
@@ -53,9 +65,10 @@ function App() {
     init,
     addInboxItem,
     deleteInboxItem,
-    convertInboxToNote,
+    updateInboxItem,
     createNote,
     updateNote,
+    createTask,
     linkNoteToTask,
     runTimeTick,
     convertInboxToTask,
@@ -66,9 +79,9 @@ function App() {
     updateRoutine,
     isOverbookedForDay,
   } = useAppStore()
-  const baseDate = useMemo(() => new Date(selectedDayKey), [selectedDayKey])
+  const baseDate = useMemo(() => parseDayKeyToDate(selectedDayKey), [selectedDayKey])
   const { todayKey, days } = useMemo(() => buildWeekDays(baseDate), [baseDate])
-  const [activeTab, setActiveTab] = useState<'today' | 'notes' | 'inbox'>('today')
+  const [activeTab, setActiveTab] = useState<'today' | 'notes'>('today')
   const [isInboxOpen, setIsInboxOpen] = useState(false)
   const [isTaskSheetOpen, setIsTaskSheetOpen] = useState(false)
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
@@ -79,7 +92,6 @@ function App() {
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false)
   const [activeNote, setActiveNote] = useState<Note | null>(null)
   const [draftNote, setDraftNote] = useState<Note | null>(null)
-  const [inboxNoteId, setInboxNoteId] = useState<string | null>(null)
   const [linkTargetTaskId, setLinkTargetTaskId] = useState<string | null>(null)
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false)
   const [linkNoteId, setLinkNoteId] = useState<string | null>(null)
@@ -120,16 +132,12 @@ function App() {
   const resetNoteModalState = () => {
     setActiveNote(null)
     setDraftNote(null)
-    setInboxNoteId(null)
     setLinkTargetTaskId(null)
   }
 
-  const handleSelectTab = (tab: 'today' | 'notes' | 'inbox') => {
+  const handleSelectTab = (tab: 'today' | 'notes') => {
     closeAllOverlays()
     setActiveTab(tab)
-    if (tab === 'inbox') {
-      setIsInboxOpen(true)
-    }
   }
 
   const handleOpenNotes = () => {
@@ -138,7 +146,9 @@ function App() {
   }
 
   const handleOpenInbox = () => {
-    handleSelectTab('inbox')
+    closeAllOverlays()
+    setActiveTab('today')
+    setIsInboxOpen(true)
   }
 
   const handleCloseInbox = () => {
@@ -147,32 +157,12 @@ function App() {
   }
 
   const handleConvertToTask = (id: string) => {
-    convertInboxToTask(id, selectedDayKey)
+    const taskId = convertInboxToTask(id, selectedDayKey)
     handleCloseInbox()
-  }
-
-  const handleConvertToNote = (id: string) => {
-    const item = inboxItems.find((entry) => entry.id === id)
-    if (!item) {
-      return
+    if (taskId) {
+      setActiveTaskId(taskId)
+      setIsTaskSheetOpen(true)
     }
-    closeAllOverlays()
-    setActiveTab('today')
-    setActiveNote(null)
-    setDraftNote({
-      id: `draft-${id}`,
-      title: '',
-      body: item.text,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    })
-    setInboxNoteId(id)
-    setLinkTargetTaskId(null)
-    setIsNoteModalOpen(true)
-  }
-
-  const handleDeleteInboxItem = (id: string) => {
-    deleteInboxItem(id)
   }
 
   const handleOpenNote = (note: Note) => {
@@ -180,7 +170,6 @@ function App() {
     setActiveTab('today')
     setActiveNote(note)
     setDraftNote(null)
-    setInboxNoteId(null)
     setLinkTargetTaskId(null)
     setIsNoteModalOpen(true)
   }
@@ -199,9 +188,16 @@ function App() {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     })
-    setInboxNoteId(null)
     setLinkTargetTaskId(activeTask.id)
     setIsNoteModalOpen(true)
+  }
+
+  const handleAddTask = () => {
+    closeAllOverlays()
+    setActiveTab('today')
+    const taskId = createTask(selectedDayKey)
+    setActiveTaskId(taskId)
+    setIsTaskSheetOpen(true)
   }
 
   const handleSelectTask = (task: Task) => {
@@ -222,7 +218,7 @@ function App() {
 
   const handleSelectCalendarDay = (date: Date) => {
     setIsCalendarOpen(false)
-    setSelectedDayKey(date.toISOString().slice(0, 10))
+    setSelectedDayKey(formatLocalDayKey(date))
   }
 
   const handleOpenSettings = () => {
@@ -250,14 +246,6 @@ function App() {
       handleCloseNoteModal()
       return
     }
-    if (inboxNoteId) {
-      const createdId = convertInboxToNote(inboxNoteId, data)
-      if (createdId && linkTargetTaskId) {
-        linkNoteToTask(createdId, linkTargetTaskId)
-      }
-      handleCloseNoteModal()
-      return
-    }
     const createdId = createNote(data)
     if (linkTargetTaskId) {
       linkNoteToTask(createdId, linkTargetTaskId)
@@ -269,9 +257,6 @@ function App() {
     let noteId = activeNote?.id ?? null
     if (activeNote) {
       updateNote(activeNote.id, data)
-    }
-    if (!noteId && inboxNoteId) {
-      noteId = convertInboxToNote(inboxNoteId, data)
     }
     if (!noteId && !activeNote) {
       noteId = createNote(data)
@@ -323,7 +308,12 @@ function App() {
                 overbookedKeys={overbookedKeys}
                 onSelect={setSelectedDayKey}
               />
-              <TaskList tasks={visibleTasks} onSelectTask={handleSelectTask} />
+              <TaskList
+                tasks={visibleTasks}
+                onSelectTask={handleSelectTask}
+                onToggleDone={toggleTaskDone}
+                onAddTask={handleAddTask}
+              />
             </div>
           </main>
         </>
@@ -335,8 +325,8 @@ function App() {
         onClose={handleCloseInbox}
         onAddItem={addInboxItem}
         onConvertToTask={handleConvertToTask}
-        onConvertToNote={handleConvertToNote}
-        onDeleteItem={handleDeleteInboxItem}
+        onDeleteItem={deleteInboxItem}
+        onUpdateItem={updateInboxItem}
       />
       <TaskSheet
         isOpen={isTaskSheetOpen}

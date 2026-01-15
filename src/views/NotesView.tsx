@@ -9,7 +9,7 @@ import type { Note } from '../types/note'
 import './NotesView.css'
 
 function NotesView() {
-  const { notes, tasks, links, createNote, updateNote, linkNoteToTask } = useAppStore()
+  const { notes, tasks, links, createNote, updateNote, deleteNote, linkNoteToTask } = useAppStore()
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'linked' | 'recent'>('all')
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false)
@@ -55,6 +55,12 @@ function NotesView() {
   const handleLinkNote = (note: Note) => {
     setLinkNoteId(note.id)
     setIsLinkModalOpen(true)
+  }
+
+  const handleDeleteNote = (note: Note) => {
+    if (window.confirm('Excluir esta nota?')) {
+      deleteNote(note.id)
+    }
   }
 
   const handleSaveNote = (data: { title: string; body: string }) => {
@@ -118,7 +124,12 @@ function NotesView() {
             Recentes
           </button>
         </div>
-        <NotesGrid notes={filteredNotes} onSelectNote={handleSelectNote} onEditNote={handleSelectNote} onLinkNote={handleLinkNote} />
+        <NotesGrid
+          notes={filteredNotes}
+          onSelectNote={handleSelectNote}
+          onLinkNote={handleLinkNote}
+          onDeleteNote={handleDeleteNote}
+        />
       </main>
       <NoteModal
         isOpen={isNoteModalOpen}

@@ -1,10 +1,10 @@
 .sticky-note {
   position: relative;
   width: 100%;
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-md);
-  background: var(--color-background-note);
-  padding: var(--space-3);
+  border: 1px solid #2c2c2e;
+  border-radius: 18px;
+  background: #1c1c1e;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -32,7 +32,7 @@
   right: var(--space-2);
   display: flex;
   gap: var(--space-1);
-  opacity: 0.45;
+  opacity: 0;
   transition: opacity var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
@@ -40,11 +40,13 @@
   width: 24px;
   height: 24px;
   border: none;
-  border-radius: var(--radius-pill);
   background: transparent;
-  color: var(--color-text-secondary);
+  color: #8e8e93;
   font-size: var(--font-size-caption);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .sticky-note:hover .sticky-note__actions {
@@ -52,15 +54,15 @@
 }
 
 .sticky-note__title {
-  font-size: var(--font-size-body);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
+  font-size: 17px;
+  font-weight: 700;
+  color: #ffffff;
 }
 
 .sticky-note__body {
-  font-size: var(--font-size-body);
-  color: var(--color-text-secondary);
-  line-height: var(--font-line-height-base);
+  font-size: 15px;
+  color: #8e8e93;
+  line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;

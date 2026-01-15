@@ -25,24 +25,36 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  background: rgba(30, 30, 30, 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: var(--space-2);
 }
 
-.note-modal__title {
-  font-size: var(--font-size-h2);
-  font-weight: var(--font-weight-semibold);
-}
-
-.note-modal__link {
+.note-modal__close {
   border: none;
   background: transparent;
-  color: var(--color-text-link);
-  font-size: var(--font-size-caption);
+  color: var(--text-secondary);
+  font-size: 14px;
   cursor: pointer;
+  padding: 0;
 }
 
-.note-modal__link:disabled {
-  color: var(--color-text-muted);
-  cursor: not-allowed;
+.note-modal__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.note-modal__link,
+.note-modal__save {
+  border: none;
+  background: transparent;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
 }
 
 .note-modal__body {
@@ -54,40 +66,29 @@
 .note-modal__input,
 .note-modal__textarea {
   width: 100%;
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-sm);
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-body);
-  color: var(--color-text-primary);
-  background: var(--color-background-elevated);
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  font-size: 16px;
+  color: var(--text-primary);
+  background: transparent;
+  outline: none;
+}
+
+.note-modal__input {
+  font-size: 28px;
+  font-weight: 700;
 }
 
 .note-modal__textarea {
-  min-height: 160px;
+  min-height: 200px;
   resize: vertical;
+  line-height: 1.6;
 }
 
-.note-modal__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-2);
-}
-
-.note-modal__button {
-  border: none;
-  border-radius: var(--radius-pill);
-  padding: 8px 16px;
-  background: var(--color-state-planned);
-  color: var(--color-text-inverse);
-  font-size: var(--font-size-caption);
-  font-weight: var(--font-weight-semibold);
-  cursor: pointer;
-}
-
-.note-modal__button--ghost {
-  background: transparent;
-  color: var(--color-text-secondary);
-  border: 1px solid var(--color-border-default);
+.note-modal__input::placeholder,
+.note-modal__textarea::placeholder {
+  color: var(--text-secondary);
 }
 
 @keyframes modal-fade {
