@@ -43,6 +43,14 @@ class AppDB extends Dexie {
 
 export const db = new AppDB()
 
+const getDefaultUserId = () => {
+  const envUserId = import.meta.env.VITE_USER_ID
+  if (typeof envUserId === 'string' && envUserId.trim()) {
+    return envUserId.trim()
+  }
+  return 'shared-user'
+}
+
 const getTodayKey = () => new Date().toISOString().slice(0, 10)
 
 const seedTasks: Task[] = [
@@ -133,6 +141,10 @@ export const initDb = async () => {
   const deviceId = await db.meta.get('deviceId')
   if (!deviceId) {
     await db.meta.put({ key: 'deviceId', value: buildId('device') })
+  }
+  const userId = await db.meta.get('userId')
+  if (!userId) {
+    await db.meta.put({ key: 'userId', value: getDefaultUserId() })
   }
   const selectedDayKey = await db.meta.get('selectedDayKey')
   if (!selectedDayKey) {

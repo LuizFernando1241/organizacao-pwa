@@ -85,6 +85,27 @@
   height: 16px;
 }
 
+.settings-modal__sync {
+  border: 1px solid var(--color-border-default);
+  background: transparent;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background var(--motion-duration-fast) var(--motion-easing-standard),
+    border-color var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.settings-modal__sync:hover {
+  background: var(--color-background-hover-fill);
+}
+
+.settings-modal__sync:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 @keyframes modal-fade {
   from {
     opacity: 0;

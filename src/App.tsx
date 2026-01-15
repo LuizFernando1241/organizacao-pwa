@@ -15,7 +15,7 @@ import NotesView from './views/NotesView'
 import { useAppStore } from './store/useAppStore'
 import type { Note } from './types/note'
 import type { Task } from './types/task'
-import { startSync } from './sync/syncManager'
+import { pullChanges, pushChanges, startSync } from './sync/syncManager'
 
 const dayNames = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom']
 
@@ -109,6 +109,7 @@ function App() {
   const [linkTargetTaskId, setLinkTargetTaskId] = useState<string | null>(null)
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false)
   const [linkNoteId, setLinkNoteId] = useState<string | null>(null)
+  const [isSyncing, setIsSyncing] = useState(false)
 
   const visibleTasks = tasks.filter((task) => {
     if (task.dayKey === selectedDayKey) {
@@ -257,6 +258,19 @@ function App() {
   const handleOpenSettings = () => {
     closeAllOverlays()
     setIsSettingsOpen(true)
+  }
+
+  const handleForceSync = async () => {
+    if (isSyncing || !navigator.onLine) {
+      return
+    }
+    setIsSyncing(true)
+    try {
+      await pushChanges()
+      await pullChanges()
+    } finally {
+      setIsSyncing(false)
+    }
   }
 
   const handleOpenLinkedNotes = () => {
@@ -414,6 +428,8 @@ function App() {
         blockOverbooked={blockOverbooked}
         onClose={() => setIsSettingsOpen(false)}
         onChange={updateRoutine}
+        onForceSync={handleForceSync}
+        isSyncing={isSyncing}
       />
     </div>
   )

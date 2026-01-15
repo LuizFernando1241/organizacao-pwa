@@ -24,10 +24,11 @@ type PullResponse = {
 const API_BASE = import.meta.env.VITE_SYNC_API_URL ?? ''
 
 const buildHeaders = async () => {
-  const deviceId = (await getMetaValue('deviceId')) ?? 'default-user'
+  const userId =
+    (await getMetaValue('userId')) ?? (import.meta.env.VITE_USER_ID ? String(import.meta.env.VITE_USER_ID) : 'shared-user')
   return {
     'content-type': 'application/json',
-    'x-user-id': deviceId,
+    'x-user-id': userId,
   }
 }
 

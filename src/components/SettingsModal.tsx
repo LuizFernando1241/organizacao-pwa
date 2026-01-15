@@ -8,6 +8,8 @@ type SettingsModalProps = {
   warnOverbooked: boolean
   blockOverbooked: boolean
   onClose: () => void
+  onForceSync: () => void
+  isSyncing?: boolean
   onChange: (updates: {
     wakeTime?: string
     sleepTime?: string
@@ -25,6 +27,8 @@ function SettingsModal({
   warnOverbooked,
   blockOverbooked,
   onClose,
+  onForceSync,
+  isSyncing,
   onChange,
 }: SettingsModalProps) {
   if (!isOpen) {
@@ -87,6 +91,17 @@ function SettingsModal({
             />
             <span>Bloquear (modo avancado)</span>
           </label>
+        </div>
+        <div className="settings-modal__section">
+          <div className="settings-modal__section-title">Sincronizacao</div>
+          <button
+            type="button"
+            className="settings-modal__sync"
+            onClick={onForceSync}
+            disabled={isSyncing}
+          >
+            {isSyncing ? 'Sincronizando...' : 'Forcar sincronizacao'}
+          </button>
         </div>
       </section>
     </div>
