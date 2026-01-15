@@ -31,6 +31,20 @@ const parseDayKeyToDate = (dayKey: string) => {
   return new Date(year, (month ?? 1) - 1, day ?? 1)
 }
 
+const shiftDayKey = (dayKey: string, daysToAdd: number) => {
+  const date = parseDayKeyToDate(dayKey)
+  date.setDate(date.getDate() + daysToAdd)
+  return formatLocalDayKey(date)
+}
+
+const isSameOrAfter = (startKey: string, targetKey: string) => {
+  const start = parseDayKeyToDate(startKey)
+  const target = parseDayKeyToDate(targetKey)
+  start.setHours(0, 0, 0, 0)
+  target.setHours(0, 0, 0, 0)
+  return target.getTime() >= start.getTime()
+}
+
 const buildWeekDays = (baseDate: Date) => {
   const todayKey = formatLocalDayKey(baseDate)
   const dayIndex = (baseDate.getDay() + 6) % 7
@@ -96,7 +110,26 @@ function App() {
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false)
   const [linkNoteId, setLinkNoteId] = useState<string | null>(null)
 
-  const visibleTasks = tasks.filter((task) => task.dayKey === selectedDayKey)
+  const visibleTasks = tasks.filter((task) => {
+    if (task.dayKey === selectedDayKey) {
+      return true
+    }
+    if (!isSameOrAfter(task.dayKey, selectedDayKey)) {
+      return false
+    }
+    const selectedDate = parseDayKeyToDate(selectedDayKey)
+    const taskDate = parseDayKeyToDate(task.dayKey)
+    if (task.recurrence === 'daily') {
+      return true
+    }
+    if (task.recurrence === 'weekly') {
+      return taskDate.getDay() === selectedDate.getDay()
+    }
+    if (task.recurrence === 'monthly') {
+      return taskDate.getDate() === selectedDate.getDate()
+    }
+    return false
+  })
   const activeTask = tasks.find((task) => task.id === activeTaskId) ?? null
 
   useEffect(() => {
@@ -307,6 +340,8 @@ function App() {
                 todayKey={todayKey}
                 overbookedKeys={overbookedKeys}
                 onSelect={setSelectedDayKey}
+                onPrevWeek={() => setSelectedDayKey(shiftDayKey(selectedDayKey, -7))}
+                onNextWeek={() => setSelectedDayKey(shiftDayKey(selectedDayKey, 7))}
               />
               <TaskList
                 tasks={visibleTasks}

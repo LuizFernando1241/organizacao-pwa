@@ -19,7 +19,7 @@
   right: 0;
   bottom: 0;
   height: 85vh;
-  background: var(--color-background-elevated);
+  background: #1c1c1e;
   border-top-left-radius: var(--radius-lg);
   border-top-right-radius: var(--radius-lg);
   padding: var(--space-4);

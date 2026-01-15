@@ -11,7 +11,7 @@
 
 .note-modal {
   width: min(92vw, 560px);
-  background: var(--color-background-elevated);
+  background: #1c1c1e;
   border-radius: var(--radius-lg);
   padding: var(--space-4);
   display: flex;

@@ -1,4 +1,4 @@
-import { Inbox } from 'lucide-react'
+import { Calendar, Inbox, Settings, StickyNote } from 'lucide-react'
 import type { ReactNode } from 'react'
 import './TopBar.css'
 
@@ -28,13 +28,13 @@ function TopBar({ title, children, onCalendarClick, onNotesClick, onInboxClick, 
           </div>
           <div className="top-bar__actions">
             <button className="icon-button" aria-label="Calendario" onClick={onCalendarClick}>
-              <span className="icon-placeholder">C</span>
+              <Calendar size={20} aria-hidden="true" />
             </button>
             <button className="icon-button" aria-label="Notas" onClick={onNotesClick}>
-              <span className="icon-placeholder">N</span>
+              <StickyNote size={20} aria-hidden="true" />
             </button>
             <button className="icon-button icon-button--small" aria-label="Configuracoes" onClick={onSettingsClick}>
-              <span className="icon-placeholder">S</span>
+              <Settings size={18} aria-hidden="true" />
             </button>
           </div>
         </>

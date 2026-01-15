@@ -89,7 +89,7 @@ const diffMinutes = (start: string, end: string) => {
 
 const buildTimeLabel = (start: string, end: string) => {
   if (start && end) {
-    return `${start}-${end}`
+    return `${start} - ${end}`
   }
   return 'Sem horário'
 }

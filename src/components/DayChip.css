@@ -13,17 +13,20 @@
   gap: 2px;
   cursor: pointer;
   transition: background var(--motion-duration-fast) var(--motion-easing-standard),
-    border-color var(--motion-duration-fast) var(--motion-easing-standard);
+    border-color var(--motion-duration-fast) var(--motion-easing-standard),
+    transform var(--motion-duration-fast) var(--motion-easing-standard);
   text-align: center;
 }
 
 .day-chip:hover {
   background: var(--color-background-hover-fill);
+  transform: translateY(-1px);
 }
 
 .day-chip--selected {
   background: var(--primary);
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  transform: translateY(-1px);
 }
 
 .day-chip--today:not(.day-chip--selected)::after {

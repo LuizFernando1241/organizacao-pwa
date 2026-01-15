@@ -1,3 +1,4 @@
+import { Home, StickyNote } from 'lucide-react'
 import './BottomNavigation.css'
 
 type BottomNavigationProps = {
@@ -13,7 +14,9 @@ function BottomNavigation({ activeTab, onSelect }: BottomNavigationProps) {
         className={`bottom-nav__item${activeTab === 'today' ? ' bottom-nav__item--active' : ''}`}
         onClick={() => onSelect('today')}
       >
-        <span className="bottom-nav__icon">H</span>
+        <span className="bottom-nav__icon" aria-hidden="true">
+          <Home size={22} />
+        </span>
         <span className="bottom-nav__label">Hoje</span>
       </button>
       <button
@@ -21,7 +24,9 @@ function BottomNavigation({ activeTab, onSelect }: BottomNavigationProps) {
         className={`bottom-nav__item${activeTab === 'notes' ? ' bottom-nav__item--active' : ''}`}
         onClick={() => onSelect('notes')}
       >
-        <span className="bottom-nav__icon">N</span>
+        <span className="bottom-nav__icon" aria-hidden="true">
+          <StickyNote size={22} />
+        </span>
         <span className="bottom-nav__label">Notas</span>
       </button>
     </nav>

@@ -26,6 +26,8 @@ const monthNames = [
   'Dezembro',
 ]
 
+const weekDayLabels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom']
+
 const buildCalendarDays = (monthDate: Date) => {
   const year = monthDate.getFullYear()
   const month = monthDate.getMonth()
@@ -75,6 +77,13 @@ function MonthCalendarModal({
             {'>'}
           </button>
         </header>
+        <div className="month-calendar__weekdays">
+          {weekDayLabels.map((label) => (
+            <div key={label} className="month-calendar__weekday">
+              {label}
+            </div>
+          ))}
+        </div>
         <div className="month-calendar__grid">
           {days.map((entry, index) =>
             entry ? (

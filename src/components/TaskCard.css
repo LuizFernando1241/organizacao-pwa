@@ -12,11 +12,17 @@
   font: inherit;
   align-items: center;
   justify-content: space-between;
-  transition: background var(--motion-duration-fast) var(--motion-easing-standard);
+  transition: background var(--motion-duration-fast) var(--motion-easing-standard),
+    transform var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
 .task-card:hover {
   background: var(--color-background-hover-fill);
+  transform: translateY(-1px);
+}
+
+.task-card:active {
+  transform: translateY(0);
 }
 
 .task-card__state-bar {
@@ -119,6 +125,23 @@
 
 .task-card--done {
   opacity: 0.5;
+}
+
+.task-card--glow {
+  box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.4), 0 10px 22px rgba(99, 102, 241, 0.25);
+  animation: task-glow 600ms var(--motion-easing-standard);
+}
+
+@keyframes task-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.45), 0 14px 28px rgba(99, 102, 241, 0.25);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+  }
 }
 
 @keyframes check-bounce {
