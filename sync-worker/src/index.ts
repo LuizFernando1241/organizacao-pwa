@@ -26,6 +26,8 @@ const jsonResponse = (data: unknown, init: ResponseInit = {}) =>
     },
   })
 
+const missingDbResponse = () => jsonResponse({ error: 'DB binding missing.' }, { status: 500 })
+
 const ensureUser = async (db: D1Database, userId: string) => {
   await db.prepare('INSERT OR IGNORE INTO users (id, created_at) VALUES (?, ?)').bind(userId, new Date().toISOString()).run()
 }
@@ -151,8 +153,13 @@ const markDeleted = async (db: D1Database, table: string, id: string, opUpdatedA
 
 router.options('*', () => new Response(null, { status: 204, headers: { 'access-control-allow-origin': '*' } }))
 router.get('/favicon.ico', () => new Response(null, { status: 204 }))
+router.get('/', () => jsonResponse({ ok: true }))
+router.get('/message', () => jsonResponse({ ok: true }))
 
 router.post('/sync/push', async (request: Request, env: Env) => {
+  if (!env.DB) {
+    return missingDbResponse()
+  }
   const body = await parseJson(request)
   if (!Array.isArray(body)) {
     return jsonResponse({ error: 'Payload must be an array.' }, { status: 400 })
@@ -192,6 +199,9 @@ router.post('/sync/push', async (request: Request, env: Env) => {
 })
 
 router.get('/sync/pull', async (request: Request, env: Env) => {
+  if (!env.DB) {
+    return missingDbResponse()
+  }
   const url = new URL(request.url)
   const cursor = url.searchParams.get('cursor') ?? '1970-01-01T00:00:00.000Z'
   const userId = getUserId(request)
@@ -226,6 +236,12 @@ router.all('*', () => jsonResponse({ error: 'Not Found' }, { status: 404 }))
 
 export default {
   fetch: async (request: Request, env: Env, _ctx: ExecutionContext) => {
-    return router.handle(request, env)
+    try {
+      return await router.handle(request, env)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown worker error.'
+      console.error(error)
+      return jsonResponse({ error: message }, { status: 500 })
+    }
   },
 }

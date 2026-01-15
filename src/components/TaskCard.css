@@ -97,6 +97,40 @@
   margin-top: 4px;
 }
 
+.task-card__timer {
+  font-size: 12px;
+  color: #8e8e93;
+  margin-top: 2px;
+}
+
+.task-card__timer--running {
+  color: var(--primary);
+  animation: timer-pulse 1.6s ease-in-out infinite;
+}
+
+.task-card__timer-btn {
+  border: none;
+  background: transparent;
+  color: #8e8e93;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background var(--motion-duration-fast) var(--motion-easing-standard),
+    color var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.task-card__timer-btn--active {
+  color: var(--primary);
+}
+
+.task-card__timer-btn:hover {
+  background: rgba(99, 102, 241, 0.1);
+}
+
 .task-card--planned .task-card__state-bar {
   background: var(--color-state-planned);
 }
@@ -141,6 +175,16 @@
   }
   100% {
     box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+  }
+}
+
+@keyframes timer-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
   }
 }
 

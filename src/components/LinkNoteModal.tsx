@@ -11,7 +11,18 @@ type LinkNoteModalProps = {
   onLink: (noteId: string, taskId: string) => void
 }
 
-const getTodayKey = () => new Date().toISOString().slice(0, 10)
+const getTodayKey = () => {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const parseDayKey = (dayKey: string) => {
+  const [year, month, day] = dayKey.split('-').map(Number)
+  return new Date(year, (month ?? 1) - 1, day ?? 1)
+}
 
 const getStartOfWeek = (base: Date) => {
   const dayIndex = (base.getDay() + 6) % 7
@@ -30,7 +41,7 @@ const getEndOfWeek = (base: Date) => {
 }
 
 const isWithinWeek = (dayKey: string, start: Date, end: Date) => {
-  const date = new Date(dayKey)
+  const date = parseDayKey(dayKey)
   return date >= start && date <= end
 }
 

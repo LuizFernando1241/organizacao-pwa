@@ -8,9 +8,11 @@ type TaskListProps = {
   onSelectTask?: (task: Task) => void
   onAddTask?: () => void
   onToggleDone?: (id: string) => void
+  onStartTimer?: (id: string) => void
+  onStopTimer?: (id: string) => void
 }
 
-function TaskList({ tasks, onSelectTask, onAddTask, onToggleDone }: TaskListProps) {
+function TaskList({ tasks, onSelectTask, onAddTask, onToggleDone, onStartTimer, onStopTimer }: TaskListProps) {
   const orderedTasks = useMemo(() => {
     const parseTime = (value: string) => {
       if (!value) {
@@ -40,7 +42,14 @@ function TaskList({ tasks, onSelectTask, onAddTask, onToggleDone }: TaskListProp
         <div className="task-list__empty">Nenhuma tarefa para hoje. Aproveite o dia!</div>
       ) : (
         orderedTasks.map((task) => (
-          <TaskCard key={task.id} task={task} onSelect={onSelectTask} onToggleDone={onToggleDone} />
+          <TaskCard
+            key={task.id}
+            task={task}
+            onSelect={onSelectTask}
+            onToggleDone={onToggleDone}
+            onStartTimer={onStartTimer}
+            onStopTimer={onStopTimer}
+          />
         ))
       )}
       {onAddTask && (

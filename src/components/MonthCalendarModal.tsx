@@ -28,6 +28,13 @@ const monthNames = [
 
 const weekDayLabels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom']
 
+const formatDayKey = (date: Date) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 const buildCalendarDays = (monthDate: Date) => {
   const year = monthDate.getFullYear()
   const month = monthDate.getMonth()
@@ -61,7 +68,7 @@ function MonthCalendarModal({
     return null
   }
 
-  const todayKey = new Date().toISOString().slice(0, 10)
+  const todayKey = formatDayKey(new Date())
   const days = buildCalendarDays(monthDate)
   const monthLabel = `${monthNames[monthDate.getMonth()]} ${monthDate.getFullYear()}`
 
@@ -85,19 +92,21 @@ function MonthCalendarModal({
           ))}
         </div>
         <div className="month-calendar__grid">
-          {days.map((entry, index) =>
-            entry ? (
+          {days.map((entry, index) => {
+            if (!entry) {
+              return <div key={`empty-${index}`} className="month-calendar__empty" />
+            }
+            const dayKey = formatDayKey(entry.date)
+            return (
               <CalendarDayCell
-                key={entry.date.toISOString()}
+                key={dayKey}
                 day={entry.date.getDate()}
-                isToday={entry.date.toISOString().slice(0, 10) === todayKey}
-                isSelected={entry.date.toISOString().slice(0, 10) === selectedDayKey}
+                isToday={dayKey === todayKey}
+                isSelected={dayKey === selectedDayKey}
                 onSelect={() => onSelectDay(entry.date)}
               />
-            ) : (
-              <div key={`empty-${index}`} className="month-calendar__empty" />
-            ),
-          )}
+            )
+          })}
         </div>
       </section>
     </div>

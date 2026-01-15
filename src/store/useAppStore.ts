@@ -33,6 +33,8 @@ type AppState = {
   runTimeTick: () => void
   updateTask: (id: string, updates: Partial<Task>) => void
   toggleTaskDone: (id: string) => void
+  startTimer: (id: string) => void
+  stopTimer: (id: string) => void
   deleteTask: (id: string) => void
   createTask: (dayKey: string) => string
   convertInboxToTask: (id: string, dayKey: string) => string | null
@@ -41,6 +43,9 @@ type AppState = {
   updateNote: (id: string, updates: Partial<Note>) => void
   deleteNote: (id: string) => void
   linkNoteToTask: (noteId: string, taskId: string) => void
+  getCompletionStats: () => { completed: number; total: number; rate: number }
+  getTotalFocusTimeMs: () => number
+  getStatusCountsForDay: (dayKey: string) => { planned: number; overdue: number; done: number }
   getDailyCapacityMinutes: () => number
   getPlannedDurationMinutesForDay: (dayKey: string) => number
   isOverbookedForDay: (dayKey: string) => boolean
@@ -75,6 +80,21 @@ const parseBool = (value: string | null | undefined, fallback: boolean) => {
   return fallback
 }
 
+const normalizeTimerFields = (task: Task) => ({
+  timeSpent: Number.isFinite(task.timeSpent) ? task.timeSpent : 0,
+  isTimerRunning: Boolean(task.isTimerRunning),
+  lastTimerStart: typeof task.lastTimerStart === 'number' ? task.lastTimerStart : null,
+})
+
+const getAccumulatedTime = (task: Task) => {
+  const base = Number.isFinite(task.timeSpent) ? task.timeSpent : 0
+  if (!task.isTimerRunning || !task.lastTimerStart) {
+    return base
+  }
+  const delta = Date.now() - task.lastTimerStart
+  return base + Math.max(0, delta)
+}
+
 const diffMinutes = (start: string, end: string) => {
   const startMinutes = parseTimeToMinutes(start)
   const endMinutes = parseTimeToMinutes(end)
@@ -91,7 +111,10 @@ const buildTimeLabel = (start: string, end: string) => {
   if (start && end) {
     return `${start} - ${end}`
   }
-  return 'Sem horário'
+  if (start) {
+    return start
+  }
+  return 'Sem horario'
 }
 
 const isFutureTime = (dayKey: string, start: string) => {
@@ -137,9 +160,11 @@ export const useAppStore = create<AppState>((set, get) => ({
       db.inbox_items.toArray(),
       db.links.toArray(),
     ])
-    const normalizedTasks = tasks.map((task) =>
-      task.updatedAt ? task : { ...task, updatedAt: new Date().toISOString() },
-    )
+    const normalizedTasks = tasks.map((task) => {
+      const base = task.updatedAt ? task : { ...task, updatedAt: new Date().toISOString() }
+      const timer = normalizeTimerFields(base as Task)
+      return { ...base, ...timer } as Task
+    })
     const selectedDayKey = (await getMetaValue('selectedDayKey')) ?? getTodayKey()
     const wakeTime = (await getMetaValue('wakeTime')) ?? '07:00'
     const sleepTime = (await getMetaValue('sleepTime')) ?? '23:00'
@@ -262,7 +287,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   runTimeTick: () => {
     const now = new Date()
-    const todayKey = now.toISOString().slice(0, 10)
+    const todayKey = getTodayKey()
     const nowMinutes = now.getHours() * 60 + now.getMinutes()
     set((state) => ({
       tasks: state.tasks.map((task) => {
@@ -340,15 +365,73 @@ export const useAppStore = create<AppState>((set, get) => ({
         }
         const isDone = task.status === 'done'
         const nextStatus: Task['status'] = isDone ? 'planned' : 'done'
+        const shouldStopTimer = !isDone && task.isTimerRunning && typeof task.lastTimerStart === 'number'
+        const extraTime = shouldStopTimer ? Date.now() - (task.lastTimerStart as number) : 0
+        const nextTimeSpent = (task.timeSpent ?? 0) + Math.max(0, extraTime)
         const nextTask: Task = {
           ...task,
           status: nextStatus,
+          timeSpent: nextTimeSpent,
+          isTimerRunning: isDone ? task.isTimerRunning : false,
+          lastTimerStart: isDone ? task.lastTimerStart : null,
           subtasks: isDone
             ? task.subtasks
             : task.subtasks.map((subtask) =>
                 subtask.status === 'DONE' ? subtask : { ...subtask, status: 'DONE' as Subtask['status'] },
               ),
           updatedAt: now,
+        }
+        void db.tasks.put(nextTask)
+        void enqueueOp({
+          entityType: 'task',
+          entityId: nextTask.id,
+          opType: 'update',
+          payload: nextTask,
+        })
+        return nextTask
+      }),
+    }))
+  },
+  startTimer: (id) => {
+    const nowMs = Date.now()
+    const nowIso = new Date().toISOString()
+    set((state) => ({
+      tasks: state.tasks.map((task) => {
+        if (task.id !== id || task.isTimerRunning) {
+          return task
+        }
+        const nextTask: Task = {
+          ...task,
+          isTimerRunning: true,
+          lastTimerStart: nowMs,
+          updatedAt: nowIso,
+        }
+        void db.tasks.put(nextTask)
+        void enqueueOp({
+          entityType: 'task',
+          entityId: nextTask.id,
+          opType: 'update',
+          payload: nextTask,
+        })
+        return nextTask
+      }),
+    }))
+  },
+  stopTimer: (id) => {
+    const nowMs = Date.now()
+    const nowIso = new Date().toISOString()
+    set((state) => ({
+      tasks: state.tasks.map((task) => {
+        if (task.id !== id || !task.isTimerRunning || typeof task.lastTimerStart !== 'number') {
+          return task
+        }
+        const delta = nowMs - task.lastTimerStart
+        const nextTask: Task = {
+          ...task,
+          timeSpent: (task.timeSpent ?? 0) + Math.max(0, delta),
+          isTimerRunning: false,
+          lastTimerStart: null,
+          updatedAt: nowIso,
         }
         void db.tasks.put(nextTask)
         void enqueueOp({
@@ -382,7 +465,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const task: Task = {
       id: taskId,
       title: '',
-      timeLabel: 'Sem horário',
+      timeLabel: 'Sem horario',
       timeStart: '',
       timeEnd: '',
       status: 'planned',
@@ -390,6 +473,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       recurrence: 'none',
       subtasks: [],
       linkedNoteIds: [],
+      timeSpent: 0,
+      isTimerRunning: false,
+      lastTimerStart: null,
       updatedAt: now,
     }
     set((state) => ({
@@ -414,7 +500,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const task: Task = {
       id: taskId,
       title: item.text,
-      timeLabel: 'Sem horário',
+      timeLabel: 'Sem horario',
       timeStart: '',
       timeEnd: '',
       status: 'planned',
@@ -422,6 +508,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       recurrence: 'none',
       subtasks: [],
       linkedNoteIds: [],
+      timeSpent: 0,
+      isTimerRunning: false,
+      lastTimerStart: null,
       updatedAt: now,
     }
     set((state) => ({
@@ -576,6 +665,36 @@ export const useAppStore = create<AppState>((set, get) => ({
       opType: 'update',
       payload: updatedTask,
     })
+  },
+  getCompletionStats: () => {
+    const { tasks } = get()
+    const total = tasks.length
+    const completed = tasks.filter((task) => task.status === 'done').length
+    const rate = total === 0 ? 0 : completed / total
+    return { completed, total, rate }
+  },
+  getTotalFocusTimeMs: () => {
+    const { tasks } = get()
+    return tasks.reduce((total, task) => total + getAccumulatedTime(task), 0)
+  },
+  getStatusCountsForDay: (dayKey) => {
+    const { tasks } = get()
+    return tasks.reduce(
+      (acc, task) => {
+        if (task.dayKey !== dayKey) {
+          return acc
+        }
+        if (task.status === 'overdue') {
+          acc.overdue += 1
+        } else if (task.status === 'done') {
+          acc.done += 1
+        } else {
+          acc.planned += 1
+        }
+        return acc
+      },
+      { planned: 0, overdue: 0, done: 0 },
+    )
   },
   getDailyCapacityMinutes: () => {
     const { wakeTime, sleepTime } = get()

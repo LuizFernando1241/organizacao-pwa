@@ -1,9 +1,9 @@
-import { Home, StickyNote } from 'lucide-react'
+import { BarChart3, Home, StickyNote } from 'lucide-react'
 import './BottomNavigation.css'
 
 type BottomNavigationProps = {
-  activeTab: 'today' | 'notes'
-  onSelect: (tab: 'today' | 'notes') => void
+  activeTab: 'today' | 'notes' | 'feedback'
+  onSelect: (tab: 'today' | 'notes' | 'feedback') => void
 }
 
 function BottomNavigation({ activeTab, onSelect }: BottomNavigationProps) {
@@ -28,6 +28,16 @@ function BottomNavigation({ activeTab, onSelect }: BottomNavigationProps) {
           <StickyNote size={22} />
         </span>
         <span className="bottom-nav__label">Notas</span>
+      </button>
+      <button
+        type="button"
+        className={`bottom-nav__item${activeTab === 'feedback' ? ' bottom-nav__item--active' : ''}`}
+        onClick={() => onSelect('feedback')}
+      >
+        <span className="bottom-nav__icon" aria-hidden="true">
+          <BarChart3 size={22} />
+        </span>
+        <span className="bottom-nav__label">Feedback</span>
       </button>
     </nav>
   )

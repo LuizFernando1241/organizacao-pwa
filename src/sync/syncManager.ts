@@ -23,6 +23,32 @@ type PullResponse = {
 
 const API_BASE = import.meta.env.VITE_SYNC_API_URL ?? ''
 
+
+const buildTimeLabel = (start: string, end: string) => {
+  if (start && end) {
+    return `${start} - ${end}`
+  }
+  if (start) {
+    return start
+  }
+  return 'Sem horario'
+}
+
+const parseJsonArray = <T>(value: unknown, fallback: T[]) => {
+  if (Array.isArray(value)) {
+    return value as T[]
+  }
+  if (typeof value === 'string' && value.trim()) {
+    try {
+      const parsed = JSON.parse(value)
+      return Array.isArray(parsed) ? (parsed as T[]) : fallback
+    } catch {
+      return fallback
+    }
+  }
+  return fallback
+}
+
 const buildHeaders = async () => {
   const userId =
     (await getMetaValue('userId')) ?? (import.meta.env.VITE_USER_ID ? String(import.meta.env.VITE_USER_ID) : 'shared-user')
@@ -33,19 +59,28 @@ const buildHeaders = async () => {
 }
 
 const normalizeTask = (row: Record<string, unknown>): Task => {
+  const timeStart = String(row.time_start ?? row.timeStart ?? '')
+  const timeEnd = String(row.time_end ?? row.timeEnd ?? '')
+
   return {
     id: String(row.id),
     title: String(row.title ?? ''),
-    timeLabel: row.time_start && row.time_end ? `${row.time_start}-${row.time_end}` : 'Sem horário',
-    timeStart: String(row.time_start ?? ''),
-    timeEnd: String(row.time_end ?? ''),
+    timeLabel: buildTimeLabel(timeStart, timeEnd),
+    timeStart,
+    timeEnd,
     status: (row.status as Task['status']) ?? 'planned',
-    dayKey: String(row.day_key ?? ''),
+    dayKey: String(row.day_key ?? row.dayKey ?? ''),
     recurrence: (row.recurrence as Task['recurrence']) ?? 'none',
-    subtasks: Array.isArray(row.subtasks) ? (row.subtasks as Task['subtasks']) : JSON.parse(String(row.subtasks ?? '[]')),
-    linkedNoteIds: Array.isArray(row.linked_note_ids)
-      ? (row.linked_note_ids as string[])
-      : JSON.parse(String(row.linked_note_ids ?? '[]')),
+    subtasks: parseJsonArray<Task['subtasks']>(row.subtasks, []),
+    linkedNoteIds: parseJsonArray<string>(row.linked_note_ids ?? row.linkedNoteIds, []),
+    timeSpent: Number(row.time_spent ?? row.timeSpent ?? 0),
+    isTimerRunning: Boolean(row.is_timer_running ?? row.isTimerRunning ?? false),
+    lastTimerStart:
+      typeof row.last_timer_start === 'number'
+        ? row.last_timer_start
+        : typeof row.lastTimerStart === 'number'
+          ? row.lastTimerStart
+          : null,
     updatedAt: String(row.updated_at ?? new Date().toISOString()),
     deletedAt: row.deleted_at ? String(row.deleted_at) : null,
   }
@@ -72,6 +107,9 @@ const normalizeLink = (row: Record<string, unknown>): NoteTaskLink & { deletedAt
 }
 
 export const pushChanges = async () => {
+  if (!API_BASE) {
+    return
+  }
   const pending = (await db.ops_queue.where('status').equals('pending').toArray()) as SyncOp[]
   if (pending.length === 0) {
     return
@@ -98,6 +136,9 @@ export const pushChanges = async () => {
 }
 
 export const pullChanges = async () => {
+  if (!API_BASE) {
+    return
+  }
   const cursor = (await getMetaValue('lastSyncCursor')) ?? '1970-01-01T00:00:00.000Z'
   const response = await fetch(`${API_BASE}/sync/pull?cursor=${encodeURIComponent(cursor)}`, {
     headers: await buildHeaders(),
@@ -144,14 +185,21 @@ export const pullChanges = async () => {
 }
 
 export const startSync = () => {
+  if (!API_BASE) {
+    return () => undefined
+  }
   let intervalId: number | null = null
 
   const run = async () => {
     if (!navigator.onLine) {
       return
     }
-    await pushChanges()
-    await pullChanges()
+    try {
+      await pushChanges()
+      await pullChanges()
+    } catch {
+      return
+    }
   }
 
   const onOnline = () => void run()

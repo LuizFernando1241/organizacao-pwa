@@ -12,6 +12,7 @@ import TopBar from './components/TopBar'
 import WeekStrip from './components/WeekStrip'
 import TaskList from './components/TaskList'
 import NotesView from './views/NotesView'
+import FeedbackView from './views/FeedbackView'
 import { useAppStore } from './store/useAppStore'
 import type { Note } from './types/note'
 import type { Task } from './types/task'
@@ -88,6 +89,8 @@ function App() {
     convertInboxToTask,
     updateTask,
     toggleTaskDone,
+    startTimer,
+    stopTimer,
     deleteTask,
     setSelectedDayKey,
     updateRoutine,
@@ -95,7 +98,7 @@ function App() {
   } = useAppStore()
   const baseDate = useMemo(() => parseDayKeyToDate(selectedDayKey), [selectedDayKey])
   const { todayKey, days } = useMemo(() => buildWeekDays(baseDate), [baseDate])
-  const [activeTab, setActiveTab] = useState<'today' | 'notes'>('today')
+  const [activeTab, setActiveTab] = useState<'today' | 'notes' | 'feedback'>('today')
   const [isInboxOpen, setIsInboxOpen] = useState(false)
   const [isTaskSheetOpen, setIsTaskSheetOpen] = useState(false)
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
@@ -111,6 +114,7 @@ function App() {
   const [linkNoteId, setLinkNoteId] = useState<string | null>(null)
   const [isSyncing, setIsSyncing] = useState(false)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [hasPromptedRollover, setHasPromptedRollover] = useState(false)
 
   const visibleTasks = tasks.filter((task) => {
     if (task.dayKey === selectedDayKey) {
@@ -133,6 +137,17 @@ function App() {
     return false
   })
   const activeTask = tasks.find((task) => task.id === activeTaskId) ?? null
+  const todayKeyActual = formatLocalDayKey(new Date())
+  const rolloverCandidates = useMemo(() => {
+    const todayDate = parseDayKeyToDate(todayKeyActual)
+    return tasks.filter((task) => {
+      if (task.status === 'done') {
+        return false
+      }
+      const taskDate = parseDayKeyToDate(task.dayKey)
+      return taskDate < todayDate
+    })
+  }, [tasks, todayKeyActual])
 
   useEffect(() => {
     void init()
@@ -156,12 +171,33 @@ function App() {
     return () => window.clearInterval(interval)
   }, [isReady, runTimeTick])
 
+  useEffect(() => {
+    if (!isReady || hasPromptedRollover || rolloverCandidates.length === 0) {
+      return
+    }
+    const shouldMove = window.confirm(
+      `Voce tem ${rolloverCandidates.length} tarefa(s) pendente(s) de ontem. Deseja traze-las para hoje?`,
+    )
+    if (shouldMove) {
+      rolloverCandidates.forEach((task) => {
+        updateTask(task.id, { dayKey: todayKeyActual, status: 'planned' })
+      })
+    }
+    setHasPromptedRollover(true)
+  }, [isReady, hasPromptedRollover, rolloverCandidates, updateTask, todayKeyActual])
+
   const closeAllOverlays = () => {
     setIsInboxOpen(false)
     setIsTaskSheetOpen(false)
     setIsLinkedNotesOpen(false)
     setIsCalendarOpen(false)
     setIsSettingsOpen(false)
+    setIsNoteModalOpen(false)
+    setIsLinkModalOpen(false)
+    setActiveNote(null)
+    setDraftNote(null)
+    setLinkTargetTaskId(null)
+    setLinkNoteId(null)
   }
 
   const resetNoteModalState = () => {
@@ -170,7 +206,7 @@ function App() {
     setLinkTargetTaskId(null)
   }
 
-  const handleSelectTab = (tab: 'today' | 'notes') => {
+  const handleSelectTab = (tab: 'today' | 'notes' | 'feedback') => {
     closeAllOverlays()
     setActiveTab(tab)
   }
@@ -247,7 +283,7 @@ function App() {
 
   const handleOpenCalendar = () => {
     closeAllOverlays()
-    setCalendarMonth(new Date(selectedDayKey))
+    setCalendarMonth(parseDayKeyToDate(selectedDayKey))
     setIsCalendarOpen(true)
   }
 
@@ -259,6 +295,20 @@ function App() {
   const handleOpenSettings = () => {
     closeAllOverlays()
     setIsSettingsOpen(true)
+  }
+
+  const handleRollover = () => {
+    if (rolloverCandidates.length === 0) {
+      return
+    }
+    const shouldMove = window.confirm(
+      `Voce tem ${rolloverCandidates.length} tarefa(s) pendente(s) de ontem. Deseja traze-las para hoje?`,
+    )
+    if (shouldMove) {
+      rolloverCandidates.forEach((task) => {
+        updateTask(task.id, { dayKey: todayKeyActual, status: 'planned' })
+      })
+    }
   }
 
   const handleForceSync = async () => {
@@ -352,6 +402,8 @@ function App() {
       {toast && <div className={`toast toast--${toast.type}`}>{toast.message}</div>}
       {activeTab === 'notes' ? (
         <NotesView />
+      ) : activeTab === 'feedback' ? (
+        <FeedbackView />
       ) : (
         <>
           <TopBar
@@ -363,7 +415,14 @@ function App() {
           />
           <main className="app-content">
             <div className="home-stack">
-              <h1 className="page-title">Hoje / Semana</h1>
+              <div className="home-header">
+                <h1 className="page-title">Hoje / Semana</h1>
+                {rolloverCandidates.length > 0 && (
+                  <button type="button" className="rollover-button" onClick={handleRollover}>
+                    Revisar atrasadas ({rolloverCandidates.length})
+                  </button>
+                )}
+              </div>
               <WeekStrip
                 days={days}
                 selectedKey={selectedDayKey}
@@ -377,6 +436,8 @@ function App() {
                 tasks={visibleTasks}
                 onSelectTask={handleSelectTask}
                 onToggleDone={toggleTaskDone}
+                onStartTimer={startTimer}
+                onStopTimer={stopTimer}
                 onAddTask={handleAddTask}
               />
             </div>

@@ -51,13 +51,19 @@ const getDefaultUserId = () => {
   return 'shared-user'
 }
 
-const getTodayKey = () => new Date().toISOString().slice(0, 10)
+const getTodayKey = () => {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
 
 const seedTasks: Task[] = [
   {
     id: 'task-1',
     title: 'Revisar agenda da semana',
-    timeLabel: '09:00-09:30',
+    timeLabel: '09:00 - 09:30',
     timeStart: '09:00',
     timeEnd: '09:30',
     status: 'planned',
@@ -68,12 +74,15 @@ const seedTasks: Task[] = [
       { id: 'subtask-2', title: 'Rever compromissos', status: 'DONE' },
     ],
     linkedNoteIds: [],
+    timeSpent: 0,
+    isTimerRunning: false,
+    lastTimerStart: null,
     updatedAt: new Date().toISOString(),
   },
   {
     id: 'task-2',
     title: 'Planejar tarefas urgentes',
-    timeLabel: '10:00-10:30',
+    timeLabel: '10:00 - 10:30',
     timeStart: '10:00',
     timeEnd: '10:30',
     status: 'active',
@@ -81,12 +90,15 @@ const seedTasks: Task[] = [
     recurrence: 'none',
     subtasks: [],
     linkedNoteIds: [],
+    timeSpent: 0,
+    isTimerRunning: false,
+    lastTimerStart: null,
     updatedAt: new Date().toISOString(),
   },
   {
     id: 'task-3',
     title: 'Responder mensagens pendentes',
-    timeLabel: 'Sem horário',
+    timeLabel: 'Sem horario',
     timeStart: '',
     timeEnd: '',
     status: 'overdue',
@@ -94,6 +106,9 @@ const seedTasks: Task[] = [
     recurrence: 'none',
     subtasks: [],
     linkedNoteIds: [],
+    timeSpent: 0,
+    isTimerRunning: false,
+    lastTimerStart: null,
     updatedAt: new Date().toISOString(),
   },
 ]

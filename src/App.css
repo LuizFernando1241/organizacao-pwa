@@ -19,6 +19,28 @@
   color: var(--text-primary);
 }
 
+.home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.rollover-button {
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--primary);
+  font-size: 12px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.rollover-button:hover {
+  background: rgba(99, 102, 241, 0.2);
+}
+
 .page-subtitle {
   margin: 0;
   font-size: var(--font-size-body);

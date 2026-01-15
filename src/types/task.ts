@@ -19,6 +19,9 @@ export type Task = {
   recurrence: Recurrence
   subtasks: Subtask[]
   linkedNoteIds: string[]
+  timeSpent: number
+  isTimerRunning: boolean
+  lastTimerStart: number | null
   updatedAt: string
   deletedAt?: string | null
 }
