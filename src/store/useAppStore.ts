@@ -102,10 +102,18 @@ const diffMinutes = (start: string, end: string) => {
     return 0
   }
   if (endMinutes <= startMinutes) {
-    return 0
+    return 24 * 60 - startMinutes + endMinutes
   }
   return endMinutes - startMinutes
 }
+
+const getPlannedMinutesForDay = (tasks: Task[], dayKey: string) =>
+  tasks.reduce((total, task) => {
+    if (task.dayKey !== dayKey || task.status !== 'planned') {
+      return total
+    }
+    return total + diffMinutes(task.timeStart, task.timeEnd)
+  }, 0)
 
 const buildTimeLabel = (start: string, end: string) => {
   if (start && end) {
@@ -328,33 +336,52 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   updateTask: (id, updates) => {
     const now = new Date().toISOString()
-    set((state) => ({
-      tasks: state.tasks.map((task) => {
-        if (task.id !== id) {
-          return task
-        }
-        const nextTask: Task = { ...task, ...updates, updatedAt: now }
-        if (updates.timeStart !== undefined || updates.timeEnd !== undefined || updates.dayKey !== undefined) {
-          const nextStart = updates.timeStart ?? task.timeStart
-          const nextEnd = updates.timeEnd ?? task.timeEnd
-          nextTask.timeStart = nextStart
-          nextTask.timeEnd = nextEnd
-          nextTask.timeLabel = buildTimeLabel(nextStart, nextEnd)
-          const nextDayKey = updates.dayKey ?? task.dayKey
-          if ((task.status === 'active' || task.status === 'overdue') && isFutureTime(nextDayKey, nextStart)) {
+    const state = get()
+    const currentTask = state.tasks.find((task) => task.id === id)
+    if (!currentTask) {
+      return
+    }
+    let nextTask: Task = { ...currentTask, ...updates, updatedAt: now }
+    if (updates.timeStart !== undefined || updates.timeEnd !== undefined || updates.dayKey !== undefined) {
+      const nextStart = updates.timeStart ?? currentTask.timeStart
+      const nextEnd = updates.timeEnd ?? currentTask.timeEnd
+      const nextDayKey = updates.dayKey ?? currentTask.dayKey
+      nextTask.timeStart = nextStart
+      nextTask.timeEnd = nextEnd
+      nextTask.timeLabel = buildTimeLabel(nextStart, nextEnd)
+      nextTask.dayKey = nextDayKey
+      if (currentTask.status === 'active' || currentTask.status === 'overdue') {
+        if (!nextStart || !nextEnd) {
+          if (nextDayKey >= getTodayKey()) {
             nextTask.status = 'planned' as Task['status']
           }
+        } else if (isFutureTime(nextDayKey, nextStart)) {
+          nextTask.status = 'planned' as Task['status']
         }
-        void db.tasks.put(nextTask)
-        void enqueueOp({
-          entityType: 'task',
-          entityId: nextTask.id,
-          opType: 'update',
-          payload: nextTask,
-        })
-        return nextTask
-      }),
+      }
+    }
+    const shouldCheckOverbooked =
+      state.blockOverbooked &&
+      (updates.timeStart !== undefined || updates.timeEnd !== undefined || updates.dayKey !== undefined)
+    if (shouldCheckOverbooked) {
+      const prevPlanned = getPlannedMinutesForDay(state.tasks, nextTask.dayKey)
+      const nextTasks = state.tasks.map((task) => (task.id === id ? nextTask : task))
+      const nextPlanned = getPlannedMinutesForDay(nextTasks, nextTask.dayKey)
+      const capacity = diffMinutes(state.wakeTime, state.sleepTime)
+      if (capacity > 0 && nextPlanned > capacity && nextPlanned > prevPlanned) {
+        return
+      }
+    }
+    set((state) => ({
+      tasks: state.tasks.map((task) => (task.id === id ? nextTask : task)),
     }))
+    void db.tasks.put(nextTask)
+    void enqueueOp({
+      entityType: 'task',
+      entityId: nextTask.id,
+      opType: 'update',
+      payload: nextTask,
+    })
   },
   toggleTaskDone: (id) => {
     const now = new Date().toISOString()
@@ -446,6 +473,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   deleteTask: (id) => {
     const now = new Date().toISOString()
+    const linksToRemove = get().links.filter((link) => link.taskId === id)
     set((state) => ({
       tasks: state.tasks.filter((task) => task.id !== id),
       links: state.links.filter((link) => link.taskId !== id),
@@ -457,6 +485,14 @@ export const useAppStore = create<AppState>((set, get) => ({
       entityId: id,
       opType: 'delete',
       payload: { updatedAt: now },
+    })
+    linksToRemove.forEach((link) => {
+      void enqueueOp({
+        entityType: 'link',
+        entityId: `${link.taskId}:${link.noteId}`,
+        opType: 'delete',
+        payload: { updatedAt: now },
+      })
     })
   },
   createTask: (dayKey) => {
@@ -525,7 +561,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       entityType: 'inbox',
       entityId: id,
       opType: 'delete',
-      payload: {},
+      payload: { updatedAt: now },
     })
     void enqueueOp({
       entityType: 'task',
@@ -604,6 +640,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       ...task,
       linkedNoteIds: task.linkedNoteIds.filter((noteId) => noteId !== id),
     }))
+    const linksToRemove = get().links.filter((link) => link.noteId === id)
     set((state) => ({
       notes: state.notes.filter((note) => note.id !== id),
       links: state.links.filter((link) => link.noteId !== id),
@@ -632,6 +669,14 @@ export const useAppStore = create<AppState>((set, get) => ({
         payload: { ...task, updatedAt: now },
       })
     })
+    linksToRemove.forEach((link) => {
+      void enqueueOp({
+        entityType: 'link',
+        entityId: `${link.taskId}:${link.noteId}`,
+        opType: 'delete',
+        payload: { updatedAt: now },
+      })
+    })
   },
   linkNoteToTask: (noteId, taskId) => {
     const task = get().tasks.find((item) => item.id === taskId)
@@ -655,7 +700,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     })
     void enqueueOp({
       entityType: 'link',
-      entityId: `${noteId}-${taskId}`,
+      entityId: `${taskId}:${noteId}`,
       opType: 'create',
       payload: { noteId, taskId },
     })
@@ -711,6 +756,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   isOverbookedForDay: (dayKey) => {
     if (!get().warnOverbooked) {
+      return false
+    }
+    if (!get().applyRoutineAllDays && dayKey !== get().selectedDayKey) {
       return false
     }
     const capacity = get().getDailyCapacityMinutes()

@@ -77,6 +77,7 @@ function NotesView() {
     if (activeNote) {
       setLinkNoteId(activeNote.id)
       setIsLinkModalOpen(true)
+      setIsNoteModalOpen(false)
       return
     }
     const newId = createNote(data)

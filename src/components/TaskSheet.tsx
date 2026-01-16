@@ -150,6 +150,7 @@ function TaskSheet({
     onClose()
   }
 
+  const isDone = task?.status === 'done'
   const linkedNotes = task ? notes.filter((note) => task.linkedNoteIds.includes(note.id)) : []
 
   return (
@@ -169,7 +170,7 @@ function TaskSheet({
               Fechar
             </button>
             <button type="button" className="task-sheet__primary-button" onClick={handleToggleDone}>
-              Concluir
+              {isDone ? 'Reabrir' : 'Concluir'}
             </button>
           </div>
         </header>

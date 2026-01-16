@@ -19,6 +19,7 @@ import type { Task } from './types/task'
 import { pullChanges, pushChanges, startSync } from './sync/syncManager'
 
 const dayNames = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom']
+const monthShortNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
 const formatLocalDayKey = (date: Date) => {
   const year = date.getFullYear()
@@ -30,6 +31,37 @@ const formatLocalDayKey = (date: Date) => {
 const parseDayKeyToDate = (dayKey: string) => {
   const [year, month, day] = dayKey.split('-').map(Number)
   return new Date(year, (month ?? 1) - 1, day ?? 1)
+}
+
+const parseTimeToMinutes = (value: string) => {
+  if (!value) {
+    return null
+  }
+  const [hours, minutes] = value.split(':').map((part) => Number(part))
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
+    return null
+  }
+  return hours * 60 + minutes
+}
+
+const getStatusForTimeRange = (timeStart: string, timeEnd: string) => {
+  if (!timeStart || !timeEnd) {
+    return 'planned' as Task['status']
+  }
+  const startMinutes = parseTimeToMinutes(timeStart)
+  const endMinutes = parseTimeToMinutes(timeEnd)
+  if (startMinutes === null || endMinutes === null) {
+    return 'planned' as Task['status']
+  }
+  const now = new Date()
+  const nowMinutes = now.getHours() * 60 + now.getMinutes()
+  if (nowMinutes > endMinutes) {
+    return 'overdue' as Task['status']
+  }
+  if (nowMinutes >= startMinutes && nowMinutes <= endMinutes) {
+    return 'active' as Task['status']
+  }
+  return 'planned' as Task['status']
 }
 
 const shiftDayKey = (dayKey: string, daysToAdd: number) => {
@@ -47,10 +79,12 @@ const isSameOrAfter = (startKey: string, targetKey: string) => {
 }
 
 const buildWeekDays = (baseDate: Date) => {
-  const todayKey = formatLocalDayKey(baseDate)
+  const todayKey = formatLocalDayKey(new Date())
   const dayIndex = (baseDate.getDay() + 6) % 7
   const start = new Date(baseDate)
   start.setDate(baseDate.getDate() - dayIndex)
+  const end = new Date(start)
+  end.setDate(start.getDate() + 6)
 
   const days = Array.from({ length: 7 }).map((_, index) => {
     const date = new Date(start)
@@ -62,7 +96,16 @@ const buildWeekDays = (baseDate: Date) => {
     }
   })
 
-  return { todayKey, days }
+  return { todayKey, days, start, end }
+}
+
+const formatWeekRange = (start: Date, end: Date) => {
+  const startMonth = monthShortNames[start.getMonth()]
+  const endMonth = monthShortNames[end.getMonth()]
+  if (start.getMonth() === end.getMonth()) {
+    return `Semana ${start.getDate()}-${end.getDate()} ${startMonth}`
+  }
+  return `Semana ${start.getDate()} ${startMonth} - ${end.getDate()} ${endMonth}`
 }
 
 function App() {
@@ -97,7 +140,8 @@ function App() {
     isOverbookedForDay,
   } = useAppStore()
   const baseDate = useMemo(() => parseDayKeyToDate(selectedDayKey), [selectedDayKey])
-  const { todayKey, days } = useMemo(() => buildWeekDays(baseDate), [baseDate])
+  const { todayKey, days, start, end } = useMemo(() => buildWeekDays(baseDate), [baseDate])
+  const weekLabel = useMemo(() => formatWeekRange(start, end), [start, end])
   const [activeTab, setActiveTab] = useState<'today' | 'notes' | 'feedback'>('today')
   const [isInboxOpen, setIsInboxOpen] = useState(false)
   const [isTaskSheetOpen, setIsTaskSheetOpen] = useState(false)
@@ -116,28 +160,41 @@ function App() {
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [hasPromptedRollover, setHasPromptedRollover] = useState(false)
 
-  const visibleTasks = tasks.filter((task) => {
-    if (task.dayKey === selectedDayKey) {
-      return true
-    }
-    if (!isSameOrAfter(task.dayKey, selectedDayKey)) {
-      return false
-    }
-    const selectedDate = parseDayKeyToDate(selectedDayKey)
-    const taskDate = parseDayKeyToDate(task.dayKey)
-    if (task.recurrence === 'daily') {
-      return true
-    }
-    if (task.recurrence === 'weekly') {
-      return taskDate.getDay() === selectedDate.getDay()
-    }
-    if (task.recurrence === 'monthly') {
-      return taskDate.getDate() === selectedDate.getDate()
-    }
-    return false
-  })
-  const activeTask = tasks.find((task) => task.id === activeTaskId) ?? null
   const todayKeyActual = formatLocalDayKey(new Date())
+  const visibleTasks = tasks
+    .filter((task) => {
+      if (task.dayKey === selectedDayKey) {
+        return true
+      }
+      if (!isSameOrAfter(task.dayKey, selectedDayKey)) {
+        return false
+      }
+      const selectedDate = parseDayKeyToDate(selectedDayKey)
+      const taskDate = parseDayKeyToDate(task.dayKey)
+      if (task.recurrence === 'daily') {
+        return true
+      }
+      if (task.recurrence === 'weekly') {
+        return taskDate.getDay() === selectedDate.getDay()
+      }
+      if (task.recurrence === 'monthly') {
+        return taskDate.getDate() === selectedDate.getDate()
+      }
+      return false
+    })
+    .map((task) => {
+      if (task.status === 'done') {
+        return task
+      }
+      if (task.recurrence === 'none' || task.dayKey === selectedDayKey) {
+        return task
+      }
+      if (selectedDayKey !== todayKeyActual) {
+        return { ...task, status: 'planned' as Task['status'] }
+      }
+      return { ...task, status: getStatusForTimeRange(task.timeStart, task.timeEnd) }
+    })
+  const activeTask = tasks.find((task) => task.id === activeTaskId) ?? null
   const rolloverCandidates = useMemo(() => {
     const todayDate = parseDayKeyToDate(todayKeyActual)
     return tasks.filter((task) => {
@@ -407,7 +464,7 @@ function App() {
       ) : (
         <>
           <TopBar
-            title="Semana 14-20 Jan"
+            title={weekLabel}
             onCalendarClick={handleOpenCalendar}
             onNotesClick={handleOpenNotes}
             onInboxClick={handleOpenInbox}

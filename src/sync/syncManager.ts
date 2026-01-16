@@ -174,7 +174,8 @@ export const pullChanges = async () => {
       if (link.deletedAt) {
         await db.links.where('taskId').equals(link.taskId).and((row) => row.noteId === link.noteId).delete()
       } else {
-        await db.links.put({ noteId: link.noteId, taskId: link.taskId })
+        await db.links.where('taskId').equals(link.taskId).and((row) => row.noteId === link.noteId).delete()
+        await db.links.add({ noteId: link.noteId, taskId: link.taskId })
       }
     }
   })
