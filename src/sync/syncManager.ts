@@ -23,6 +23,25 @@ type PullResponse = {
 
 const API_BASE = import.meta.env.VITE_SYNC_API_URL ?? ''
 
+const readResponseError = async (response: Response) => {
+  const text = await response.text().catch(() => '')
+  if (text) {
+    try {
+      const parsed = JSON.parse(text) as { error?: string; message?: string }
+      if (parsed?.error) {
+        return parsed.error
+      }
+      if (parsed?.message) {
+        return parsed.message
+      }
+    } catch {
+      // Keep text fallback when not JSON.
+    }
+    return text
+  }
+  return response.statusText || `HTTP ${response.status}`
+}
+
 
 const buildTimeLabel = (start: string, end: string) => {
   if (start && end) {
@@ -108,7 +127,7 @@ const normalizeLink = (row: Record<string, unknown>): NoteTaskLink & { deletedAt
 
 export const pushChanges = async () => {
   if (!API_BASE) {
-    return
+    throw new Error('Sync API nao configurada.')
   }
   const pending = (await db.ops_queue.where('status').equals('pending').toArray()) as SyncOp[]
   if (pending.length === 0) {
@@ -128,7 +147,8 @@ export const pushChanges = async () => {
     ),
   })
   if (!response.ok) {
-    return
+    const message = await readResponseError(response)
+    throw new Error(`Push falhou (${response.status}): ${message}`)
   }
   const data = (await response.json()) as { acked?: string[] }
   const acked = data.acked ?? []
@@ -137,14 +157,15 @@ export const pushChanges = async () => {
 
 export const pullChanges = async () => {
   if (!API_BASE) {
-    return
+    throw new Error('Sync API nao configurada.')
   }
   const cursor = (await getMetaValue('lastSyncCursor')) ?? '1970-01-01T00:00:00.000Z'
   const response = await fetch(`${API_BASE}/sync/pull?cursor=${encodeURIComponent(cursor)}`, {
     headers: await buildHeaders(),
   })
   if (!response.ok) {
-    return
+    const message = await readResponseError(response)
+    throw new Error(`Pull falhou (${response.status}): ${message}`)
   }
   const data = (await response.json()) as PullResponse
   const taskRows = data.tasks ?? []

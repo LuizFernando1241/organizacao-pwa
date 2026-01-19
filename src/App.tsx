@@ -380,8 +380,12 @@ function App() {
       await pushChanges()
       await pullChanges()
       setToast({ type: 'success', message: 'Sincronizacao concluida.' })
-    } catch {
-      setToast({ type: 'error', message: 'Falha ao sincronizar.' })
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message
+          ? `Erro de sincronizacao: ${error.message}`
+          : 'Falha ao sincronizar.'
+      setToast({ type: 'error', message })
     } finally {
       setIsSyncing(false)
     }
