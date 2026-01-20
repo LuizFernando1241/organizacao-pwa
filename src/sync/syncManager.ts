@@ -227,7 +227,7 @@ export const pullChanges = async () => {
   const inboxItems = inboxRows.map((row) => normalizeInboxItem(row))
   const metaItems = metaRows.map((row) => normalizeMetaItem(row))
 
-  await db.transaction('rw', db.tasks, db.notes, db.links, db.inbox_items, db.meta, async () => {
+  await db.transaction('rw', db.tasks, db.notes, db.links, async () => {
     for (const task of tasks) {
       if (task.deletedAt) {
         await db.tasks.delete(task.id)
@@ -250,6 +250,9 @@ export const pullChanges = async () => {
         await db.links.add({ noteId: link.noteId, taskId: link.taskId })
       }
     }
+  })
+
+  await db.transaction('rw', db.inbox_items, db.meta, async () => {
     for (const item of inboxItems) {
       if (item.deletedAt) {
         await db.inbox_items.delete(item.id)

@@ -164,7 +164,7 @@ export const useAppStore = create<AppState>((set, get) => {
     updatedAt: now,
   })
 
-  const upsertRecurringInstance = (base: Task, dayKey: string, nextTask: Task, isNew: boolean) => {
+  const upsertRecurringInstance = (nextTask: Task, isNew: boolean) => {
     if (isNew) {
       set((state) => ({ tasks: [nextTask, ...state.tasks] }))
       void db.tasks.add(nextTask)
@@ -451,7 +451,7 @@ export const useAppStore = create<AppState>((set, get) => {
     }
     if (isTemplate) {
       const isNew = !existingInstance
-      upsertRecurringInstance(task, targetDayKey, nextTask, isNew)
+      upsertRecurringInstance(nextTask, isNew)
       return
     }
     set((state) => ({
@@ -490,7 +490,7 @@ export const useAppStore = create<AppState>((set, get) => {
     }
     if (isTemplate) {
       const isNew = !existingInstance
-      upsertRecurringInstance(task, targetDayKey, nextTask, isNew)
+      upsertRecurringInstance(nextTask, isNew)
       return
     }
     set((state) => ({
@@ -528,7 +528,7 @@ export const useAppStore = create<AppState>((set, get) => {
       updatedAt: nowIso,
     }
     if (isTemplate) {
-      upsertRecurringInstance(task, targetDayKey, nextTask, false)
+      upsertRecurringInstance(nextTask, false)
       return
     }
     set((state) => ({
