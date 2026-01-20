@@ -29,6 +29,7 @@ type PullResponse = {
 const API_BASE = import.meta.env.VITE_SYNC_API_URL ?? ''
 const syncableEntityTypes = new Set(['task', 'note', 'link', 'inbox', 'meta'])
 const syncableMetaKeys = new Set([
+  'selectedDayKey',
   'wakeTime',
   'sleepTime',
   'applyRoutineAllDays',

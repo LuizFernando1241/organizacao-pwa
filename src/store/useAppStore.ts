@@ -235,7 +235,14 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   setSelectedDayKey: (dayKey) => {
     set({ selectedDayKey: dayKey })
-    void setMetaValue('selectedDayKey', dayKey)
+    const updatedAt = new Date().toISOString()
+    void setMetaValue('selectedDayKey', dayKey, updatedAt)
+    void enqueueOp({
+      entityType: 'meta',
+      entityId: 'selectedDayKey',
+      opType: 'update',
+      payload: { key: 'selectedDayKey', value: dayKey, updatedAt },
+    })
   },
   updateRoutine: (updates) => {
     set((state) => ({
