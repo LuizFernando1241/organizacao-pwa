@@ -14,14 +14,18 @@ type SyncOp = {
 
 const router = Router()
 
+const corsHeaders = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods': 'GET,POST,OPTIONS',
+  'access-control-allow-headers': 'content-type,x-user-id',
+}
+
 const jsonResponse = (data: unknown, init: ResponseInit = {}) =>
   new Response(JSON.stringify(data), {
     ...init,
     headers: {
       'content-type': 'application/json',
-      'access-control-allow-origin': '*',
-      'access-control-allow-methods': 'GET,POST,OPTIONS',
-      'access-control-allow-headers': 'content-type,x-user-id',
+      ...corsHeaders,
       ...(init.headers ?? {}),
     },
   })
@@ -157,7 +161,7 @@ const markDeleted = async (db: D1Database, table: string, id: string, opUpdatedA
     .run()
 }
 
-router.options('*', () => new Response(null, { status: 204, headers: { 'access-control-allow-origin': '*' } }))
+router.options('*', () => new Response(null, { status: 204, headers: { ...corsHeaders } }))
 router.get('/favicon.ico', () => new Response(null, { status: 204 }))
 router.get('/', () => jsonResponse({ ok: true }))
 router.get('/message', () => jsonResponse({ ok: true }))
