@@ -37,9 +37,17 @@ function TaskSheet({
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
   const [focusSubtaskId, setFocusSubtaskId] = useState<string | null>(null)
   const prevTaskIdRef = useRef<string | null>(null)
+  const wasOpenRef = useRef(false)
 
   useEffect(() => {
+    const wasOpen = wasOpenRef.current
+    wasOpenRef.current = isOpen
     if (!task) {
+      return
+    }
+    const isOpening = isOpen && !wasOpen
+    const isNewTask = prevTaskIdRef.current !== task.id
+    if (!isOpening && !isNewTask) {
       return
     }
     setTitle(task.title)
@@ -48,7 +56,7 @@ function TaskSheet({
     setTimeEnd(task.timeEnd)
     setRecurrence(task.recurrence)
     setIsConfirmingDelete(false)
-    if (prevTaskIdRef.current !== task.id) {
+    if (isNewTask) {
       setSubtasksOpen(false)
       setFocusSubtaskId(null)
       prevTaskIdRef.current = task.id
