@@ -201,6 +201,7 @@ export const setMetaValue = async (key: string, value: string) => {
 }
 
 const buildOpId = () => (crypto?.randomUUID ? crypto.randomUUID() : buildId('op'))
+const syncableEntityTypes = new Set(['task', 'note', 'link'])
 
 const emitSyncQueueUpdated = () => {
   if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') {
@@ -211,6 +212,9 @@ const emitSyncQueueUpdated = () => {
 }
 
 export const enqueueOp = async (payload: Omit<OpsQueueItem, 'opId' | 'status' | 'createdAt'>) => {
+  if (!syncableEntityTypes.has(payload.entityType)) {
+    return
+  }
   await db.ops_queue.add({
     ...payload,
     opId: buildOpId(),

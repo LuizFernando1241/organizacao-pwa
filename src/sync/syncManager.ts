@@ -22,6 +22,7 @@ type PullResponse = {
 }
 
 const API_BASE = import.meta.env.VITE_SYNC_API_URL ?? ''
+const syncableEntityTypes = new Set(['task', 'note', 'link'])
 
 const readResponseError = async (response: Response) => {
   const text = await response.text().catch(() => '')
@@ -133,11 +134,20 @@ export const pushChanges = async () => {
   if (pending.length === 0) {
     return
   }
+  const syncable = pending.filter((op) => syncableEntityTypes.has(op.entityType))
+  const unsupported = pending.filter((op) => !syncableEntityTypes.has(op.entityType))
+  if (unsupported.length > 0) {
+    const unsupportedIds = unsupported.map((op) => op.opId)
+    await db.ops_queue.where('opId').anyOf(unsupportedIds).modify({ status: 'acked' })
+  }
+  if (syncable.length === 0) {
+    return
+  }
   const response = await fetch(`${API_BASE}/sync/push`, {
     method: 'POST',
     headers: await buildHeaders(),
     body: JSON.stringify(
-      pending.map((op) => ({
+      syncable.map((op) => ({
         opId: op.opId,
         entityType: op.entityType,
         entityId: op.entityId,
