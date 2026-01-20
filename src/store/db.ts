@@ -202,6 +202,14 @@ export const setMetaValue = async (key: string, value: string) => {
 
 const buildOpId = () => (crypto?.randomUUID ? crypto.randomUUID() : buildId('op'))
 
+const emitSyncQueueUpdated = () => {
+  if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') {
+    return
+  }
+  const event = typeof CustomEvent === 'function' ? new CustomEvent('sync-queue-updated') : new Event('sync-queue-updated')
+  window.dispatchEvent(event)
+}
+
 export const enqueueOp = async (payload: Omit<OpsQueueItem, 'opId' | 'status' | 'createdAt'>) => {
   await db.ops_queue.add({
     ...payload,
@@ -209,4 +217,5 @@ export const enqueueOp = async (payload: Omit<OpsQueueItem, 'opId' | 'status' | 
     status: 'pending',
     createdAt: new Date().toISOString(),
   })
+  emitSyncQueueUpdated()
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import BottomNavigation from './components/BottomNavigation'
 import InboxSheet from './components/InboxSheet'
@@ -157,6 +157,8 @@ function App() {
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false)
   const [linkNoteId, setLinkNoteId] = useState<string | null>(null)
   const [isSyncing, setIsSyncing] = useState(false)
+  const autoSyncTimeoutRef = useRef<number | null>(null)
+  const autoSyncInFlightRef = useRef(false)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [hasPromptedRollover, setHasPromptedRollover] = useState(false)
 
@@ -215,6 +217,41 @@ function App() {
       return
     }
     return startSync()
+  }, [isReady])
+
+  useEffect(() => {
+    if (!isReady) {
+      return
+    }
+    const scheduleAutoSync = () => {
+      if (autoSyncTimeoutRef.current !== null) {
+        window.clearTimeout(autoSyncTimeoutRef.current)
+      }
+      autoSyncTimeoutRef.current = window.setTimeout(async () => {
+        autoSyncTimeoutRef.current = null
+        if (autoSyncInFlightRef.current || !navigator.onLine) {
+          return
+        }
+        autoSyncInFlightRef.current = true
+        try {
+          await pushChanges()
+          await pullChanges()
+        } catch {
+          // Auto sync is silent; manual sync shows errors.
+        } finally {
+          autoSyncInFlightRef.current = false
+        }
+      }, 1200)
+    }
+
+    window.addEventListener('sync-queue-updated', scheduleAutoSync)
+    return () => {
+      window.removeEventListener('sync-queue-updated', scheduleAutoSync)
+      if (autoSyncTimeoutRef.current !== null) {
+        window.clearTimeout(autoSyncTimeoutRef.current)
+        autoSyncTimeoutRef.current = null
+      }
+    }
   }, [isReady])
 
   useEffect(() => {
