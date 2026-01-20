@@ -1,4 +1,5 @@
 import type { Note } from '../types/note'
+import type { InboxItem } from '../types/inbox'
 import type { NoteTaskLink } from '../types/link'
 import type { Task } from '../types/task'
 import type { OpsQueueStatus } from '../types/ops'
@@ -18,11 +19,22 @@ type PullResponse = {
   tasks: Array<Record<string, unknown>>
   notes: Array<Record<string, unknown>>
   links: Array<Record<string, unknown>>
+  inbox_items?: Array<Record<string, unknown>>
+  inboxItems?: Array<Record<string, unknown>>
+  meta?: Array<Record<string, unknown>>
+  settings?: Array<Record<string, unknown>>
   newCursor: string
 }
 
 const API_BASE = import.meta.env.VITE_SYNC_API_URL ?? ''
-const syncableEntityTypes = new Set(['task', 'note', 'link'])
+const syncableEntityTypes = new Set(['task', 'note', 'link', 'inbox', 'meta'])
+const syncableMetaKeys = new Set([
+  'wakeTime',
+  'sleepTime',
+  'applyRoutineAllDays',
+  'warnOverbooked',
+  'blockOverbooked',
+])
 
 const readResponseError = async (response: Response) => {
   const text = await response.text().catch(() => '')
@@ -126,6 +138,25 @@ const normalizeLink = (row: Record<string, unknown>): NoteTaskLink & { deletedAt
   }
 }
 
+const normalizeInboxItem = (row: Record<string, unknown>): InboxItem & { deletedAt?: string | null } => {
+  return {
+    id: String(row.id),
+    text: String(row.text ?? ''),
+    createdAt: String(row.created_at ?? row.createdAt ?? new Date().toISOString()),
+    updatedAt: row.updated_at ? String(row.updated_at) : undefined,
+    deletedAt: row.deleted_at ? String(row.deleted_at) : null,
+  }
+}
+
+const normalizeMetaItem = (row: Record<string, unknown>) => {
+  return {
+    key: String(row.meta_key ?? row.key ?? ''),
+    value: String(row.value ?? ''),
+    updatedAt: row.updated_at ? String(row.updated_at) : undefined,
+    deletedAt: row.deleted_at ? String(row.deleted_at) : null,
+  }
+}
+
 export const pushChanges = async () => {
   if (!API_BASE) {
     throw new Error('Sync API nao configurada.')
@@ -181,12 +212,16 @@ export const pullChanges = async () => {
   const taskRows = data.tasks ?? []
   const noteRows = data.notes ?? []
   const linkRows = data.links ?? []
+  const inboxRows = data.inbox_items ?? data.inboxItems ?? []
+  const metaRows = data.meta ?? data.settings ?? []
 
   const tasks = taskRows.map((row) => normalizeTask(row))
   const notes = noteRows.map((row) => normalizeNote(row))
   const links = linkRows.map((row) => normalizeLink(row))
+  const inboxItems = inboxRows.map((row) => normalizeInboxItem(row))
+  const metaItems = metaRows.map((row) => normalizeMetaItem(row))
 
-  await db.transaction('rw', db.tasks, db.notes, db.links, async () => {
+  await db.transaction('rw', db.tasks, db.notes, db.links, db.inbox_items, db.meta, async () => {
     for (const task of tasks) {
       if (task.deletedAt) {
         await db.tasks.delete(task.id)
@@ -207,6 +242,23 @@ export const pullChanges = async () => {
       } else {
         await db.links.where('taskId').equals(link.taskId).and((row) => row.noteId === link.noteId).delete()
         await db.links.add({ noteId: link.noteId, taskId: link.taskId })
+      }
+    }
+    for (const item of inboxItems) {
+      if (item.deletedAt) {
+        await db.inbox_items.delete(item.id)
+      } else {
+        await db.inbox_items.put(item)
+      }
+    }
+    for (const meta of metaItems) {
+      if (!meta.key || !syncableMetaKeys.has(meta.key)) {
+        continue
+      }
+      if (meta.deletedAt) {
+        await db.meta.delete(meta.key)
+      } else {
+        await setMetaValue(meta.key, meta.value, meta.updatedAt)
       }
     }
   })

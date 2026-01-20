@@ -18,6 +18,7 @@ export type OpsQueueItem = {
 export type MetaItem = {
   key: string
   value: string
+  updatedAt?: string
 }
 
 class AppDB extends Dexie {
@@ -114,7 +115,7 @@ const seedTasks: Task[] = [
 ]
 
 const seedInbox: InboxItem[] = [
-  { id: 'inbox-1', text: 'Ideia para nota rapida', createdAt: new Date().toISOString() },
+  { id: 'inbox-1', text: 'Ideia para nota rapida', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
 ]
 
 const seedNotes: Note[] = [
@@ -196,12 +197,12 @@ export const getMetaValue = async (key: string) => {
   return entry?.value
 }
 
-export const setMetaValue = async (key: string, value: string) => {
-  await db.meta.put({ key, value })
+export const setMetaValue = async (key: string, value: string, updatedAt?: string) => {
+  await db.meta.put({ key, value, updatedAt })
 }
 
 const buildOpId = () => (crypto?.randomUUID ? crypto.randomUUID() : buildId('op'))
-const syncableEntityTypes = new Set(['task', 'note', 'link'])
+const syncableEntityTypes = new Set(['task', 'note', 'link', 'inbox', 'meta'])
 
 const emitSyncQueueUpdated = () => {
   if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') {

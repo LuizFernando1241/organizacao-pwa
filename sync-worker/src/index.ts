@@ -150,6 +150,60 @@ const upsertLink = async (db: D1Database, userId: string, payload: Record<string
     .run()
 }
 
+const upsertInboxItem = async (db: D1Database, userId: string, payload: Record<string, unknown>, opUpdatedAt: string) => {
+  const id = String(payload.id ?? '')
+  if (!id) {
+    return
+  }
+  const canUpdate = await shouldApplyUpdate(db, 'inbox_items', id, opUpdatedAt)
+  if (!canUpdate) {
+    return
+  }
+  const createdAt = String(payload.createdAt ?? payload.created_at ?? opUpdatedAt)
+  await db
+    .prepare(
+      `INSERT INTO inbox_items (id, user_id, text, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         text = excluded.text,
+         created_at = excluded.created_at,
+         updated_at = excluded.updated_at,
+         deleted_at = NULL`,
+    )
+    .bind(id, userId, payload.text ?? '', createdAt, opUpdatedAt)
+    .run()
+}
+
+const upsertMeta = async (db: D1Database, userId: string, entityId: string, payload: Record<string, unknown>, opUpdatedAt: string) => {
+  const key = String(payload.key ?? entityId ?? '')
+  if (!key) {
+    return
+  }
+  const value =
+    payload.value !== undefined
+      ? String(payload.value)
+      : payload[key] !== undefined
+        ? String(payload[key])
+        : ''
+  const id = `${userId}:${key}`
+  const canUpdate = await shouldApplyUpdate(db, 'user_meta', id, opUpdatedAt)
+  if (!canUpdate) {
+    return
+  }
+  await db
+    .prepare(
+      `INSERT INTO user_meta (id, user_id, meta_key, value, updated_at)
+       VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         meta_key = excluded.meta_key,
+         value = excluded.value,
+         updated_at = excluded.updated_at,
+         deleted_at = NULL`,
+    )
+    .bind(id, userId, key, value, opUpdatedAt)
+    .run()
+}
+
 const markDeleted = async (db: D1Database, table: string, id: string, opUpdatedAt: string) => {
   await db
     .prepare(`UPDATE ${table} SET deleted_at = ?, updated_at = ? WHERE id = ?`)
@@ -190,31 +244,46 @@ export default {
             continue
           }
           const opUpdatedAt = getOpTimestamp(op.payload ?? {})
-          if (op.entityType === 'task') {
-            if (op.opType === 'delete') {
-              await markDeleted(env.DB, 'tasks', op.entityId, opUpdatedAt)
-            } else {
+      if (op.entityType === 'task') {
+        if (op.opType === 'delete') {
+          await markDeleted(env.DB, 'tasks', op.entityId, opUpdatedAt)
+        } else {
               await upsertTask(env.DB, userId, op.payload ?? {}, opUpdatedAt)
             }
             acked.push(op.opId)
-          } else if (op.entityType === 'note') {
-            if (op.opType === 'delete') {
-              await markDeleted(env.DB, 'notes', op.entityId, opUpdatedAt)
-            } else {
+      } else if (op.entityType === 'note') {
+        if (op.opType === 'delete') {
+          await markDeleted(env.DB, 'notes', op.entityId, opUpdatedAt)
+        } else {
               await upsertNote(env.DB, userId, op.payload ?? {}, opUpdatedAt)
             }
             acked.push(op.opId)
-          } else if (op.entityType === 'link') {
-            if (op.opType === 'delete') {
-              await markDeleted(env.DB, 'links', op.entityId, opUpdatedAt)
-            } else {
+      } else if (op.entityType === 'link') {
+        if (op.opType === 'delete') {
+          await markDeleted(env.DB, 'links', op.entityId, opUpdatedAt)
+        } else {
               await upsertLink(env.DB, userId, op.payload ?? {}, opUpdatedAt)
-            }
-            acked.push(op.opId)
-          }
         }
-        return jsonResponse({ acked })
+        acked.push(op.opId)
+      } else if (op.entityType === 'inbox') {
+        if (op.opType === 'delete') {
+          await markDeleted(env.DB, 'inbox_items', op.entityId, opUpdatedAt)
+        } else {
+          await upsertInboxItem(env.DB, userId, op.payload ?? {}, opUpdatedAt)
+        }
+        acked.push(op.opId)
+      } else if (op.entityType === 'meta') {
+        if (op.opType === 'delete') {
+          const metaId = `${userId}:${op.entityId}`
+          await markDeleted(env.DB, 'user_meta', metaId, opUpdatedAt)
+        } else {
+          await upsertMeta(env.DB, userId, op.entityId, op.payload ?? {}, opUpdatedAt)
+        }
+        acked.push(op.opId)
       }
+    }
+    return jsonResponse({ acked })
+  }
 
       if (url.pathname === '/sync/pull' && request.method === 'GET') {
         if (!env.DB) {
@@ -223,7 +292,7 @@ export default {
         const cursor = url.searchParams.get('cursor') ?? '1970-01-01T00:00:00.000Z'
         const userId = getUserId(request)
         await ensureUser(env.DB, userId)
-        const [tasks, notes, links] = await Promise.all([
+        const [tasks, notes, links, inboxItems, meta] = await Promise.all([
           env.DB.prepare(
             `SELECT * FROM tasks WHERE user_id = ? AND (updated_at > ? OR deleted_at > ?)`,
           )
@@ -239,12 +308,24 @@ export default {
           )
             .bind(userId, cursor, cursor)
             .all(),
+          env.DB.prepare(
+            `SELECT * FROM inbox_items WHERE user_id = ? AND (updated_at > ? OR deleted_at > ?)`,
+          )
+            .bind(userId, cursor, cursor)
+            .all(),
+          env.DB.prepare(
+            `SELECT * FROM user_meta WHERE user_id = ? AND (updated_at > ? OR deleted_at > ?)`,
+          )
+            .bind(userId, cursor, cursor)
+            .all(),
         ])
         const newCursor = new Date().toISOString()
         return jsonResponse({
           tasks: tasks.results,
           notes: notes.results,
           links: links.results,
+          inbox_items: inboxItems.results,
+          meta: meta.results,
           newCursor,
         })
       }

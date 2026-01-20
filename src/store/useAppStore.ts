@@ -193,7 +193,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     })
   },
   addInboxItem: (text) => {
-    const item: InboxItem = { id: buildId('inbox'), text, createdAt: new Date().toISOString() }
+    const now = new Date().toISOString()
+    const item: InboxItem = { id: buildId('inbox'), text, createdAt: now, updatedAt: now }
     set((state) => ({ inboxItems: [item, ...state.inboxItems] }))
     void db.inbox_items.add(item)
     void enqueueOp({
@@ -220,7 +221,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (!existing) {
       return
     }
-    const updatedItem = { ...existing, text }
+    const updatedItem = { ...existing, text, updatedAt: new Date().toISOString() }
     set((state) => ({
       inboxItems: state.inboxItems.map((item) => (item.id === id ? updatedItem : item)),
     }))
@@ -244,53 +245,33 @@ export const useAppStore = create<AppState>((set, get) => ({
       warnOverbooked: updates.warnOverbooked ?? state.warnOverbooked,
       blockOverbooked: updates.blockOverbooked ?? state.blockOverbooked,
     }))
-    if (updates.wakeTime !== undefined) {
-      void setMetaValue('wakeTime', updates.wakeTime)
+    const updatedAt = new Date().toISOString()
+    const queueMetaUpdate = (key: string, value: string) => {
+      void setMetaValue(key, value, updatedAt)
       void enqueueOp({
         entityType: 'meta',
-        entityId: 'wakeTime',
+        entityId: key,
         opType: 'update',
-        payload: { wakeTime: updates.wakeTime },
+        payload: { key, value, updatedAt },
       })
     }
+    if (updates.wakeTime !== undefined) {
+      queueMetaUpdate('wakeTime', updates.wakeTime)
+    }
     if (updates.sleepTime !== undefined) {
-      void setMetaValue('sleepTime', updates.sleepTime)
-      void enqueueOp({
-        entityType: 'meta',
-        entityId: 'sleepTime',
-        opType: 'update',
-        payload: { sleepTime: updates.sleepTime },
-      })
+      queueMetaUpdate('sleepTime', updates.sleepTime)
     }
     if (updates.applyRoutineAllDays !== undefined) {
       const value = String(updates.applyRoutineAllDays)
-      void setMetaValue('applyRoutineAllDays', value)
-      void enqueueOp({
-        entityType: 'meta',
-        entityId: 'applyRoutineAllDays',
-        opType: 'update',
-        payload: { applyRoutineAllDays: value },
-      })
+      queueMetaUpdate('applyRoutineAllDays', value)
     }
     if (updates.warnOverbooked !== undefined) {
       const value = String(updates.warnOverbooked)
-      void setMetaValue('warnOverbooked', value)
-      void enqueueOp({
-        entityType: 'meta',
-        entityId: 'warnOverbooked',
-        opType: 'update',
-        payload: { warnOverbooked: value },
-      })
+      queueMetaUpdate('warnOverbooked', value)
     }
     if (updates.blockOverbooked !== undefined) {
       const value = String(updates.blockOverbooked)
-      void setMetaValue('blockOverbooked', value)
-      void enqueueOp({
-        entityType: 'meta',
-        entityId: 'blockOverbooked',
-        opType: 'update',
-        payload: { blockOverbooked: value },
-      })
+      queueMetaUpdate('blockOverbooked', value)
     }
   },
   runTimeTick: () => {
