@@ -104,6 +104,11 @@ const normalizeTask = (row: Record<string, unknown>): Task => {
     status: (row.status as Task['status']) ?? 'planned',
     dayKey: String(row.day_key ?? row.dayKey ?? ''),
     recurrence: (row.recurrence as Task['recurrence']) ?? 'none',
+    recurrenceParentId: row.recurrence_parent_id
+      ? String(row.recurrence_parent_id)
+      : row.recurrenceParentId
+        ? String(row.recurrenceParentId)
+        : null,
     subtasks: parseJsonArray<Task['subtasks'][number]>(row.subtasks, []),
     linkedNoteIds: parseJsonArray<string>(row.linked_note_ids ?? row.linkedNoteIds, []),
     timeSpent: Number(row.time_spent ?? row.timeSpent ?? 0),

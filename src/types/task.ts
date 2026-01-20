@@ -17,6 +17,7 @@ export type Task = {
   status: TaskStatus
   dayKey: string
   recurrence: Recurrence
+  recurrenceParentId?: string | null
   subtasks: Subtask[]
   linkedNoteIds: string[]
   timeSpent: number

@@ -143,8 +143,52 @@ const isFutureTime = (dayKey: string, start: string) => {
 }
 
 const buildId = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`
+const cloneSubtasks = (subtasks: Subtask[]) => subtasks.map((subtask) => ({ ...subtask }))
 
-export const useAppStore = create<AppState>((set, get) => ({
+export const useAppStore = create<AppState>((set, get) => {
+  const getRecurringInstance = (baseId: string, dayKey: string) =>
+    get().tasks.find((task) => task.recurrenceParentId === baseId && task.dayKey === dayKey) ?? null
+
+  const buildRecurringInstance = (base: Task, dayKey: string, now: string): Task => ({
+    ...base,
+    id: buildId('task'),
+    dayKey,
+    recurrence: 'none',
+    recurrenceParentId: base.id,
+    status: 'planned',
+    timeSpent: 0,
+    isTimerRunning: false,
+    lastTimerStart: null,
+    subtasks: cloneSubtasks(base.subtasks),
+    linkedNoteIds: [...base.linkedNoteIds],
+    updatedAt: now,
+  })
+
+  const upsertRecurringInstance = (base: Task, dayKey: string, nextTask: Task, isNew: boolean) => {
+    if (isNew) {
+      set((state) => ({ tasks: [nextTask, ...state.tasks] }))
+      void db.tasks.add(nextTask)
+      void enqueueOp({
+        entityType: 'task',
+        entityId: nextTask.id,
+        opType: 'create',
+        payload: nextTask,
+      })
+      return
+    }
+    set((state) => ({
+      tasks: state.tasks.map((task) => (task.id === nextTask.id ? nextTask : task)),
+    }))
+    void db.tasks.put(nextTask)
+    void enqueueOp({
+      entityType: 'task',
+      entityId: nextTask.id,
+      opType: 'update',
+      payload: nextTask,
+    })
+  }
+
+  return {
   tasks: [],
   inboxItems: [],
   notes: [],
@@ -290,6 +334,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         if (task.dayKey !== todayKey || task.status === 'done') {
           return task
         }
+        if (task.recurrence !== 'none' && !task.recurrenceParentId) {
+          return task
+        }
         if (!task.timeStart || !task.timeEnd) {
           return task
         }
@@ -373,91 +420,127 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   toggleTaskDone: (id) => {
     const now = new Date().toISOString()
+    const state = get()
+    const task = state.tasks.find((item) => item.id === id)
+    if (!task) {
+      return
+    }
+    const isTemplate = task.recurrence !== 'none' && !task.recurrenceParentId
+    const targetDayKey = state.selectedDayKey
+    const existingInstance = isTemplate ? getRecurringInstance(task.id, targetDayKey) : null
+    const baseTask = isTemplate
+      ? existingInstance ?? buildRecurringInstance(task, targetDayKey, now)
+      : task
+    const isDone = baseTask.status === 'done'
+    const nextStatus: Task['status'] = isDone ? 'planned' : 'done'
+    const shouldStopTimer = !isDone && baseTask.isTimerRunning && typeof baseTask.lastTimerStart === 'number'
+    const extraTime = shouldStopTimer ? Date.now() - (baseTask.lastTimerStart as number) : 0
+    const nextTimeSpent = (baseTask.timeSpent ?? 0) + Math.max(0, extraTime)
+    const nextTask: Task = {
+      ...baseTask,
+      status: nextStatus,
+      timeSpent: nextTimeSpent,
+      isTimerRunning: isDone ? baseTask.isTimerRunning : false,
+      lastTimerStart: isDone ? baseTask.lastTimerStart : null,
+      subtasks: isDone
+        ? baseTask.subtasks
+        : baseTask.subtasks.map((subtask) =>
+            subtask.status === 'DONE' ? subtask : { ...subtask, status: 'DONE' as Subtask['status'] },
+          ),
+      updatedAt: now,
+    }
+    if (isTemplate) {
+      const isNew = !existingInstance
+      upsertRecurringInstance(task, targetDayKey, nextTask, isNew)
+      return
+    }
     set((state) => ({
-      tasks: state.tasks.map((task) => {
-        if (task.id !== id) {
-          return task
-        }
-        const isDone = task.status === 'done'
-        const nextStatus: Task['status'] = isDone ? 'planned' : 'done'
-        const shouldStopTimer = !isDone && task.isTimerRunning && typeof task.lastTimerStart === 'number'
-        const extraTime = shouldStopTimer ? Date.now() - (task.lastTimerStart as number) : 0
-        const nextTimeSpent = (task.timeSpent ?? 0) + Math.max(0, extraTime)
-        const nextTask: Task = {
-          ...task,
-          status: nextStatus,
-          timeSpent: nextTimeSpent,
-          isTimerRunning: isDone ? task.isTimerRunning : false,
-          lastTimerStart: isDone ? task.lastTimerStart : null,
-          subtasks: isDone
-            ? task.subtasks
-            : task.subtasks.map((subtask) =>
-                subtask.status === 'DONE' ? subtask : { ...subtask, status: 'DONE' as Subtask['status'] },
-              ),
-          updatedAt: now,
-        }
-        void db.tasks.put(nextTask)
-        void enqueueOp({
-          entityType: 'task',
-          entityId: nextTask.id,
-          opType: 'update',
-          payload: nextTask,
-        })
-        return nextTask
-      }),
+      tasks: state.tasks.map((item) => (item.id === id ? nextTask : item)),
     }))
+    void db.tasks.put(nextTask)
+    void enqueueOp({
+      entityType: 'task',
+      entityId: nextTask.id,
+      opType: 'update',
+      payload: nextTask,
+    })
   },
   startTimer: (id) => {
     const nowMs = Date.now()
     const nowIso = new Date().toISOString()
+    const state = get()
+    const task = state.tasks.find((item) => item.id === id)
+    if (!task) {
+      return
+    }
+    const isTemplate = task.recurrence !== 'none' && !task.recurrenceParentId
+    const targetDayKey = state.selectedDayKey
+    const existingInstance = isTemplate ? getRecurringInstance(task.id, targetDayKey) : null
+    const baseTask = isTemplate
+      ? existingInstance ?? buildRecurringInstance(task, targetDayKey, nowIso)
+      : task
+    if (baseTask.isTimerRunning) {
+      return
+    }
+    const nextTask: Task = {
+      ...baseTask,
+      isTimerRunning: true,
+      lastTimerStart: nowMs,
+      updatedAt: nowIso,
+    }
+    if (isTemplate) {
+      const isNew = !existingInstance
+      upsertRecurringInstance(task, targetDayKey, nextTask, isNew)
+      return
+    }
     set((state) => ({
-      tasks: state.tasks.map((task) => {
-        if (task.id !== id || task.isTimerRunning) {
-          return task
-        }
-        const nextTask: Task = {
-          ...task,
-          isTimerRunning: true,
-          lastTimerStart: nowMs,
-          updatedAt: nowIso,
-        }
-        void db.tasks.put(nextTask)
-        void enqueueOp({
-          entityType: 'task',
-          entityId: nextTask.id,
-          opType: 'update',
-          payload: nextTask,
-        })
-        return nextTask
-      }),
+      tasks: state.tasks.map((item) => (item.id === id ? nextTask : item)),
     }))
+    void db.tasks.put(nextTask)
+    void enqueueOp({
+      entityType: 'task',
+      entityId: nextTask.id,
+      opType: 'update',
+      payload: nextTask,
+    })
   },
   stopTimer: (id) => {
     const nowMs = Date.now()
     const nowIso = new Date().toISOString()
+    const state = get()
+    const task = state.tasks.find((item) => item.id === id)
+    if (!task) {
+      return
+    }
+    const isTemplate = task.recurrence !== 'none' && !task.recurrenceParentId
+    const targetDayKey = state.selectedDayKey
+    const existingInstance = isTemplate ? getRecurringInstance(task.id, targetDayKey) : null
+    const baseTask = isTemplate ? existingInstance : task
+    if (!baseTask || !baseTask.isTimerRunning || typeof baseTask.lastTimerStart !== 'number') {
+      return
+    }
+    const delta = nowMs - baseTask.lastTimerStart
+    const nextTask: Task = {
+      ...baseTask,
+      timeSpent: (baseTask.timeSpent ?? 0) + Math.max(0, delta),
+      isTimerRunning: false,
+      lastTimerStart: null,
+      updatedAt: nowIso,
+    }
+    if (isTemplate) {
+      upsertRecurringInstance(task, targetDayKey, nextTask, false)
+      return
+    }
     set((state) => ({
-      tasks: state.tasks.map((task) => {
-        if (task.id !== id || !task.isTimerRunning || typeof task.lastTimerStart !== 'number') {
-          return task
-        }
-        const delta = nowMs - task.lastTimerStart
-        const nextTask: Task = {
-          ...task,
-          timeSpent: (task.timeSpent ?? 0) + Math.max(0, delta),
-          isTimerRunning: false,
-          lastTimerStart: null,
-          updatedAt: nowIso,
-        }
-        void db.tasks.put(nextTask)
-        void enqueueOp({
-          entityType: 'task',
-          entityId: nextTask.id,
-          opType: 'update',
-          payload: nextTask,
-        })
-        return nextTask
-      }),
+      tasks: state.tasks.map((item) => (item.id === id ? nextTask : item)),
     }))
+    void db.tasks.put(nextTask)
+    void enqueueOp({
+      entityType: 'task',
+      entityId: nextTask.id,
+      opType: 'update',
+      payload: nextTask,
+    })
   },
   deleteTask: (id) => {
     const now = new Date().toISOString()
@@ -495,6 +578,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       status: 'planned',
       dayKey,
       recurrence: 'none',
+      recurrenceParentId: null,
       subtasks: [],
       linkedNoteIds: [],
       timeSpent: 0,
@@ -530,6 +614,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       status: 'planned',
       dayKey,
       recurrence: 'none',
+      recurrenceParentId: null,
       subtasks: [],
       linkedNoteIds: [],
       timeSpent: 0,
@@ -753,4 +838,5 @@ export const useAppStore = create<AppState>((set, get) => ({
     const planned = get().getPlannedDurationMinutesForDay(dayKey)
     return planned > capacity
   },
-}))
+}
+})

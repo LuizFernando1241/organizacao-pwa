@@ -163,43 +163,75 @@ function App() {
   const [hasPromptedRollover, setHasPromptedRollover] = useState(false)
 
   const todayKeyActual = formatLocalDayKey(new Date())
-  const visibleTasks = tasks
-    .filter((task) => {
-      if (task.dayKey === selectedDayKey) {
-        return true
+  const baseTasks = useMemo(() => tasks.filter((task) => !task.recurrenceParentId), [tasks])
+  const baseTaskIds = useMemo(() => new Set(baseTasks.map((task) => task.id)), [baseTasks])
+  const recurringInstances = useMemo(
+    () => tasks.filter((task) => task.recurrenceParentId && task.dayKey === selectedDayKey),
+    [tasks, selectedDayKey],
+  )
+  const instanceByParent = useMemo(() => {
+    const map = new Map<string, Task>()
+    recurringInstances.forEach((instance) => {
+      if (instance.recurrenceParentId) {
+        map.set(instance.recurrenceParentId, instance)
       }
-      if (!isSameOrAfter(task.dayKey, selectedDayKey)) {
+    })
+    return map
+  }, [recurringInstances])
+  const orphanInstances = useMemo(
+    () => recurringInstances.filter((instance) => !baseTaskIds.has(instance.recurrenceParentId ?? '')),
+    [recurringInstances, baseTaskIds],
+  )
+
+  const visibleTasks = [
+    ...baseTasks
+      .filter((task) => {
+        if (task.recurrence === 'none') {
+          return task.dayKey === selectedDayKey
+        }
+        if (!isSameOrAfter(task.dayKey, selectedDayKey)) {
+          return false
+        }
+        const selectedDate = parseDayKeyToDate(selectedDayKey)
+        const taskDate = parseDayKeyToDate(task.dayKey)
+        if (task.recurrence === 'daily') {
+          return true
+        }
+        if (task.recurrence === 'weekly') {
+          return taskDate.getDay() === selectedDate.getDay()
+        }
+        if (task.recurrence === 'monthly') {
+          return taskDate.getDate() === selectedDate.getDate()
+        }
         return false
-      }
-      const selectedDate = parseDayKeyToDate(selectedDayKey)
-      const taskDate = parseDayKeyToDate(task.dayKey)
-      if (task.recurrence === 'daily') {
-        return true
-      }
-      if (task.recurrence === 'weekly') {
-        return taskDate.getDay() === selectedDate.getDay()
-      }
-      if (task.recurrence === 'monthly') {
-        return taskDate.getDate() === selectedDate.getDate()
-      }
-      return false
-    })
-    .map((task) => {
-      if (task.status === 'done') {
-        return task
-      }
-      if (task.recurrence === 'none' || task.dayKey === selectedDayKey) {
-        return task
-      }
-      if (selectedDayKey !== todayKeyActual) {
-        return { ...task, status: 'planned' as Task['status'] }
-      }
-      return { ...task, status: getStatusForTimeRange(task.timeStart, task.timeEnd) }
-    })
+      })
+      .map((task) => {
+        if (task.recurrence !== 'none') {
+          const instance = instanceByParent.get(task.id)
+          if (instance) {
+            return instance
+          }
+        }
+        if (task.status === 'done' && task.recurrence === 'none') {
+          return task
+        }
+        if (task.recurrence === 'none' || task.dayKey === selectedDayKey) {
+          return task
+        }
+        if (selectedDayKey !== todayKeyActual) {
+          return { ...task, status: 'planned' as Task['status'] }
+        }
+        return { ...task, status: getStatusForTimeRange(task.timeStart, task.timeEnd) }
+      }),
+    ...orphanInstances,
+  ]
   const activeTask = tasks.find((task) => task.id === activeTaskId) ?? null
   const rolloverCandidates = useMemo(() => {
     const todayDate = parseDayKeyToDate(todayKeyActual)
     return tasks.filter((task) => {
+      if (task.recurrence !== 'none' && !task.recurrenceParentId) {
+        return false
+      }
       if (task.status === 'done') {
         return false
       }
