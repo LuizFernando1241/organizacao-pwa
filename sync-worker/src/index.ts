@@ -1,5 +1,3 @@
-import { Router } from 'itty-router'
-
 type Env = {
   DB: D1Database
 }
@@ -11,8 +9,6 @@ type SyncOp = {
   opType: 'create' | 'update' | 'delete'
   payload: Record<string, unknown>
 }
-
-const router = Router()
 
 const corsHeaders = {
   'access-control-allow-origin': '*',
@@ -161,93 +157,99 @@ const markDeleted = async (db: D1Database, table: string, id: string, opUpdatedA
     .run()
 }
 
-router.options('*', () => new Response(null, { status: 204, headers: { ...corsHeaders } }))
-router.get('/favicon.ico', () => new Response(null, { status: 204 }))
-router.get('/', () => jsonResponse({ ok: true }))
-router.get('/message', () => jsonResponse({ ok: true }))
-
-router.post('/sync/push', async (request: Request, env: Env) => {
-  if (!env.DB) {
-    return missingDbResponse()
-  }
-  const body = await parseJson(request)
-  if (!Array.isArray(body)) {
-    return jsonResponse({ error: 'Payload must be an array.' }, { status: 400 })
-  }
-  const userId = getUserId(request)
-  await ensureUser(env.DB, userId)
-  const acked: string[] = []
-  for (const op of body as SyncOp[]) {
-    if (!op || !op.opId) {
-      continue
-    }
-    const opUpdatedAt = getOpTimestamp(op.payload ?? {})
-    if (op.entityType === 'task') {
-      if (op.opType === 'delete') {
-        await markDeleted(env.DB, 'tasks', op.entityId, opUpdatedAt)
-      } else {
-        await upsertTask(env.DB, userId, op.payload ?? {}, opUpdatedAt)
-      }
-      acked.push(op.opId)
-    } else if (op.entityType === 'note') {
-      if (op.opType === 'delete') {
-        await markDeleted(env.DB, 'notes', op.entityId, opUpdatedAt)
-      } else {
-        await upsertNote(env.DB, userId, op.payload ?? {}, opUpdatedAt)
-      }
-      acked.push(op.opId)
-    } else if (op.entityType === 'link') {
-      if (op.opType === 'delete') {
-        await markDeleted(env.DB, 'links', op.entityId, opUpdatedAt)
-      } else {
-        await upsertLink(env.DB, userId, op.payload ?? {}, opUpdatedAt)
-      }
-      acked.push(op.opId)
-    }
-  }
-  return jsonResponse({ acked })
-})
-
-router.get('/sync/pull', async (request: Request, env: Env) => {
-  if (!env.DB) {
-    return missingDbResponse()
-  }
-  const url = new URL(request.url)
-  const cursor = url.searchParams.get('cursor') ?? '1970-01-01T00:00:00.000Z'
-  const userId = getUserId(request)
-  await ensureUser(env.DB, userId)
-  const [tasks, notes, links] = await Promise.all([
-    env.DB.prepare(
-      `SELECT * FROM tasks WHERE user_id = ? AND (updated_at > ? OR deleted_at > ?)`,
-    )
-      .bind(userId, cursor, cursor)
-      .all(),
-    env.DB.prepare(
-      `SELECT * FROM notes WHERE user_id = ? AND (updated_at > ? OR deleted_at > ?)`,
-    )
-      .bind(userId, cursor, cursor)
-      .all(),
-    env.DB.prepare(
-      `SELECT * FROM links WHERE user_id = ? AND (updated_at > ? OR deleted_at > ?)`,
-    )
-      .bind(userId, cursor, cursor)
-      .all(),
-  ])
-  const newCursor = new Date().toISOString()
-  return jsonResponse({
-    tasks: tasks.results,
-    notes: notes.results,
-    links: links.results,
-    newCursor,
-  })
-})
-
-router.all('*', () => jsonResponse({ error: 'Not Found' }, { status: 404 }))
-
 export default {
   fetch: async (request: Request, env: Env, _ctx: ExecutionContext) => {
     try {
-      return await router.handle(request, env)
+      const url = new URL(request.url)
+
+      if (request.method === 'OPTIONS') {
+        return new Response(null, { status: 204, headers: { ...corsHeaders } })
+      }
+
+      if (url.pathname === '/favicon.ico') {
+        return new Response(null, { status: 204 })
+      }
+
+      if (url.pathname === '/' || url.pathname === '/message') {
+        return jsonResponse({ ok: true })
+      }
+
+      if (url.pathname === '/sync/push' && request.method === 'POST') {
+        if (!env.DB) {
+          return missingDbResponse()
+        }
+        const body = await parseJson(request)
+        if (!Array.isArray(body)) {
+          return jsonResponse({ error: 'Payload must be an array.' }, { status: 400 })
+        }
+        const userId = getUserId(request)
+        await ensureUser(env.DB, userId)
+        const acked: string[] = []
+        for (const op of body as SyncOp[]) {
+          if (!op || !op.opId) {
+            continue
+          }
+          const opUpdatedAt = getOpTimestamp(op.payload ?? {})
+          if (op.entityType === 'task') {
+            if (op.opType === 'delete') {
+              await markDeleted(env.DB, 'tasks', op.entityId, opUpdatedAt)
+            } else {
+              await upsertTask(env.DB, userId, op.payload ?? {}, opUpdatedAt)
+            }
+            acked.push(op.opId)
+          } else if (op.entityType === 'note') {
+            if (op.opType === 'delete') {
+              await markDeleted(env.DB, 'notes', op.entityId, opUpdatedAt)
+            } else {
+              await upsertNote(env.DB, userId, op.payload ?? {}, opUpdatedAt)
+            }
+            acked.push(op.opId)
+          } else if (op.entityType === 'link') {
+            if (op.opType === 'delete') {
+              await markDeleted(env.DB, 'links', op.entityId, opUpdatedAt)
+            } else {
+              await upsertLink(env.DB, userId, op.payload ?? {}, opUpdatedAt)
+            }
+            acked.push(op.opId)
+          }
+        }
+        return jsonResponse({ acked })
+      }
+
+      if (url.pathname === '/sync/pull' && request.method === 'GET') {
+        if (!env.DB) {
+          return missingDbResponse()
+        }
+        const cursor = url.searchParams.get('cursor') ?? '1970-01-01T00:00:00.000Z'
+        const userId = getUserId(request)
+        await ensureUser(env.DB, userId)
+        const [tasks, notes, links] = await Promise.all([
+          env.DB.prepare(
+            `SELECT * FROM tasks WHERE user_id = ? AND (updated_at > ? OR deleted_at > ?)`,
+          )
+            .bind(userId, cursor, cursor)
+            .all(),
+          env.DB.prepare(
+            `SELECT * FROM notes WHERE user_id = ? AND (updated_at > ? OR deleted_at > ?)`,
+          )
+            .bind(userId, cursor, cursor)
+            .all(),
+          env.DB.prepare(
+            `SELECT * FROM links WHERE user_id = ? AND (updated_at > ? OR deleted_at > ?)`,
+          )
+            .bind(userId, cursor, cursor)
+            .all(),
+        ])
+        const newCursor = new Date().toISOString()
+        return jsonResponse({
+          tasks: tasks.results,
+          notes: notes.results,
+          links: links.results,
+          newCursor,
+        })
+      }
+
+      return jsonResponse({ error: 'Not Found' }, { status: 404 })
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown worker error.'
       console.error(error)

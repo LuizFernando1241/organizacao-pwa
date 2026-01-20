@@ -1,0 +1,3 @@
+ALTER TABLE tasks ADD COLUMN time_spent INTEGER DEFAULT 0;
+ALTER TABLE tasks ADD COLUMN is_timer_running INTEGER DEFAULT 0;
+ALTER TABLE tasks ADD COLUMN last_timer_start INTEGER;
