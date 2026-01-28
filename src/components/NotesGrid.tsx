@@ -13,7 +13,7 @@ function NotesGrid({ notes, onSelectNote, onLinkNote, onDeleteNote }: NotesGridP
   return (
     <section className="notes-grid" aria-label="Notas">
       {notes.length === 0 ? (
-        <div className="notes-grid__empty">Suas notas aparecerão aqui.</div>
+        <div className="notes-grid__empty">Suas notas aparecerao aqui.</div>
       ) : (
         notes.map((note) => (
           <StickyNoteCard

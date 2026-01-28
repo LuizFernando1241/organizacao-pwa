@@ -33,7 +33,7 @@
   --color-border-danger: rgba(239, 68, 68, 0.55);
 
   --color-state-planned: var(--primary);
-  --color-state-active: var(--primary);
+  --color-state-active: #38bdf8;
   --color-state-overdue: var(--danger);
   --color-state-done: var(--success);
 

@@ -18,6 +18,7 @@
   border: none;
   background: transparent;
   padding: 0;
+  padding-right: 48px;
   text-align: left;
   font: inherit;
   cursor: pointer;
@@ -32,13 +33,13 @@
   right: var(--space-2);
   display: flex;
   gap: var(--space-1);
-  opacity: 0;
+  opacity: 0.85;
   transition: opacity var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
 .sticky-note__action {
-  width: 24px;
-  height: 24px;
+  width: 40px;
+  height: 40px;
   border: none;
   background: transparent;
   color: #8e8e93;
@@ -49,7 +50,8 @@
   justify-content: center;
 }
 
-.sticky-note:hover .sticky-note__actions {
+.sticky-note:hover .sticky-note__actions,
+.sticky-note:focus-within .sticky-note__actions {
   opacity: 1;
 }
 

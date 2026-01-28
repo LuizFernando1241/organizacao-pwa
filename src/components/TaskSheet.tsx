@@ -36,8 +36,12 @@ function TaskSheet({
   const [subtasksOpen, setSubtasksOpen] = useState(false)
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
   const [focusSubtaskId, setFocusSubtaskId] = useState<string | null>(null)
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
   const prevTaskIdRef = useRef<string | null>(null)
   const wasOpenRef = useRef(false)
+  const skipSaveStatusRef = useRef(true)
+  const saveTimeoutRef = useRef<number | null>(null)
+  const idleTimeoutRef = useRef<number | null>(null)
 
   useEffect(() => {
     const wasOpen = wasOpenRef.current
@@ -61,7 +65,30 @@ function TaskSheet({
       setFocusSubtaskId(null)
       prevTaskIdRef.current = task.id
     }
+    setSaveStatus('idle')
+    skipSaveStatusRef.current = true
   }, [task, isOpen])
+
+  useEffect(() => {
+    if (!isOpen || !task) {
+      return
+    }
+    if (skipSaveStatusRef.current) {
+      skipSaveStatusRef.current = false
+      return
+    }
+    setSaveStatus('saving')
+    if (saveTimeoutRef.current) {
+      window.clearTimeout(saveTimeoutRef.current)
+    }
+    if (idleTimeoutRef.current) {
+      window.clearTimeout(idleTimeoutRef.current)
+    }
+    saveTimeoutRef.current = window.setTimeout(() => {
+      setSaveStatus('saved')
+      idleTimeoutRef.current = window.setTimeout(() => setSaveStatus('idle'), 1200)
+    }, 600)
+  }, [title, dayKey, timeStart, timeEnd, recurrence, isOpen, task])
 
   useEffect(() => {
     if (!task || title === task.title) {
@@ -70,6 +97,17 @@ function TaskSheet({
     const handle = window.setTimeout(() => onUpdate(task.id, { title }), 300)
     return () => window.clearTimeout(handle)
   }, [task, title, onUpdate])
+
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        window.clearTimeout(saveTimeoutRef.current)
+      }
+      if (idleTimeoutRef.current) {
+        window.clearTimeout(idleTimeoutRef.current)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (!task) {
@@ -174,6 +212,11 @@ function TaskSheet({
             onChange={(event) => setTitle(event.target.value)}
           />
           <div className="task-sheet__header-actions">
+            {saveStatus !== 'idle' && (
+              <div className={`task-sheet__status task-sheet__status--${saveStatus}`}>
+                {saveStatus === 'saving' ? 'Salvando...' : 'Salvo'}
+              </div>
+            )}
             <button type="button" className="task-sheet__text-button" onClick={onClose}>
               Fechar
             </button>

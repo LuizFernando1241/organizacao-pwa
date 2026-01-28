@@ -1,3 +1,4 @@
+import { Plus } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import BottomNavigation from './components/BottomNavigation'
@@ -6,6 +7,7 @@ import LinkedNotesSheet from './components/LinkedNotesSheet'
 import LinkNoteModal from './components/LinkNoteModal'
 import MonthCalendarModal from './components/MonthCalendarModal'
 import NoteModal from './components/NoteModal'
+import QuickCaptureInput from './components/QuickCaptureInput'
 import SettingsModal from './components/SettingsModal'
 import TaskSheet from './components/TaskSheet'
 import TopBar from './components/TopBar'
@@ -160,7 +162,8 @@ function App() {
   const autoSyncTimeoutRef = useRef<number | null>(null)
   const autoSyncInFlightRef = useRef(false)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
-  const [hasPromptedRollover, setHasPromptedRollover] = useState(false)
+  const [rolloverDismissed, setRolloverDismissed] = useState(false)
+  const [quickCapture, setQuickCapture] = useState('')
 
   const todayKeyActual = formatLocalDayKey(new Date())
   const baseTasks = useMemo(() => tasks.filter((task) => !task.recurrenceParentId), [tasks])
@@ -298,19 +301,10 @@ function App() {
   }, [isReady, runTimeTick])
 
   useEffect(() => {
-    if (!isReady || hasPromptedRollover || rolloverCandidates.length === 0) {
-      return
+    if (rolloverCandidates.length === 0 && rolloverDismissed) {
+      setRolloverDismissed(false)
     }
-    const shouldMove = window.confirm(
-      `Voce tem ${rolloverCandidates.length} tarefa(s) pendente(s) de ontem. Deseja traze-las para hoje?`,
-    )
-    if (shouldMove) {
-      rolloverCandidates.forEach((task) => {
-        updateTask(task.id, { dayKey: todayKeyActual, status: 'planned' })
-      })
-    }
-    setHasPromptedRollover(true)
-  }, [isReady, hasPromptedRollover, rolloverCandidates, updateTask, todayKeyActual])
+  }, [rolloverCandidates.length, rolloverDismissed])
 
   const closeAllOverlays = () => {
     setIsInboxOpen(false)
@@ -423,18 +417,22 @@ function App() {
     setIsSettingsOpen(true)
   }
 
-  const handleRollover = () => {
+  const handleRolloverApply = () => {
     if (rolloverCandidates.length === 0) {
       return
     }
-    const shouldMove = window.confirm(
-      `Voce tem ${rolloverCandidates.length} tarefa(s) pendente(s) de ontem. Deseja traze-las para hoje?`,
-    )
-    if (shouldMove) {
-      rolloverCandidates.forEach((task) => {
-        updateTask(task.id, { dayKey: todayKeyActual, status: 'planned' })
-      })
-    }
+    rolloverCandidates.forEach((task) => {
+      updateTask(task.id, { dayKey: todayKeyActual, status: 'planned' })
+    })
+    setRolloverDismissed(true)
+  }
+
+  const handleRolloverDismiss = () => {
+    setRolloverDismissed(true)
+  }
+
+  const handleRolloverReview = () => {
+    setRolloverDismissed(false)
   }
 
   const handleForceSync = async () => {
@@ -523,6 +521,27 @@ function App() {
     return new Set(days.filter((day) => isOverbookedForDay(day.key)).map((day) => day.key))
   }, [days, isOverbookedForDay])
 
+  const hasOverlayOpen =
+    isInboxOpen ||
+    isTaskSheetOpen ||
+    isLinkedNotesOpen ||
+    isCalendarOpen ||
+    isSettingsOpen ||
+    isNoteModalOpen ||
+    isLinkModalOpen
+  const showFab = activeTab === 'today' && !hasOverlayOpen
+  const showRolloverBanner = rolloverCandidates.length > 0 && !rolloverDismissed
+
+  const handleQuickCaptureSubmit = (value?: string) => {
+    const text = (value ?? quickCapture).trim()
+    if (!text) {
+      return
+    }
+    addInboxItem(text)
+    setQuickCapture('')
+    setToast({ type: 'success', message: 'Adicionado na inbox.' })
+  }
+
   if (!isReady) {
     return <div className="app-shell" />
   }
@@ -548,10 +567,41 @@ function App() {
               <div className="home-header">
                 <h1 className="page-title">Hoje / Semana</h1>
                 {rolloverCandidates.length > 0 && (
-                  <button type="button" className="rollover-button" onClick={handleRollover}>
+                  <button type="button" className="rollover-button" onClick={handleRolloverReview}>
                     Revisar atrasadas ({rolloverCandidates.length})
                   </button>
                 )}
+              </div>
+              {showRolloverBanner && (
+                <div className="rollover-banner" role="status" aria-live="polite">
+                  <div className="rollover-banner__text">
+                    Voce tem {rolloverCandidates.length} tarefa(s) pendente(s) de dias anteriores.
+                  </div>
+                  <div className="rollover-banner__actions">
+                    <button type="button" className="rollover-banner__primary" onClick={handleRolloverApply}>
+                      Trazer para hoje
+                    </button>
+                    <button type="button" className="rollover-banner__ghost" onClick={handleRolloverDismiss}>
+                      Ignorar
+                    </button>
+                  </div>
+                </div>
+              )}
+              <div className="quick-capture-bar">
+                <QuickCaptureInput
+                  placeholder="Captura rapida..."
+                  value={quickCapture}
+                  onChange={setQuickCapture}
+                  onSubmit={(value) => handleQuickCaptureSubmit(value)}
+                />
+                <button
+                  type="button"
+                  className="quick-capture-bar__add"
+                  onClick={() => handleQuickCaptureSubmit()}
+                  aria-label="Adicionar na inbox"
+                >
+                  +
+                </button>
               </div>
               <WeekStrip
                 days={days}
@@ -573,6 +623,11 @@ function App() {
             </div>
           </main>
         </>
+      )}
+      {showFab && (
+        <button type="button" className="fab-add-task" onClick={handleAddTask} aria-label="Nova tarefa">
+          <Plus size={22} aria-hidden="true" />
+        </button>
       )}
       <BottomNavigation activeTab={activeTab} onSelect={handleSelectTab} />
       <InboxSheet

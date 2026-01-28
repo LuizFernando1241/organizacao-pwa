@@ -1,4 +1,4 @@
-import { Trash2 } from 'lucide-react'
+import { Link2, Trash2 } from 'lucide-react'
 import type { Note } from '../types/note'
 import './StickyNoteCard.css'
 
@@ -20,7 +20,7 @@ function StickyNoteCard({ note, onSelect, onLink, onDelete }: StickyNoteCardProp
         <div className="sticky-note__actions">
           {onLink && (
             <button type="button" className="sticky-note__action" onClick={() => onLink(note)} aria-label="Vincular">
-              V
+              <Link2 size={16} aria-hidden="true" />
             </button>
           )}
           {onDelete && (

@@ -44,6 +44,22 @@
   gap: var(--space-2);
 }
 
+.task-sheet__status {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  padding: 4px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(44, 44, 46, 0.6);
+}
+
+.task-sheet__status--saving {
+  color: var(--color-text-secondary);
+}
+
+.task-sheet__status--saved {
+  color: var(--color-text-link);
+}
+
 .task-sheet__title-input {
   flex: 1;
   border: none;

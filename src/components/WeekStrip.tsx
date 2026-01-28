@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import DayChip from './DayChip'
 import './WeekStrip.css'
@@ -42,7 +43,7 @@ function WeekStrip({ days, selectedKey, todayKey, overbookedKeys, onSelect, onPr
   return (
     <section className="week-strip" aria-label="Semana">
       <button type="button" className="week-strip__nav" onClick={handlePrev} aria-label="Semana anterior">
-        ‹
+        <ChevronLeft size={18} aria-hidden="true" />
       </button>
       <div
         className={`week-strip__days${slideDir === 'prev' ? ' week-strip__days--slide-prev' : ''}${
@@ -62,7 +63,7 @@ function WeekStrip({ days, selectedKey, todayKey, overbookedKeys, onSelect, onPr
         ))}
       </div>
       <button type="button" className="week-strip__nav" onClick={handleNext} aria-label="Proxima semana">
-        ›
+        <ChevronRight size={18} aria-hidden="true" />
       </button>
     </section>
   )

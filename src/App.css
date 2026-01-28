@@ -54,6 +54,37 @@
   gap: var(--space-5);
 }
 
+.quick-capture-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.quick-capture-bar .quick-capture {
+  flex: 1;
+}
+
+.quick-capture-bar__add {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(44, 44, 46, 0.8);
+  color: #ffffff;
+  font-size: 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--motion-duration-fast) var(--motion-easing-standard),
+    border-color var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.quick-capture-bar__add:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.5);
+}
+
 .toast {
   position: fixed;
   left: 50%;
@@ -87,4 +118,71 @@
     opacity: 1;
     transform: translate(-50%, 0);
   }
+}
+
+.rollover-banner {
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  background: rgba(99, 102, 241, 0.12);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.rollover-banner__text {
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+}
+
+.rollover-banner__actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.rollover-banner__primary,
+.rollover-banner__ghost {
+  border-radius: var(--radius-pill);
+  padding: 6px 12px;
+  font-size: var(--font-size-caption);
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.rollover-banner__primary {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: rgba(99, 102, 241, 0.6);
+}
+
+.rollover-banner__ghost {
+  background: transparent;
+  color: var(--primary);
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+.fab-add-task {
+  position: fixed;
+  right: 18px;
+  bottom: 92px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: var(--primary);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 24px rgba(99, 102, 241, 0.35);
+  cursor: pointer;
+  z-index: 1200;
+  transition: transform var(--motion-duration-fast) var(--motion-easing-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.fab-add-task:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 28px rgba(99, 102, 241, 0.4);
 }
