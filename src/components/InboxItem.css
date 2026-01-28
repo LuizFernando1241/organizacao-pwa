@@ -54,6 +54,26 @@
   background: var(--color-background-hover-fill);
 }
 
+.inbox-item__note {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-default);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--motion-duration-fast) var(--motion-easing-standard),
+    border-color var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.inbox-item__note:hover {
+  background: var(--color-background-hover-fill);
+}
+
 .inbox-item__actions {
   display: inline-flex;
   align-items: center;

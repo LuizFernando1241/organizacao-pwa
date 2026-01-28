@@ -10,6 +10,7 @@ type InboxSheetProps = {
   onClose: () => void
   onAddItem: (text: string) => void
   onConvertToTask: (id: string) => void
+  onConvertToNote: (id: string) => void
   onDeleteItem: (id: string) => void
   onUpdateItem: (id: string, text: string) => void
 }
@@ -20,6 +21,7 @@ function InboxSheet({
   onClose,
   onAddItem,
   onConvertToTask,
+  onConvertToNote,
   onDeleteItem,
   onUpdateItem,
 }: InboxSheetProps) {
@@ -60,6 +62,7 @@ function InboxSheet({
                 key={item.id}
                 item={item}
                 onConvertToTask={onConvertToTask}
+                onConvertToNote={onConvertToNote}
                 onDelete={onDeleteItem}
                 onUpdate={onUpdateItem}
               />

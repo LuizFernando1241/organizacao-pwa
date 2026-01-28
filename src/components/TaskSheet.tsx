@@ -13,9 +13,13 @@ type TaskSheetProps = {
   onDelete: (id: string) => void
   onOpenLinkedNotes: () => void
   onSelectNote?: (note: Note) => void
+  onCreateNote: (data: { title: string; body: string }) => string
+  onUpdateNote: (id: string, updates: Partial<Note>) => void
+  onLinkNoteToTask: (noteId: string, taskId: string) => void
 }
 
 const buildSubtaskId = () => `subtask-${Date.now()}-${Math.random().toString(16).slice(2)}`
+const CONTEXT_NOTE_TITLE = 'Contexto'
 
 function TaskSheet({
   isOpen,
@@ -27,6 +31,9 @@ function TaskSheet({
   onDelete,
   onOpenLinkedNotes,
   onSelectNote,
+  onCreateNote,
+  onUpdateNote,
+  onLinkNoteToTask,
 }: TaskSheetProps) {
   const [title, setTitle] = useState('')
   const [dayKey, setDayKey] = useState('')
@@ -37,11 +44,15 @@ function TaskSheet({
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
   const [focusSubtaskId, setFocusSubtaskId] = useState<string | null>(null)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const [contextText, setContextText] = useState('')
+  const [contextNoteId, setContextNoteId] = useState<string | null>(null)
   const prevTaskIdRef = useRef<string | null>(null)
   const wasOpenRef = useRef(false)
   const skipSaveStatusRef = useRef(true)
+  const skipContextSaveRef = useRef(true)
   const saveTimeoutRef = useRef<number | null>(null)
   const idleTimeoutRef = useRef<number | null>(null)
+  const contextSaveTimeoutRef = useRef<number | null>(null)
 
   useEffect(() => {
     const wasOpen = wasOpenRef.current
@@ -67,7 +78,13 @@ function TaskSheet({
     }
     setSaveStatus('idle')
     skipSaveStatusRef.current = true
-  }, [task, isOpen])
+    const linkedNotes = notes.filter((note) => task.linkedNoteIds.includes(note.id))
+    const contextNote =
+      linkedNotes.find((note) => note.title.trim().toLowerCase() === CONTEXT_NOTE_TITLE.toLowerCase()) ?? null
+    setContextNoteId(contextNote?.id ?? null)
+    setContextText(contextNote?.body ?? '')
+    skipContextSaveRef.current = true
+  }, [task, isOpen, notes])
 
   useEffect(() => {
     if (!isOpen || !task) {
@@ -106,6 +123,9 @@ function TaskSheet({
       if (idleTimeoutRef.current) {
         window.clearTimeout(idleTimeoutRef.current)
       }
+      if (contextSaveTimeoutRef.current) {
+        window.clearTimeout(contextSaveTimeoutRef.current)
+      }
     }
   }, [])
 
@@ -129,6 +149,42 @@ function TaskSheet({
     const handle = window.setTimeout(() => onUpdate(task.id, updates), 300)
     return () => window.clearTimeout(handle)
   }, [task, dayKey, timeStart, timeEnd, onUpdate])
+
+  useEffect(() => {
+    if (!isOpen || !task) {
+      return
+    }
+    if (skipContextSaveRef.current) {
+      skipContextSaveRef.current = false
+      return
+    }
+    const trimmed = contextText.trim()
+    if (contextSaveTimeoutRef.current) {
+      window.clearTimeout(contextSaveTimeoutRef.current)
+    }
+    if (!contextNoteId && !trimmed) {
+      return
+    }
+    contextSaveTimeoutRef.current = window.setTimeout(() => {
+      if (!task) {
+        return
+      }
+      if (contextNoteId) {
+        onUpdateNote(contextNoteId, { body: contextText })
+        return
+      }
+      if (trimmed) {
+        const newId = onCreateNote({ title: CONTEXT_NOTE_TITLE, body: trimmed })
+        onLinkNoteToTask(newId, task.id)
+        setContextNoteId(newId)
+      }
+    }, 400)
+    return () => {
+      if (contextSaveTimeoutRef.current) {
+        window.clearTimeout(contextSaveTimeoutRef.current)
+      }
+    }
+  }, [contextText, contextNoteId, isOpen, task, onCreateNote, onUpdateNote, onLinkNoteToTask])
 
   const handleRecurrenceChange = (value: Recurrence) => {
     setRecurrence(value)
@@ -261,6 +317,19 @@ function TaskSheet({
                 />
               </label>
             </div>
+          </div>
+
+          <div className="task-context">
+            <div className="task-context__header">
+              <div className="task-context__title">Contexto</div>
+              <div className="task-context__hint">Por que / como fazer</div>
+            </div>
+            <textarea
+              className="task-context__input"
+              placeholder="Anote instrucoes, por que isso importa, referencias, detalhes..."
+              value={contextText}
+              onChange={(event) => setContextText(event.target.value)}
+            />
           </div>
 
           <div className="linked-notes">

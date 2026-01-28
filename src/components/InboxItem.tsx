@@ -1,4 +1,4 @@
-import { Trash2 } from 'lucide-react'
+import { FileText, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { InboxItem as InboxItemType } from '../types/inbox'
 import './InboxItem.css'
@@ -6,11 +6,12 @@ import './InboxItem.css'
 type InboxItemProps = {
   item: InboxItemType
   onConvertToTask: (id: string) => void
+  onConvertToNote: (id: string) => void
   onDelete: (id: string) => void
   onUpdate: (id: string, text: string) => void
 }
 
-function InboxItem({ item, onConvertToTask, onDelete, onUpdate }: InboxItemProps) {
+function InboxItem({ item, onConvertToTask, onConvertToNote, onDelete, onUpdate }: InboxItemProps) {
   const [value, setValue] = useState(item.text)
 
   useEffect(() => {
@@ -48,6 +49,14 @@ function InboxItem({ item, onConvertToTask, onDelete, onUpdate }: InboxItemProps
           aria-label="Criar tarefa"
         >
           +
+        </button>
+        <button
+          type="button"
+          className="inbox-item__note"
+          onClick={() => onConvertToNote(item.id)}
+          aria-label="Criar nota"
+        >
+          <FileText size={14} aria-hidden="true" />
         </button>
         <button
           type="button"

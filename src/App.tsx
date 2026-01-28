@@ -19,6 +19,7 @@ import { useAppStore } from './store/useAppStore'
 import type { Note } from './types/note'
 import type { Task } from './types/task'
 import { pullChanges, pushChanges, startSync } from './sync/syncManager'
+import { parseCaptureInput } from './utils/captureParser'
 
 const dayNames = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom']
 const monthShortNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
@@ -129,6 +130,7 @@ function App() {
     createNote,
     updateNote,
     createTask,
+    convertInboxToNote,
     linkNoteToTask,
     runTimeTick,
     convertInboxToTask,
@@ -164,6 +166,7 @@ function App() {
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [rolloverDismissed, setRolloverDismissed] = useState(false)
   const [quickCapture, setQuickCapture] = useState('')
+  const [pendingNoteId, setPendingNoteId] = useState<string | null>(null)
 
   const todayKeyActual = formatLocalDayKey(new Date())
   const baseTasks = useMemo(() => tasks.filter((task) => !task.recurrenceParentId), [tasks])
@@ -306,6 +309,27 @@ function App() {
     }
   }, [rolloverCandidates.length, rolloverDismissed])
 
+  useEffect(() => {
+    if (!pendingNoteId) {
+      return
+    }
+    const note = notes.find((item) => item.id === pendingNoteId) ?? null
+    if (!note) {
+      return
+    }
+    setIsInboxOpen(false)
+    setIsTaskSheetOpen(false)
+    setIsLinkedNotesOpen(false)
+    setIsCalendarOpen(false)
+    setIsSettingsOpen(false)
+    setIsLinkModalOpen(false)
+    setActiveTab('today')
+    setActiveNote(note)
+    setDraftNote(null)
+    setIsNoteModalOpen(true)
+    setPendingNoteId(null)
+  }, [pendingNoteId, notes])
+
   const closeAllOverlays = () => {
     setIsInboxOpen(false)
     setIsTaskSheetOpen(false)
@@ -353,6 +377,18 @@ function App() {
     if (taskId) {
       setActiveTaskId(taskId)
       setIsTaskSheetOpen(true)
+    }
+  }
+
+  const handleConvertToNote = (id: string) => {
+    const item = inboxItems.find((inbox) => inbox.id === id)
+    if (!item) {
+      return
+    }
+    const noteId = convertInboxToNote(id, { title: '', body: item.text })
+    handleCloseInbox()
+    if (noteId) {
+      setPendingNoteId(noteId)
     }
   }
 
@@ -537,6 +573,25 @@ function App() {
     if (!text) {
       return
     }
+    const parsed = parseCaptureInput(text)
+    if (parsed.kind === 'note') {
+      createNote({ title: '', body: parsed.title })
+      setQuickCapture('')
+      setToast({ type: 'success', message: 'Nota salva.' })
+      return
+    }
+    if (parsed.kind === 'task') {
+      const taskDayKey = parsed.dayKey ?? selectedDayKey
+      const taskId = createTask(taskDayKey)
+      updateTask(taskId, {
+        title: parsed.title,
+        timeStart: parsed.timeStart ?? '',
+        timeEnd: parsed.timeEnd ?? '',
+      })
+      setQuickCapture('')
+      setToast({ type: 'success', message: 'Tarefa criada.' })
+      return
+    }
     addInboxItem(text)
     setQuickCapture('')
     setToast({ type: 'success', message: 'Adicionado na inbox.' })
@@ -589,7 +644,7 @@ function App() {
               )}
               <div className="quick-capture-bar">
                 <QuickCaptureInput
-                  placeholder="Captura rapida..."
+                  placeholder="Digite qualquer coisa... tarefa, ideia, lembrete"
                   value={quickCapture}
                   onChange={setQuickCapture}
                   onSubmit={(value) => handleQuickCaptureSubmit(value)}
@@ -636,6 +691,7 @@ function App() {
         onClose={handleCloseInbox}
         onAddItem={addInboxItem}
         onConvertToTask={handleConvertToTask}
+        onConvertToNote={handleConvertToNote}
         onDeleteItem={deleteInboxItem}
         onUpdateItem={updateInboxItem}
       />
@@ -649,6 +705,9 @@ function App() {
         onDelete={deleteTask}
         onOpenLinkedNotes={handleOpenLinkedNotes}
         onSelectNote={handleOpenNote}
+        onCreateNote={createNote}
+        onUpdateNote={updateNote}
+        onLinkNoteToTask={linkNoteToTask}
       />
       <LinkedNotesSheet
         isOpen={isLinkedNotesOpen}
@@ -698,4 +757,3 @@ function App() {
 }
 
 export default App
-

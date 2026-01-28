@@ -169,6 +169,48 @@
   background: var(--color-background-hover-fill);
 }
 
+.task-context {
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-background-elevated);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.task-context__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.task-context__title {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+}
+
+.task-context__hint {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}
+
+.task-context__input {
+  min-height: 120px;
+  border-radius: var(--component-input-radius);
+  border: 1px solid var(--component-input-border-color);
+  padding: var(--space-2);
+  background: var(--component-input-background);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-body);
+  resize: vertical;
+}
+
+.task-context__input:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+}
+
 .subtasks {
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-md);
