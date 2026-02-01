@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { InboxItem } from '../types/inbox'
 import type { Note } from '../types/note'
 import type { NoteTaskLink } from '../types/link'
+import type { Plan } from '../types/plan'
 import type { Subtask, Task } from '../types/task'
 import { db, enqueueOp, getMetaValue, initDb, setMetaValue } from './db'
 
@@ -9,6 +10,7 @@ type AppState = {
   tasks: Task[]
   inboxItems: InboxItem[]
   notes: Note[]
+  plans: Plan[]
   links: NoteTaskLink[]
   selectedDayKey: string
   wakeTime: string
@@ -38,10 +40,13 @@ type AppState = {
   deleteTask: (id: string) => void
   createTask: (dayKey: string) => string
   convertInboxToTask: (id: string, dayKey: string) => string | null
-  convertInboxToNote: (id: string, data: Pick<Note, 'title' | 'body'>) => string | null
-  createNote: (data: Pick<Note, 'title' | 'body'>) => string
+  convertInboxToNote: (id: string, data: Pick<Note, 'title' | 'body' | 'color'>) => string | null
+  createNote: (data: Pick<Note, 'title' | 'body' | 'color'>) => string
   updateNote: (id: string, updates: Partial<Note>) => void
   deleteNote: (id: string) => void
+  createPlan: () => string
+  updatePlan: (id: string, updates: Partial<Plan>) => void
+  deletePlan: (id: string) => void
   linkNoteToTask: (noteId: string, taskId: string) => void
   getCompletionStats: () => { completed: number; total: number; rate: number }
   getTotalFocusTimeMs: () => number
@@ -192,6 +197,7 @@ export const useAppStore = create<AppState>((set, get) => {
   tasks: [],
   inboxItems: [],
   notes: [],
+  plans: [],
   links: [],
   selectedDayKey: getTodayKey(),
   wakeTime: '07:00',
@@ -206,11 +212,12 @@ export const useAppStore = create<AppState>((set, get) => {
     set({ isReady: true })
   },
   refreshFromDb: async () => {
-    const [tasks, notes, inboxItems, links] = await Promise.all([
+    const [tasks, notes, inboxItems, links, plans] = await Promise.all([
       db.tasks.toArray(),
       db.notes.toArray(),
       db.inbox_items.toArray(),
       db.links.toArray(),
+      db.plans.toArray(),
     ])
     const normalizedTasks = tasks.map((task) => {
       const base = task.updatedAt ? task : { ...task, updatedAt: new Date().toISOString() }
@@ -226,6 +233,7 @@ export const useAppStore = create<AppState>((set, get) => {
     set({
       tasks: normalizedTasks,
       notes,
+      plans,
       inboxItems,
       links,
       selectedDayKey,
@@ -651,7 +659,14 @@ export const useAppStore = create<AppState>((set, get) => {
     }
     const now = new Date().toISOString()
     const noteId = buildId('note')
-    const note: Note = { id: noteId, title: data.title, body: data.body, createdAt: now, updatedAt: now }
+    const note: Note = {
+      id: noteId,
+      title: data.title,
+      body: data.body,
+      color: data.color ?? undefined,
+      createdAt: now,
+      updatedAt: now,
+    }
     set((state) => ({
       inboxItems: state.inboxItems.filter((inbox) => inbox.id !== id),
       notes: [note, ...state.notes],
@@ -677,7 +692,14 @@ export const useAppStore = create<AppState>((set, get) => {
   createNote: (data) => {
     const id = buildId('note')
     const now = new Date().toISOString()
-    const note: Note = { id, title: data.title, body: data.body, createdAt: now, updatedAt: now }
+    const note: Note = {
+      id,
+      title: data.title,
+      body: data.body,
+      color: data.color ?? undefined,
+      createdAt: now,
+      updatedAt: now,
+    }
     set((state) => ({ notes: [note, ...state.notes] }))
     void db.notes.add(note)
     void enqueueOp({
@@ -750,6 +772,46 @@ export const useAppStore = create<AppState>((set, get) => {
         payload: { updatedAt: now },
       })
     })
+  },
+  createPlan: () => {
+    const id = buildId('plan')
+    const now = new Date().toISOString()
+    const plan: Plan = {
+      id,
+      title: 'Novo planejamento',
+      subtitle: '',
+      status: 'active',
+      startDate: '',
+      endDate: '',
+      goals: [],
+      blocks: [],
+      phases: [],
+      decisions: [],
+      linkedTaskIds: [],
+      createdAt: now,
+      updatedAt: now,
+    }
+    set((state) => ({ plans: [plan, ...state.plans] }))
+    void db.plans.add(plan)
+    return id
+  },
+  updatePlan: (id, updates) => {
+    set((state) => ({
+      plans: state.plans.map((plan) => {
+        if (plan.id !== id) {
+          return plan
+        }
+        const updated = { ...plan, ...updates, updatedAt: new Date().toISOString() }
+        void db.plans.put(updated)
+        return updated
+      }),
+    }))
+  },
+  deletePlan: (id) => {
+    set((state) => ({
+      plans: state.plans.filter((plan) => plan.id !== id),
+    }))
+    void db.plans.delete(id)
   },
   linkNoteToTask: (noteId, taskId) => {
     const task = get().tasks.find((item) => item.id === taskId)

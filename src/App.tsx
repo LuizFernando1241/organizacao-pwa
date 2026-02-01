@@ -15,6 +15,7 @@ import WeekStrip from './components/WeekStrip'
 import TaskList from './components/TaskList'
 import NotesView from './views/NotesView'
 import FeedbackView from './views/FeedbackView'
+import PlanningView from './views/PlanningView'
 import { useAppStore } from './store/useAppStore'
 import type { Note } from './types/note'
 import type { Task } from './types/task'
@@ -146,7 +147,7 @@ function App() {
   const baseDate = useMemo(() => parseDayKeyToDate(selectedDayKey), [selectedDayKey])
   const { todayKey, days, start, end } = useMemo(() => buildWeekDays(baseDate), [baseDate])
   const weekLabel = useMemo(() => formatWeekRange(start, end), [start, end])
-  const [activeTab, setActiveTab] = useState<'today' | 'notes' | 'feedback'>('today')
+  const [activeTab, setActiveTab] = useState<'today' | 'notes' | 'planning' | 'feedback'>('today')
   const [isInboxOpen, setIsInboxOpen] = useState(false)
   const [isTaskSheetOpen, setIsTaskSheetOpen] = useState(false)
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
@@ -350,7 +351,7 @@ function App() {
     setLinkTargetTaskId(null)
   }
 
-  const handleSelectTab = (tab: 'today' | 'notes' | 'feedback') => {
+  const handleSelectTab = (tab: 'today' | 'notes' | 'planning' | 'feedback') => {
     closeAllOverlays()
     setActiveTab(tab)
   }
@@ -516,7 +517,7 @@ function App() {
     resetNoteModalState()
   }
 
-  const handleSaveNote = (data: { title: string; body: string }) => {
+  const handleSaveNote = (data: { title: string; body: string; color?: string }) => {
     if (activeNote) {
       updateNote(activeNote.id, data)
       handleCloseNoteModal()
@@ -529,7 +530,7 @@ function App() {
     handleCloseNoteModal()
   }
 
-  const handleLinkFromNote = (data: { title: string; body: string }) => {
+  const handleLinkFromNote = (data: { title: string; body: string; color?: string }) => {
     let noteId = activeNote?.id ?? null
     if (activeNote) {
       updateNote(activeNote.id, data)
@@ -606,6 +607,8 @@ function App() {
       {toast && <div className={`toast toast--${toast.type}`}>{toast.message}</div>}
       {activeTab === 'notes' ? (
         <NotesView />
+      ) : activeTab === 'planning' ? (
+        <PlanningView />
       ) : activeTab === 'feedback' ? (
         <FeedbackView />
       ) : (

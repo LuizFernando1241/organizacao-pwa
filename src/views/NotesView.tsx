@@ -122,7 +122,14 @@ function NotesView() {
     updateNote(note.id, { title })
   }
 
-  const handleSaveNote = (data: { title: string; body: string }) => {
+  const handleUpdateColor = (note: Note, color?: string) => {
+    if (note.color === color) {
+      return
+    }
+    updateNote(note.id, { color })
+  }
+
+  const handleSaveNote = (data: { title: string; body: string; color?: string }) => {
     if (activeNote) {
       updateNote(activeNote.id, data)
       setIsNoteModalOpen(false)
@@ -132,7 +139,7 @@ function NotesView() {
     setIsNoteModalOpen(false)
   }
 
-  const handleOpenLinkModal = (data: { title: string; body: string }) => {
+  const handleOpenLinkModal = (data: { title: string; body: string; color?: string }) => {
     if (activeNote) {
       setLinkNoteId(activeNote.id)
       setIsLinkModalOpen(true)
@@ -251,6 +258,7 @@ function NotesView() {
           onLinkNote={handleLinkNote}
           onDeleteNote={handleDeleteNote}
           onUpdateTitle={handleUpdateTitle}
+          onUpdateColor={handleUpdateColor}
           isVirtualized={sortedNotes.length > 300}
         />
       </main>

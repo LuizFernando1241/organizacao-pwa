@@ -11,6 +11,7 @@ type NotesGridProps = {
   onLinkNote?: (note: Note) => void
   onDeleteNote?: (note: Note) => void
   onUpdateTitle?: (note: Note, title: string) => void
+  onUpdateColor?: (note: Note, color?: string) => void
   isVirtualized?: boolean
 }
 
@@ -23,6 +24,7 @@ function NotesGrid({
   onLinkNote,
   onDeleteNote,
   onUpdateTitle,
+  onUpdateColor,
   isVirtualized,
 }: NotesGridProps) {
   const gridClassName = `notes-grid${isVirtualized ? ' notes-grid--virtualized' : ''}`
@@ -52,6 +54,7 @@ function NotesGrid({
             onLink={onLinkNote}
             onDelete={onDeleteNote}
             onUpdateTitle={onUpdateTitle}
+            onUpdateColor={onUpdateColor}
           />
         ))
       )}

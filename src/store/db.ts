@@ -2,6 +2,7 @@ import Dexie, { type Table } from 'dexie'
 import type { InboxItem } from '../types/inbox'
 import type { Note } from '../types/note'
 import type { NoteTaskLink } from '../types/link'
+import type { Plan } from '../types/plan'
 import type { Task } from '../types/task'
 import type { OpsQueueStatus } from '../types/ops'
 
@@ -24,6 +25,7 @@ export type MetaItem = {
 class AppDB extends Dexie {
   tasks!: Table<Task, string>
   notes!: Table<Note, string>
+  plans!: Table<Plan, string>
   links!: Table<NoteTaskLink & { id?: number }, number>
   inbox_items!: Table<InboxItem, string>
   ops_queue!: Table<OpsQueueItem, string>
@@ -34,6 +36,15 @@ class AppDB extends Dexie {
     this.version(1).stores({
       tasks: 'id, dayKey, status',
       notes: 'id, updatedAt',
+      links: '++id, taskId, noteId',
+      inbox_items: 'id',
+      ops_queue: 'opId, entityType, entityId, opType, status',
+      meta: 'key',
+    })
+    this.version(2).stores({
+      tasks: 'id, dayKey, status',
+      notes: 'id, updatedAt',
+      plans: 'id, status, updatedAt',
       links: '++id, taskId, noteId',
       inbox_items: 'id',
       ops_queue: 'opId, entityType, entityId, opType, status',
@@ -123,6 +134,7 @@ const seedNotes: Note[] = [
     id: 'note-1',
     title: 'Resumo da semana',
     body: 'Listar pontos importantes para manter o foco no que realmente importa.',
+    color: 'amber',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -130,6 +142,60 @@ const seedNotes: Note[] = [
     id: 'note-2',
     title: '',
     body: 'Checklist para a reuniao: revisar dados, alinhar objetivos, definir proximos passos.',
+    color: 'sky',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+]
+
+const seedPlans: Plan[] = [
+  {
+    id: 'plan-1',
+    title: 'Planejamento estrategico 2026',
+    subtitle: 'Definir metas e iniciativas principais do ano',
+    status: 'active',
+    startDate: '',
+    endDate: '',
+    goals: [
+      { id: 'goal-1', label: 'MRR', currentValue: 30, targetValue: 50, unit: 'k' },
+      { id: 'goal-2', label: 'Clientes ativos', currentValue: 120, targetValue: 200, unit: '' },
+    ],
+    blocks: [
+      {
+        id: 'block-1',
+        title: 'Contexto',
+        body: 'Este planejamento define os pilares para crescimento sustentavel e previsibilidade financeira.',
+      },
+      {
+        id: 'block-2',
+        title: 'Estrategia',
+        body: 'Focar em canais com melhor CAC/LTV e otimizar onboarding para reduzir churn.',
+      },
+    ],
+    phases: [
+      {
+        id: 'phase-1',
+        title: 'Pesquisa e diagnostico',
+        startDate: '',
+        endDate: '',
+        status: 'active',
+      },
+      {
+        id: 'phase-2',
+        title: 'Execucao',
+        startDate: '',
+        endDate: '',
+        status: 'planned',
+      },
+    ],
+    decisions: [
+      {
+        id: 'decision-1',
+        summary: 'Priorizar canal de indicacao no primeiro trimestre.',
+        decidedAt: new Date().toISOString().slice(0, 10),
+      },
+    ],
+    linkedTaskIds: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -143,6 +209,7 @@ export const initDb = async () => {
     db.notes.count(),
     db.inbox_items.count(),
   ])
+  const planCount = await db.plans.count()
 
   if (taskCount === 0) {
     await db.tasks.bulkAdd(seedTasks)
@@ -152,6 +219,9 @@ export const initDb = async () => {
   }
   if (inboxCount === 0) {
     await db.inbox_items.bulkAdd(seedInbox)
+  }
+  if (planCount === 0) {
+    await db.plans.bulkAdd(seedPlans)
   }
 
   const deviceId = await db.meta.get('deviceId')

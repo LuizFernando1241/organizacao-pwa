@@ -1,7 +1,8 @@
-import { Link2, PencilLine, Trash2 } from 'lucide-react'
+import { Link2, Palette, PencilLine, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { KeyboardEvent, MouseEvent, ReactNode } from 'react'
 import type { Note } from '../types/note'
+import { NOTE_COLOR_OPTIONS, getNoteColorKey, isNoteColorKey } from '../constants/noteColors'
 import './StickyNoteCard.css'
 
 type StickyNoteCardProps = {
@@ -12,20 +13,8 @@ type StickyNoteCardProps = {
   onLink?: (note: Note) => void
   onDelete?: (note: Note) => void
   onUpdateTitle?: (note: Note, title: string) => void
+  onUpdateColor?: (note: Note, color?: string) => void
 }
-
-const toneKeys = ['amber', 'mint', 'sky', 'berry', 'slate']
-
-const hashString = (value: string) => {
-  let hash = 0
-  for (let i = 0; i < value.length; i += 1) {
-    hash = (hash << 5) - hash + value.charCodeAt(i)
-    hash |= 0
-  }
-  return Math.abs(hash)
-}
-
-const getToneKey = (noteId: string) => toneKeys[hashString(noteId) % toneKeys.length]
 
 const getNoteSize = (note: Note) => {
   const length = note.title.trim().length + note.body.trim().length
@@ -124,22 +113,34 @@ const highlightText = (text: string, term: string) => {
   return parts
 }
 
-function StickyNoteCard({ note, highlightTerm = '', isLinked, onSelect, onLink, onDelete, onUpdateTitle }: StickyNoteCardProps) {
+function StickyNoteCard({
+  note,
+  highlightTerm = '',
+  isLinked,
+  onSelect,
+  onLink,
+  onDelete,
+  onUpdateTitle,
+  onUpdateColor,
+}: StickyNoteCardProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [draftTitle, setDraftTitle] = useState(note.title)
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false)
   const title = note.title.trim()
+  const hasManualColor = isNoteColorKey(note.color)
   const fallbackTitle = useMemo(() => getFirstLine(note.body), [note.body])
   const displayTitle = title || fallbackTitle
   const showTitlePlaceholder = !title && fallbackTitle
   const bodyPreview = useMemo(() => buildBodyPreview(note.body, !title && Boolean(fallbackTitle)), [note.body, title, fallbackTitle])
   const size = useMemo(() => getNoteSize(note), [note])
-  const tone = useMemo(() => getToneKey(note.id), [note.id])
+  const tone = useMemo(() => getNoteColorKey(note.id, note.color), [note.id, note.color])
   const relativeUpdated = useMemo(() => formatRelativeTime(note.updatedAt), [note.updatedAt])
 
   const handleOpen = () => {
     if (isEditingTitle) {
       return
     }
+    setIsPaletteOpen(false)
     onSelect?.(note)
   }
 
@@ -176,8 +177,57 @@ function StickyNoteCard({ note, highlightTerm = '', isLinked, onSelect, onLink, 
     setIsEditingTitle(false)
   }
 
+  const handleTogglePalette = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation()
+    setIsPaletteOpen((prev) => !prev)
+  }
+
+  const handleColorSelect = (event: MouseEvent<HTMLButtonElement>, colorId?: string) => {
+    event.stopPropagation()
+    if (!onUpdateColor) {
+      return
+    }
+    const nextColor = isNoteColorKey(colorId) ? colorId : undefined
+    onUpdateColor(note, nextColor)
+    setIsPaletteOpen(false)
+  }
+
   return (
     <div className="sticky-note" data-tone={tone} data-size={size}>
+      {onUpdateColor && (
+        <div className="sticky-note__side">
+          <button
+            type="button"
+            className={`sticky-note__color-button${isPaletteOpen ? ' sticky-note__color-button--active' : ''}`}
+            onClick={handleTogglePalette}
+            aria-label="Alterar cor"
+          >
+            <Palette size={16} aria-hidden="true" />
+          </button>
+          {isPaletteOpen && (
+            <div className="sticky-note__palette" role="menu">
+              <button
+                type="button"
+                className={`sticky-note__palette-item sticky-note__palette-item--auto${hasManualColor ? '' : ' is-active'}`}
+                onClick={(event) => handleColorSelect(event)}
+              >
+                Auto
+              </button>
+              {NOTE_COLOR_OPTIONS.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  className={`sticky-note__palette-item${note.color === option.id ? ' is-active' : ''}`}
+                  onClick={(event) => handleColorSelect(event, option.id)}
+                  aria-label={`Cor ${option.label}`}
+                >
+                  <span className="sticky-note__palette-swatch" style={{ background: option.swatch }} />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
       <div
         className="sticky-note__content"
         role="button"
