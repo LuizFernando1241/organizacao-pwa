@@ -1,3 +1,4 @@
+import { forwardRef } from 'react'
 import { Search } from 'lucide-react'
 import './SearchBar.css'
 
@@ -7,7 +8,10 @@ type SearchBarProps = {
   placeholder?: string
 }
 
-function SearchBar({ value, onChange, placeholder = 'Buscar' }: SearchBarProps) {
+const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(function SearchBar(
+  { value, onChange, placeholder = 'Buscar' }: SearchBarProps,
+  ref,
+) {
   return (
     <label className="search-bar" aria-label={placeholder}>
       <span className="search-bar__icon" aria-hidden="true">
@@ -19,9 +23,10 @@ function SearchBar({ value, onChange, placeholder = 'Buscar' }: SearchBarProps) 
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
+        ref={ref}
       />
     </label>
   )
-}
+})
 
 export default SearchBar

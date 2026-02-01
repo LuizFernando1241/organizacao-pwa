@@ -20,26 +20,80 @@
   cursor: pointer;
 }
 
-.notes-filters {
+.notes-toolbar {
   display: flex;
-  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
   margin-bottom: var(--space-3);
 }
 
-.notes-filter {
+.notes-filters {
+  display: inline-flex;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--color-border-default);
+}
+
+.notes-filter {
+  border: 1px solid transparent;
   background: transparent;
-  border-radius: var(--radius-pill);
+  border-radius: 999px;
   padding: 6px 12px;
   font-size: var(--font-size-caption);
   color: var(--color-text-secondary);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   transition: background var(--motion-duration-fast) var(--motion-easing-standard),
-    border-color var(--motion-duration-fast) var(--motion-easing-standard);
+    border-color var(--motion-duration-fast) var(--motion-easing-standard),
+    color var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
 .notes-filter--active {
   background: var(--color-background-pressed-fill);
   border-color: var(--color-border-default);
   color: var(--color-text-primary);
+}
+
+.notes-filter__count {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.notes-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.notes-sort__label {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.notes-sort__select {
+  border-radius: 10px;
+  border: 1px solid var(--color-border-default);
+  background: var(--color-background-elevated);
+  color: var(--color-text-primary);
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.notes-sort__select:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
 }
