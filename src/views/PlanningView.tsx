@@ -190,6 +190,9 @@ function PlanningView() {
             <div className="planning-detail__empty" role="status">
               <div className="planning-detail__title">Selecione um planejamento</div>
               <div className="planning-detail__text">Crie ou escolha um plano para editar.</div>
+              <button type="button" className="planning-detail__button" onClick={handleCreatePlan}>
+                Criar primeiro plano
+              </button>
             </div>
           )}
         </section>

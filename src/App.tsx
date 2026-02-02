@@ -710,11 +710,16 @@ function App() {
                   <h1 className="page-title">Hoje / Semana</h1>
                   <p className="page-subtitle">Seu dia, sua energia, sem ruído.</p>
                 </div>
-                {rolloverCandidates.length > 0 && (
-                  <button type="button" className="rollover-button" onClick={handleRolloverReview}>
-                    Revisar atrasadas ({rolloverCandidates.length})
+                <div className="home-header__actions">
+                  <button type="button" className="home-primary-action" onClick={handleAddTask}>
+                    Nova tarefa
                   </button>
-                )}
+                  {rolloverCandidates.length > 0 && (
+                    <button type="button" className="rollover-button" onClick={handleRolloverReview}>
+                      Revisar atrasadas ({rolloverCandidates.length})
+                    </button>
+                  )}
+                </div>
               </div>
               {showRolloverBanner && (
                 <div className="rollover-banner" role="status" aria-live="polite">
@@ -743,7 +748,6 @@ function App() {
                         <span className="home-chip">Planejadas {taskCounts.planned}</span>
                         <span className="home-chip home-chip--accent">Ativas {taskCounts.active}</span>
                         <span className="home-chip home-chip--danger">Atrasadas {taskCounts.overdue}</span>
-                        <span className="home-chip home-chip--success">Concluídas {taskCounts.done}</span>
                       </div>
                     </div>
                     <div className="home-panel__body">

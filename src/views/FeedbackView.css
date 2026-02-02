@@ -1,3 +1,9 @@
+.feedback-screen {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
 .feedback-grid {
   display: grid;
   grid-template-columns: 1fr;

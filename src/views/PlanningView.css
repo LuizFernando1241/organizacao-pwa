@@ -1,5 +1,7 @@
 .planning-screen {
-  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
 }
 
 .planning-content {
@@ -189,6 +191,29 @@
   font-size: 16px;
   font-weight: 600;
   color: var(--color-text-primary);
+}
+
+.planning-detail__button {
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 8px 14px;
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.95), rgba(var(--accent-rgb), 0.85));
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--motion-duration-fast) var(--motion-easing-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.planning-detail__button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(var(--primary-rgb), 0.25);
+}
+
+.planning-detail__button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.35);
 }
 
 @media (max-width: 1024px) {

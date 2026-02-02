@@ -40,7 +40,16 @@ function TaskList({ tasks, onSelectTask, onAddTask, onToggleDone, onStartTimer, 
     <section className="task-list" aria-label="Tarefas do dia">
       {orderedTasks.length === 0 ? (
         <div className="task-list__empty" role="status">
-          Nenhuma tarefa para hoje. Crie algo que mova o dia.
+          <div className="task-list__empty-title">Dia livre para começar bem.</div>
+          <div className="task-list__empty-text">Crie sua primeira tarefa e já defina um horário.</div>
+          {onAddTask && (
+            <button type="button" className="task-list__empty-button" onClick={onAddTask}>
+              Criar primeira tarefa
+            </button>
+          )}
+          <div className="task-list__empty-hints">
+            Sugestões: “09:30 Daily com o time”, “Revisar proposta”, “30 min de foco”.
+          </div>
         </div>
       ) : (
         orderedTasks.map((task) => (
@@ -54,10 +63,10 @@ function TaskList({ tasks, onSelectTask, onAddTask, onToggleDone, onStartTimer, 
           />
         ))
       )}
-      {onAddTask && (
+      {onAddTask && orderedTasks.length > 0 && (
         <button
           type="button"
-          className={`task-list__add${orderedTasks.length === 0 ? ' task-list__add--cta' : ''}`}
+          className="task-list__add"
           onClick={onAddTask}
         >
           + Nova tarefa

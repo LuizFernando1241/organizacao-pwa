@@ -62,7 +62,20 @@ function InboxSheet({
         <div className="inbox-sheet__list">
           {items.length === 0 ? (
             <div className="inbox-sheet__empty" role="status">
-              Caixa de entrada limpa!
+              <div className="inbox-sheet__empty-title">Caixa de entrada limpa!</div>
+              <div className="inbox-sheet__empty-text">Capture ideias rápidas para organizar depois.</div>
+              <div className="inbox-sheet__empty-suggestions">
+                {['Reunião com time amanhã', 'Ideia: app de hábitos', 'Ligar para cliente'].map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className="inbox-sheet__suggestion"
+                    onClick={() => setDraftText(value)}
+                  >
+                    {value}
+                  </button>
+                ))}
+              </div>
             </div>
           ) : (
             items.map((item) => (

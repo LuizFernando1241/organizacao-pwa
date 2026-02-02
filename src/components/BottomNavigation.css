@@ -54,3 +54,37 @@
 .bottom-nav__label {
   line-height: 1;
 }
+
+@media (min-width: 1100px) {
+  .bottom-nav {
+    top: calc(var(--size-top-bar-height) + var(--space-3));
+    bottom: var(--space-4);
+    left: var(--space-4);
+    right: auto;
+    width: var(--size-nav-rail-width);
+    height: auto;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-2);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .bottom-nav__item {
+    width: 100%;
+    gap: 6px;
+    padding: 10px 8px;
+  }
+
+  .bottom-nav__icon {
+    font-size: 22px;
+  }
+
+  .bottom-nav__label {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+}
