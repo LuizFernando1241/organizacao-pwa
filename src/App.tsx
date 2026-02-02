@@ -736,7 +736,7 @@ function App() {
                 </div>
               )}
               <div className="home-layout">
-                <section className="home-main">
+                <section className="home-main" aria-label="Agenda do dia">
                   <div className="home-panel">
                     <div className="home-panel__header">
                       <div>
@@ -764,7 +764,7 @@ function App() {
                     </div>
                   </div>
                 </section>
-                <aside className="home-side">
+                <aside className="home-side" aria-label="Resumo do dia">
                   <section className="home-hero" aria-label="Resumo do dia">
                     <div className="home-hero__top">
                       <div>

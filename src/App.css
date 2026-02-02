@@ -119,6 +119,10 @@
   gap: var(--space-3);
 }
 
+.home-side {
+  opacity: 0.92;
+}
+
 .home-panel {
   background: linear-gradient(180deg, rgba(14, 18, 28, 0.95), rgba(12, 16, 24, 0.7));
   border: 1px solid rgba(148, 163, 184, 0.2);
@@ -707,6 +711,14 @@
   .hero-stat__value {
     font-size: 16px;
   }
+
+  .home-main {
+    order: 1;
+  }
+
+  .home-side {
+    order: 2;
+  }
 }
 
 @media (max-width: 1024px) {
@@ -728,6 +740,20 @@
 
   .home-side .home-hero__stats {
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+}
+
+@media (min-width: 1025px) {
+  .home-panel {
+    padding: var(--space-5);
+  }
+
+  .home-panel__title {
+    font-size: 20px;
+  }
+
+  .home-panel__subtitle {
+    font-size: 13px;
   }
 }
 
