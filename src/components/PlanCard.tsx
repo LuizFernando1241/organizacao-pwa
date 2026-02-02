@@ -13,7 +13,7 @@ type PlanCardProps = {
 
 const statusLabels: Record<Plan['status'], string> = {
   active: 'Ativo',
-  done: 'Concluido',
+  done: 'Concluído',
   archived: 'Arquivado',
 }
 
@@ -26,6 +26,7 @@ function PlanCard({ plan, tasks, isActive, onSelect }: PlanCardProps) {
       type="button"
       className={`plan-card${isActive ? ' plan-card--active' : ''}`}
       onClick={() => onSelect?.(plan)}
+      aria-pressed={isActive}
     >
       <div className="plan-card__header">
         <div>

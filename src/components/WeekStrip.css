@@ -21,7 +21,7 @@
 .week-strip__nav {
   border: none;
   background: transparent;
-  color: #8e8e93;
+  color: var(--color-text-secondary);
   font-size: 22px;
   width: 28px;
   height: 28px;
@@ -35,8 +35,13 @@
 }
 
 .week-strip__nav:hover {
-  background: rgba(99, 102, 241, 0.1);
-  color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.12);
+  color: var(--color-text-primary);
+}
+
+.week-strip__nav:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.35);
 }
 
 .week-strip__days--slide-prev {

@@ -17,7 +17,7 @@
   right: 0;
   bottom: 0;
   height: 0.5px;
-  background: #38383a;
+  background: rgba(148, 163, 184, 0.25);
 }
 
 .inbox-item__input {
@@ -51,7 +51,14 @@
 }
 
 .inbox-item__add:hover {
-  background: var(--color-background-hover-fill);
+  background: rgba(var(--primary-rgb), 0.15);
+  border-color: rgba(var(--primary-rgb), 0.35);
+  color: var(--color-text-primary);
+}
+
+.inbox-item__add:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.35);
 }
 
 .inbox-item__note {
@@ -71,7 +78,14 @@
 }
 
 .inbox-item__note:hover {
-  background: var(--color-background-hover-fill);
+  background: rgba(var(--primary-rgb), 0.12);
+  border-color: rgba(var(--primary-rgb), 0.35);
+  color: var(--color-text-primary);
+}
+
+.inbox-item__note:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.35);
 }
 
 .inbox-item__actions {
@@ -97,5 +111,12 @@
 }
 
 .inbox-item__delete:hover {
-  background: var(--color-background-hover-fill);
+  background: rgba(var(--danger-rgb), 0.18);
+  border-color: rgba(var(--danger-rgb), 0.4);
+  color: #ffe4e6;
+}
+
+.inbox-item__delete:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--danger-rgb), 0.4);
 }

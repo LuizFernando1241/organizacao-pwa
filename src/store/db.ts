@@ -110,7 +110,7 @@ const seedTasks: Task[] = [
   {
     id: 'task-3',
     title: 'Responder mensagens pendentes',
-    timeLabel: 'Sem horario',
+    timeLabel: 'Sem horário',
     timeStart: '',
     timeEnd: '',
     status: 'overdue',
@@ -141,7 +141,7 @@ const seedNotes: Note[] = [
   {
     id: 'note-2',
     title: '',
-    body: 'Checklist para a reuniao: revisar dados, alinhar objetivos, definir proximos passos.',
+    body: 'Checklist para a reunião: revisar dados, alinhar objetivos, definir próximos passos.',
     color: 'sky',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -168,7 +168,7 @@ const seedPlans: Plan[] = [
       },
       {
         id: 'block-2',
-        title: 'Estrategia',
+        title: 'Estratégia',
         body: 'Focar em canais com melhor CAC/LTV e otimizar onboarding para reduzir churn.',
       },
     ],

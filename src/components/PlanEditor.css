@@ -23,6 +23,7 @@
   border: none;
   color: var(--color-text-primary);
   outline: none;
+  font-family: var(--font-family-display);
 }
 
 .plan-editor__subtitle {
@@ -51,7 +52,7 @@
 .plan-editor__field input,
 .plan-editor__field select {
   border: 1px solid var(--color-border-default);
-  background: var(--color-background-elevated);
+  background: rgba(12, 16, 24, 0.6);
   border-radius: 10px;
   padding: 6px 8px;
   color: var(--color-text-primary);
@@ -73,6 +74,7 @@
 .plan-section h2 {
   margin: 0;
   font-size: 16px;
+  font-family: var(--font-family-display);
 }
 
 .plan-section__header {
@@ -83,8 +85,8 @@
 
 .plan-section__add {
   border: none;
-  background: rgba(99, 102, 241, 0.15);
-  color: #c7c9ff;
+  background: rgba(var(--primary-rgb), 0.18);
+  color: #dbeafe;
   border-radius: 999px;
   font-size: 12px;
   padding: 6px 10px;
@@ -94,12 +96,17 @@
   gap: 6px;
 }
 
+.plan-section__add:hover {
+  background: rgba(var(--primary-rgb), 0.28);
+}
+
 .plan-section__empty {
-  border: 1px dashed var(--color-border-default);
+  border: 1px dashed rgba(148, 163, 184, 0.35);
   border-radius: 12px;
   padding: var(--space-3);
   font-size: 12px;
   color: var(--color-text-secondary);
+  background: rgba(12, 16, 24, 0.4);
 }
 
 .plan-goals,
@@ -112,10 +119,10 @@
 }
 
 .plan-goal {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 12px;
   padding: 12px;
-  background: rgba(22, 22, 24, 0.9);
+  background: rgba(12, 16, 24, 0.7);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -138,7 +145,7 @@
 
 .plan-goal__values input {
   border: 1px solid var(--color-border-default);
-  background: var(--color-background-elevated);
+  background: rgba(12, 16, 24, 0.6);
   border-radius: 10px;
   padding: 6px 8px;
   color: var(--color-text-primary);
@@ -168,7 +175,7 @@
 .plan-goal__progress-bar {
   flex: 1;
   height: 6px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(148, 163, 184, 0.2);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -176,16 +183,16 @@
 .plan-goal__progress-bar span {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, rgba(99, 102, 241, 0.9), rgba(56, 189, 248, 0.9));
+  background: linear-gradient(90deg, rgba(var(--primary-rgb), 0.9), rgba(var(--accent-rgb), 0.9));
 }
 
 .plan-block,
 .plan-phase,
 .plan-decision {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 12px;
   padding: 12px;
-  background: rgba(22, 22, 24, 0.9);
+  background: rgba(12, 16, 24, 0.7);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -232,7 +239,7 @@
 .plan-phase select,
 .plan-decision__row input {
   border: 1px solid var(--color-border-default);
-  background: var(--color-background-elevated);
+  background: rgba(12, 16, 24, 0.6);
   border-radius: 10px;
   padding: 6px 8px;
   color: var(--color-text-primary);
@@ -260,10 +267,10 @@
 }
 
 .plan-side-card {
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 14px;
   padding: 12px;
-  background: rgba(20, 20, 22, 0.9);
+  background: rgba(12, 16, 24, 0.7);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -272,6 +279,7 @@
 .plan-side-card h3 {
   margin: 0;
   font-size: 14px;
+  font-family: var(--font-family-display);
 }
 
 .plan-side-card__progress {
@@ -284,7 +292,7 @@
 .plan-side-card__bar {
   flex: 1;
   height: 6px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(148, 163, 184, 0.2);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -292,7 +300,7 @@
 .plan-side-card__bar span {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, rgba(16, 185, 129, 0.9), rgba(34, 197, 94, 0.9));
+  background: linear-gradient(90deg, rgba(var(--success-rgb), 0.9), rgba(var(--success-rgb), 0.6));
 }
 
 .plan-side-card__meta {
@@ -328,7 +336,7 @@
 
 .plan-side-card__search {
   border: 1px solid var(--color-border-default);
-  background: var(--color-background-elevated);
+  background: rgba(12, 16, 24, 0.6);
   border-radius: 10px;
   padding: 6px 8px;
   color: var(--color-text-primary);
@@ -356,17 +364,21 @@
 }
 
 .plan-side-card--danger {
-  border-color: rgba(239, 68, 68, 0.4);
+  border-color: rgba(var(--danger-rgb), 0.4);
 }
 
 .plan-side-card__delete {
   border: none;
-  background: rgba(239, 68, 68, 0.16);
-  color: #fecaca;
+  background: rgba(var(--danger-rgb), 0.16);
+  color: #ffe4e6;
   border-radius: 10px;
   padding: 8px 10px;
   cursor: pointer;
   font-size: 12px;
+}
+
+.plan-side-card__delete:hover {
+  background: rgba(var(--danger-rgb), 0.25);
 }
 
 @media (max-width: 1024px) {

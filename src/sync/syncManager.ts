@@ -64,7 +64,7 @@ const buildTimeLabel = (start: string, end: string) => {
   if (start) {
     return start
   }
-  return 'Sem horario'
+  return 'Sem horário'
 }
 
 const parseJsonArray = <T>(value: unknown, fallback: T[]) => {

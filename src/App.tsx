@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import BottomNavigation from './components/BottomNavigation'
 import InboxSheet from './components/InboxSheet'
@@ -22,7 +22,7 @@ import type { Task } from './types/task'
 import { pullChanges, pushChanges, startSync } from './sync/syncManager'
 import { parseCaptureInput } from './utils/captureParser'
 
-const dayNames = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom']
+const dayNames = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 const monthShortNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
 const formatLocalDayKey = (date: Date) => {
@@ -112,6 +112,21 @@ const formatWeekRange = (start: Date, end: Date) => {
   return `Semana ${start.getDate()} ${startMonth} - ${end.getDate()} ${endMonth}`
 }
 
+const formatMinutes = (totalMinutes: number) => {
+  if (!Number.isFinite(totalMinutes) || totalMinutes <= 0) {
+    return '0m'
+  }
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = Math.round(totalMinutes % 60)
+  if (hours > 0 && minutes > 0) {
+    return `${hours}h ${minutes}m`
+  }
+  if (hours > 0) {
+    return `${hours}h`
+  }
+  return `${minutes}m`
+}
+
 function App() {
   const {
     tasks,
@@ -143,6 +158,8 @@ function App() {
     setSelectedDayKey,
     updateRoutine,
     isOverbookedForDay,
+    getDailyCapacityMinutes,
+    getPlannedDurationMinutesForDay,
   } = useAppStore()
   const baseDate = useMemo(() => parseDayKeyToDate(selectedDayKey), [selectedDayKey])
   const { todayKey, days, start, end } = useMemo(() => buildWeekDays(baseDate), [baseDate])
@@ -163,7 +180,7 @@ function App() {
   const [linkNoteId, setLinkNoteId] = useState<string | null>(null)
   const [isSyncing, setIsSyncing] = useState(false)
   const autoSyncTimeoutRef = useRef<number | null>(null)
-  const autoSyncInFlightRef = useRef(false)
+  const syncInFlightRef = useRef(false)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [rolloverDismissed, setRolloverDismissed] = useState(false)
   const [quickCapture, setQuickCapture] = useState('')
@@ -232,6 +249,25 @@ function App() {
       }),
     ...orphanInstances,
   ]
+  const taskCounts = useMemo(
+    () =>
+      visibleTasks.reduce(
+        (acc, task) => {
+          if (task.status === 'overdue') {
+            acc.overdue += 1
+          } else if (task.status === 'done') {
+            acc.done += 1
+          } else if (task.status === 'active') {
+            acc.active += 1
+          } else {
+            acc.planned += 1
+          }
+          return acc
+        },
+        { planned: 0, active: 0, overdue: 0, done: 0 },
+      ),
+    [visibleTasks],
+  )
   const activeTask = tasks.find((task) => task.id === activeTaskId) ?? null
   const rolloverCandidates = useMemo(() => {
     const todayDate = parseDayKeyToDate(todayKeyActual)
@@ -247,6 +283,34 @@ function App() {
     })
   }, [tasks, todayKeyActual])
 
+  const capacityMinutes = useMemo(() => getDailyCapacityMinutes(), [getDailyCapacityMinutes])
+  const plannedMinutes = useMemo(
+    () => getPlannedDurationMinutesForDay(selectedDayKey),
+    [getPlannedDurationMinutesForDay, selectedDayKey],
+  )
+  const focusMinutes = useMemo(() => {
+    const totalMs = tasks.reduce((total, task) => {
+      if (task.dayKey !== selectedDayKey) {
+        return total
+      }
+      const base = Number.isFinite(task.timeSpent) ? task.timeSpent : 0
+      const running =
+        task.isTimerRunning && typeof task.lastTimerStart === 'number' ? Date.now() - task.lastTimerStart : 0
+      return total + base + Math.max(0, running)
+    }, 0)
+    return Math.round(totalMs / 60000)
+  }, [tasks, selectedDayKey])
+  const capacityRatio = capacityMinutes > 0 ? Math.min(plannedMinutes / capacityMinutes, 1) : 0
+  const remainingMinutes = Math.max(capacityMinutes - plannedMinutes, 0)
+  const heroDateLabel = useMemo(() => {
+    const date = parseDayKeyToDate(selectedDayKey)
+    return date.toLocaleDateString('pt-BR', {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+    })
+  }, [selectedDayKey])
+
   useEffect(() => {
     void init()
   }, [init])
@@ -256,7 +320,40 @@ function App() {
       return
     }
     return startSync()
-  }, [isReady])
+  }, [isReady, startSync])
+
+  const runSync = useCallback(async (mode: 'auto' | 'manual') => {
+    if (syncInFlightRef.current || !navigator.onLine) {
+      if (mode === 'manual' && !navigator.onLine) {
+        setToast({ type: 'error', message: 'Sem conexão com a internet.' })
+      }
+      return
+    }
+    syncInFlightRef.current = true
+    if (mode === 'manual') {
+      setIsSyncing(true)
+    }
+    try {
+      await pushChanges()
+      await pullChanges()
+      if (mode === 'manual') {
+      setToast({ type: 'success', message: 'Sincronização concluída.' })
+      }
+    } catch (error) {
+      if (mode === 'manual') {
+        const message =
+          error instanceof Error && error.message
+            ? `Erro de sincronização: ${error.message}`
+            : 'Falha ao sincronizar.'
+        setToast({ type: 'error', message })
+      }
+    } finally {
+      syncInFlightRef.current = false
+      if (mode === 'manual') {
+        setIsSyncing(false)
+      }
+    }
+  }, [setIsSyncing, setToast])
 
   useEffect(() => {
     if (!isReady) {
@@ -268,18 +365,7 @@ function App() {
       }
       autoSyncTimeoutRef.current = window.setTimeout(async () => {
         autoSyncTimeoutRef.current = null
-        if (autoSyncInFlightRef.current || !navigator.onLine) {
-          return
-        }
-        autoSyncInFlightRef.current = true
-        try {
-          await pushChanges()
-          await pullChanges()
-        } catch {
-          // Auto sync is silent; manual sync shows errors.
-        } finally {
-          autoSyncInFlightRef.current = false
-        }
+        await runSync('auto')
       }, 1200)
     }
 
@@ -291,7 +377,7 @@ function App() {
         autoSyncTimeoutRef.current = null
       }
     }
-  }, [isReady])
+  }, [isReady, runSync])
 
   useEffect(() => {
     if (!isReady) {
@@ -473,26 +559,10 @@ function App() {
   }
 
   const handleForceSync = async () => {
-    if (isSyncing || !navigator.onLine) {
-      if (!navigator.onLine) {
-        setToast({ type: 'error', message: 'Sem conexao com a internet.' })
-      }
+    if (isSyncing) {
       return
     }
-    setIsSyncing(true)
-    try {
-      await pushChanges()
-      await pullChanges()
-      setToast({ type: 'success', message: 'Sincronizacao concluida.' })
-    } catch (error) {
-      const message =
-        error instanceof Error && error.message
-          ? `Erro de sincronizacao: ${error.message}`
-          : 'Falha ao sincronizar.'
-      setToast({ type: 'error', message })
-    } finally {
-      setIsSyncing(false)
-    }
+    await runSync('manual')
   }
 
   useEffect(() => {
@@ -599,12 +669,25 @@ function App() {
   }
 
   if (!isReady) {
-    return <div className="app-shell" />
+    return (
+      <div className="app-shell app-shell--loading">
+        <div className="loading-panel" role="status" aria-live="polite" aria-atomic="true">
+          <span className="sr-only">Carregando...</span>
+          <div className="loading-bar is-medium" />
+          <div className="loading-bar" />
+          <div className="loading-bar is-short" />
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="app-shell">
-      {toast && <div className={`toast toast--${toast.type}`}>{toast.message}</div>}
+      {toast && (
+        <div className={`toast toast--${toast.type}`} role="status" aria-live="polite" aria-atomic="true">
+          {toast.message}
+        </div>
+      )}
       {activeTab === 'notes' ? (
         <NotesView />
       ) : activeTab === 'planning' ? (
@@ -623,7 +706,10 @@ function App() {
           <main className="app-content">
             <div className="home-stack">
               <div className="home-header">
-                <h1 className="page-title">Hoje / Semana</h1>
+                <div>
+                  <h1 className="page-title">Hoje / Semana</h1>
+                  <p className="page-subtitle">Seu dia, sua energia, sem ruído.</p>
+                </div>
                 {rolloverCandidates.length > 0 && (
                   <button type="button" className="rollover-button" onClick={handleRolloverReview}>
                     Revisar atrasadas ({rolloverCandidates.length})
@@ -633,7 +719,7 @@ function App() {
               {showRolloverBanner && (
                 <div className="rollover-banner" role="status" aria-live="polite">
                   <div className="rollover-banner__text">
-                    Voce tem {rolloverCandidates.length} tarefa(s) pendente(s) de dias anteriores.
+                    Você tem {rolloverCandidates.length} tarefa(s) pendente(s) de dias anteriores.
                   </div>
                   <div className="rollover-banner__actions">
                     <button type="button" className="rollover-banner__primary" onClick={handleRolloverApply}>
@@ -645,6 +731,72 @@ function App() {
                   </div>
                 </div>
               )}
+              <section className="home-hero" aria-label="Resumo do dia">
+                <div className="home-hero__top">
+                  <div>
+                    <div className="home-hero__title">Resumo do dia</div>
+                    <div className="home-hero__date">{heroDateLabel}</div>
+                  </div>
+                  <div className={`hero-progress__badge${plannedMinutes > capacityMinutes ? ' is-over' : ''}`}>
+                    {capacityMinutes > 0
+                      ? plannedMinutes > capacityMinutes
+                        ? 'Acima da capacidade'
+                        : `${formatMinutes(remainingMinutes)} livres`
+                      : 'Defina sua rotina'}
+                  </div>
+                </div>
+                <div className="home-hero__stats">
+                  <div className="hero-stat">
+                    <span className="hero-stat__label">Planejadas</span>
+                    <span className="hero-stat__value">{taskCounts.planned}</span>
+                  </div>
+                  <div className="hero-stat">
+                    <span className="hero-stat__label">Ativas</span>
+                    <span className="hero-stat__value hero-stat__value--accent">{taskCounts.active}</span>
+                  </div>
+                  <div className="hero-stat">
+                    <span className="hero-stat__label">Atrasadas</span>
+                    <span className="hero-stat__value hero-stat__value--danger">{taskCounts.overdue}</span>
+                  </div>
+                  <div className="hero-stat">
+                    <span className="hero-stat__label">Concluídas</span>
+                    <span className="hero-stat__value hero-stat__value--success">{taskCounts.done}</span>
+                  </div>
+                  <div className="hero-stat">
+                    <span className="hero-stat__label">Foco</span>
+                    <span className="hero-stat__value">{formatMinutes(focusMinutes)}</span>
+                  </div>
+                </div>
+                <div className="hero-progress">
+                  <div className="hero-progress__meta">
+                    <span>Capacidade do dia</span>
+                    <span>
+                      {capacityMinutes > 0
+                        ? `${formatMinutes(plannedMinutes)} de ${formatMinutes(capacityMinutes)}`
+                        : 'Sem rotina'}
+                    </span>
+                  </div>
+                  <div
+                    className="hero-progress__bar"
+                    role="progressbar"
+                    aria-label="Capacidade do dia"
+                    aria-valuemin={0}
+                    aria-valuemax={capacityMinutes || 1}
+                    aria-valuenow={capacityMinutes > 0 ? Math.min(plannedMinutes, capacityMinutes) : 0}
+                    aria-valuetext={
+                      capacityMinutes > 0
+                        ? `${formatMinutes(plannedMinutes)} de ${formatMinutes(capacityMinutes)}`
+                        : 'Sem rotina'
+                    }
+                  >
+                    <span
+                      className={`hero-progress__fill${plannedMinutes > capacityMinutes ? ' is-over' : ''}`}
+                      style={{ width: `${Math.round(capacityRatio * 100)}%` }}
+                      aria-hidden="true"
+                    />
+                  </div>
+                </div>
+              </section>
               <div className="quick-capture-bar">
                 <QuickCaptureInput
                   placeholder="Digite qualquer coisa... tarefa, ideia, lembrete"
@@ -660,6 +812,11 @@ function App() {
                 >
                   +
                 </button>
+              </div>
+              <div className="quick-capture-hints" aria-hidden="true">
+                <span className="quick-capture-hint">Ex: 09:30 Reunião com time</span>
+                <span className="quick-capture-hint">Ex: ideia app de habitos</span>
+                <span className="quick-capture-hint">Ex: ligar para cliente</span>
               </div>
               <WeekStrip
                 days={days}
@@ -725,8 +882,12 @@ function App() {
         monthDate={calendarMonth}
         selectedDayKey={selectedDayKey}
         onClose={() => setIsCalendarOpen(false)}
-        onPrev={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))}
-        onNext={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))}
+        onPrev={() =>
+          setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() - 1, 1))
+        }
+        onNext={() =>
+          setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() + 1, 1))
+        }
         onSelectDay={handleSelectCalendarDay}
       />
       <NoteModal

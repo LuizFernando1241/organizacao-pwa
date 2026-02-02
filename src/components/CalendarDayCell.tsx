@@ -13,6 +13,9 @@ function CalendarDayCell({ day, isToday = false, isSelected = false, onSelect }:
       type="button"
       className={`calendar-day${isSelected ? ' calendar-day--selected' : ''}${isToday ? ' calendar-day--today' : ''}`}
       onClick={onSelect}
+      aria-pressed={isSelected}
+      aria-current={isToday ? 'date' : undefined}
+      aria-label={`Dia ${day}`}
     >
       {day}
     </button>

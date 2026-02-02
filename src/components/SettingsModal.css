@@ -30,6 +30,7 @@
 .settings-modal__title {
   font-size: var(--font-size-h2);
   font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-display);
 }
 
 .settings-modal__close {
@@ -38,6 +39,10 @@
   color: var(--color-text-secondary);
   font-size: var(--font-size-caption);
   cursor: pointer;
+}
+
+.settings-modal__close:hover {
+  color: var(--color-text-primary);
 }
 
 .settings-modal__section {
@@ -72,33 +77,47 @@
   color: var(--color-text-primary);
 }
 
+.settings-modal__input:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.25);
+}
+
 .settings-modal__toggle {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   font-size: var(--font-size-caption);
   color: var(--color-text-secondary);
+  cursor: pointer;
 }
 
 .settings-modal__toggle input {
   width: 16px;
   height: 16px;
+  accent-color: var(--accent);
 }
 
 .settings-modal__sync {
   border: 1px solid var(--color-border-default);
-  background: transparent;
+  background: rgba(12, 16, 24, 0.4);
   border-radius: var(--radius-sm);
   padding: 10px 12px;
   font-size: var(--font-size-caption);
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
   cursor: pointer;
   transition: background var(--motion-duration-fast) var(--motion-easing-standard),
     border-color var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
 .settings-modal__sync:hover {
-  background: var(--color-background-hover-fill);
+  background: rgba(var(--primary-rgb), 0.15);
+  border-color: rgba(var(--primary-rgb), 0.35);
+}
+
+.settings-modal__sync:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.35);
 }
 
 .settings-modal__sync:disabled {

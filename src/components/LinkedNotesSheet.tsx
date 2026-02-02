@@ -22,7 +22,12 @@ function LinkedNotesSheet({ isOpen, task, notes, onClose, onSelectNote, onLinkNo
   return (
     <>
       <div className={`linked-notes-backdrop${isOpen ? ' linked-notes-backdrop--open' : ''}`} onClick={onClose} />
-      <section className={`linked-notes-sheet${isOpen ? ' linked-notes-sheet--open' : ''}`}>
+      <section
+        className={`linked-notes-sheet${isOpen ? ' linked-notes-sheet--open' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Notas vinculadas"
+      >
         <header className="linked-notes-sheet__header">
           <div className="linked-notes-sheet__title">Notas desta tarefa</div>
           <div className="linked-notes-sheet__actions">

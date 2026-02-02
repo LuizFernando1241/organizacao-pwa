@@ -13,9 +13,12 @@ body {
 
 body {
   font-family: var(--font-family-sans);
-  background: var(--color-background-default);
+  background: var(--app-background);
   color: var(--color-text-primary);
   line-height: var(--font-line-height-base);
+  color-scheme: dark;
+  background-attachment: fixed;
+  overflow-x: hidden;
 }
 
 #root {
@@ -24,4 +27,36 @@ body {
 
 button {
   font-family: inherit;
+}
+
+::selection {
+  background: rgba(var(--primary-rgb), 0.35);
+  color: var(--color-text-primary);
+}
+
+* {
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.28);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }

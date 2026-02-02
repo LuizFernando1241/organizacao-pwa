@@ -68,6 +68,7 @@ function TaskCard({ task, onSelect, onToggleDone, onStartTimer, onStopTimer }: T
       className={`task-card ${stateClassMap[task.status]}${isGlow ? ' task-card--glow' : ''}`}
       role="button"
       tabIndex={0}
+      aria-label={task.title ? `Abrir tarefa ${task.title}` : 'Abrir tarefa'}
       onClick={() => onSelect?.(task)}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
@@ -76,12 +77,12 @@ function TaskCard({ task, onSelect, onToggleDone, onStartTimer, onStopTimer }: T
         }
       }}
     >
-      <span className="task-card__state-bar" />
+      <span className="task-card__state-bar" aria-hidden="true" />
       <button
         type="button"
         className={`task-card__check${isDone ? ' task-card__check--done' : ''}`}
         aria-pressed={isDone}
-        aria-label="Concluir tarefa"
+        aria-label={isDone ? 'Reabrir tarefa' : 'Concluir tarefa'}
         onClick={(event) => {
           event.stopPropagation()
           onToggleDone?.(task.id)

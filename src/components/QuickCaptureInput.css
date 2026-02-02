@@ -4,13 +4,19 @@
   border-radius: var(--component-input-radius);
   border: 1px solid var(--component-input-border-color);
   padding: 0 var(--component-input-padding-x);
-  background: var(--component-input-background);
+  background: rgba(10, 14, 22, 0.55);
   font-size: var(--font-size-body);
   color: var(--color-text-primary);
+  transition: border-color var(--motion-duration-fast) var(--motion-easing-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
 .quick-capture:focus {
   outline: none;
   box-shadow: 0 0 0 2px var(--component-input-focus-ring);
   border-color: var(--component-input-focus-ring);
+}
+
+.quick-capture::placeholder {
+  color: var(--color-text-muted);
 }

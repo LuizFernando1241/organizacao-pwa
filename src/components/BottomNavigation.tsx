@@ -13,6 +13,7 @@ function BottomNavigation({ activeTab, onSelect }: BottomNavigationProps) {
         type="button"
         className={`bottom-nav__item${activeTab === 'today' ? ' bottom-nav__item--active' : ''}`}
         onClick={() => onSelect('today')}
+        aria-current={activeTab === 'today' ? 'page' : undefined}
       >
         <span className="bottom-nav__icon" aria-hidden="true">
           <Home size={22} />
@@ -23,6 +24,7 @@ function BottomNavigation({ activeTab, onSelect }: BottomNavigationProps) {
         type="button"
         className={`bottom-nav__item${activeTab === 'notes' ? ' bottom-nav__item--active' : ''}`}
         onClick={() => onSelect('notes')}
+        aria-current={activeTab === 'notes' ? 'page' : undefined}
       >
         <span className="bottom-nav__icon" aria-hidden="true">
           <StickyNote size={22} />
@@ -33,6 +35,7 @@ function BottomNavigation({ activeTab, onSelect }: BottomNavigationProps) {
         type="button"
         className={`bottom-nav__item${activeTab === 'planning' ? ' bottom-nav__item--active' : ''}`}
         onClick={() => onSelect('planning')}
+        aria-current={activeTab === 'planning' ? 'page' : undefined}
       >
         <span className="bottom-nav__icon" aria-hidden="true">
           <Target size={22} />
@@ -43,6 +46,7 @@ function BottomNavigation({ activeTab, onSelect }: BottomNavigationProps) {
         type="button"
         className={`bottom-nav__item${activeTab === 'feedback' ? ' bottom-nav__item--active' : ''}`}
         onClick={() => onSelect('feedback')}
+        aria-current={activeTab === 'feedback' ? 'page' : undefined}
       >
         <span className="bottom-nav__icon" aria-hidden="true">
           <BarChart3 size={22} />

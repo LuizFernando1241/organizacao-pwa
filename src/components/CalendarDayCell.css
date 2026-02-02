@@ -24,6 +24,11 @@
   border-color: var(--color-border-today);
 }
 
+.calendar-day:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.35);
+}
+
 @media (min-width: 768px) {
   .calendar-day {
     width: var(--size-calendar-cell-desktop);

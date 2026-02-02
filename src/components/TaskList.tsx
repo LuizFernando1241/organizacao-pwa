@@ -39,7 +39,9 @@ function TaskList({ tasks, onSelectTask, onAddTask, onToggleDone, onStartTimer, 
   return (
     <section className="task-list" aria-label="Tarefas do dia">
       {orderedTasks.length === 0 ? (
-        <div className="task-list__empty">Nenhuma tarefa para hoje. Aproveite o dia!</div>
+        <div className="task-list__empty" role="status">
+          Nenhuma tarefa para hoje. Crie algo que mova o dia.
+        </div>
       ) : (
         orderedTasks.map((task) => (
           <TaskCard

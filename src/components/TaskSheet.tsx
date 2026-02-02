@@ -258,12 +258,19 @@ function TaskSheet({
   return (
     <>
       <div className={`task-sheet-backdrop${isOpen ? ' task-sheet-backdrop--open' : ''}`} onClick={onClose} />
-      <section className={`task-sheet${isOpen ? ' task-sheet--open' : ''}`} aria-hidden={!isOpen}>
+      <section
+        className={`task-sheet${isOpen ? ' task-sheet--open' : ''}`}
+        aria-hidden={!isOpen}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Detalhes da tarefa"
+      >
         <header className="task-sheet__header">
           <input
             type="text"
             className="task-sheet__title-input"
-            placeholder="Titulo da tarefa"
+            placeholder="Título da tarefa"
+            aria-label="Título da tarefa"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
           />
@@ -327,6 +334,7 @@ function TaskSheet({
             <textarea
               className="task-context__input"
               placeholder="Anote instrucoes, por que isso importa, referencias, detalhes..."
+              aria-label="Contexto da tarefa"
               value={contextText}
               onChange={(event) => setContextText(event.target.value)}
             />
@@ -359,7 +367,12 @@ function TaskSheet({
           </div>
 
           <div className={`subtasks${subtasksOpen ? ' subtasks--open' : ''}`}>
-            <button type="button" className="subtasks__toggle" onClick={() => setSubtasksOpen(!subtasksOpen)}>
+            <button
+              type="button"
+              className="subtasks__toggle"
+              onClick={() => setSubtasksOpen(!subtasksOpen)}
+              aria-expanded={subtasksOpen}
+            >
               Subtarefas
               <span className="subtasks__chevron">{subtasksOpen ? '-' : '+'}</span>
             </button>
@@ -421,7 +434,13 @@ function TaskSheet({
         </div>
         {isConfirmingDelete && (
           <div className="confirm-dialog__backdrop" onClick={() => setIsConfirmingDelete(false)}>
-            <div className="confirm-dialog" onClick={(event) => event.stopPropagation()}>
+            <div
+              className="confirm-dialog"
+              onClick={(event) => event.stopPropagation()}
+              role="alertdialog"
+              aria-modal="true"
+              aria-label="Excluir tarefa"
+            >
               <div className="confirm-dialog__title">Excluir tarefa?</div>
               <div className="confirm-dialog__actions">
                 <button type="button" className="confirm-dialog__button" onClick={() => setIsConfirmingDelete(false)}>

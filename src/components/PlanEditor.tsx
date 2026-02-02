@@ -130,7 +130,7 @@ function PlanEditor({ plan, tasks, onUpdate, onDelete }: PlanEditorProps) {
             className="plan-editor__title"
             value={draft.title}
             onChange={(event) => scheduleUpdate({ title: event.target.value })}
-            placeholder="Titulo do planejamento"
+            placeholder="Título do planejamento"
           />
           <input
             className="plan-editor__subtitle"
@@ -146,7 +146,7 @@ function PlanEditor({ plan, tasks, onUpdate, onDelete }: PlanEditorProps) {
                 onChange={(event) => scheduleUpdate({ status: event.target.value as Plan['status'] })}
               >
                 <option value="active">Ativo</option>
-                <option value="done">Concluido</option>
+                <option value="done">Concluído</option>
                 <option value="archived">Arquivado</option>
               </select>
             </label>
@@ -244,7 +244,7 @@ function PlanEditor({ plan, tasks, onUpdate, onDelete }: PlanEditorProps) {
                     <input
                       value={block.title}
                       onChange={(event) => updateBlock(block.id, { title: event.target.value })}
-                      placeholder="Titulo do bloco"
+                      placeholder="Título do bloco"
                     />
                     <button type="button" className="plan-block__remove" onClick={() => removeBlock(block.id)}>
                       <Trash2 size={14} aria-hidden="true" />
@@ -296,7 +296,7 @@ function PlanEditor({ plan, tasks, onUpdate, onDelete }: PlanEditorProps) {
                     >
                       <option value="planned">Planejado</option>
                       <option value="active">Em andamento</option>
-                      <option value="done">Concluido</option>
+                      <option value="done">Concluído</option>
                     </select>
                     <button type="button" className="plan-phase__remove" onClick={() => removePhase(phase.id)}>
                       <Trash2 size={14} aria-hidden="true" />

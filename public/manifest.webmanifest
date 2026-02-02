@@ -1,10 +1,10 @@
 {
-  "name": "Organizacao App",
-  "short_name": "Organizacao App",
+  "name": "Organizacao",
+  "short_name": "Organizacao",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FAFAFA",
-  "theme_color": "#FAFAFA",
+  "background_color": "#0B0E12",
+  "theme_color": "#0B0E12",
   "icons": [
     {
       "src": "/icons/icon-192.png",

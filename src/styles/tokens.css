@@ -1,63 +1,81 @@
 :root {
-  --bg-app: #121212;
-  --bg-surface: #1e1e1e;
-  --bg-surface-hover: #2c2c2c;
-  --text-primary: #ededed;
-  --text-secondary: #a0a0a0;
-  --border-subtle: #333333;
-  --border-strong: #555555;
-  --primary: #6366f1;
-  --success: #10b981;
-  --danger: #ef4444;
-  --radius-card: 16px;
+  --bg-app: #0b0e12;
+  --bg-surface: #141a23;
+  --bg-surface-strong: #171f2b;
+  --bg-surface-hover: #1c2431;
+  --bg-surface-active: #232c3b;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5f5;
+  --text-muted: #94a3b8;
+  --border-subtle: rgba(148, 163, 184, 0.18);
+  --border-strong: rgba(148, 163, 184, 0.38);
+  --primary: #3b82f6;
+  --primary-strong: #2563eb;
+  --primary-rgb: 59, 130, 246;
+  --accent: #22d3ee;
+  --accent-rgb: 34, 211, 238;
+  --success: #22c55e;
+  --success-rgb: 34, 197, 94;
+  --danger: #f43f5e;
+  --danger-rgb: 244, 63, 94;
+  --radius-card: 18px;
 
+  --app-background: radial-gradient(1200px circle at 12% -10%, rgba(var(--primary-rgb), 0.25), transparent 60%),
+    radial-gradient(900px circle at 90% 15%, rgba(var(--accent-rgb), 0.2), transparent 55%),
+    linear-gradient(180deg, #0b0e12 0%, #101622 45%, #0b0e12 100%);
   --color-background-default: var(--bg-app);
   --color-background-elevated: var(--bg-surface);
-  --color-background-overlay: rgba(0, 0, 0, 0.55);
+  --color-background-raised: var(--bg-surface-strong);
+  --color-background-overlay: rgba(7, 10, 15, 0.65);
   --color-background-hover-fill: var(--bg-surface-hover);
-  --color-background-pressed-fill: #343434;
-  --color-background-highlight: rgba(99, 102, 241, 0.16);
-  --color-background-note: #242424;
+  --color-background-pressed-fill: var(--bg-surface-active);
+  --color-background-highlight: rgba(var(--primary-rgb), 0.15);
+  --color-background-note: #161b25;
+  --color-background-glass: rgba(15, 20, 28, 0.78);
 
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
-  --color-text-muted: #7c7c7c;
-  --color-text-inverse: #0f0f0f;
-  --color-text-link: var(--primary);
+  --color-text-muted: var(--text-muted);
+  --color-text-inverse: #0b0e12;
+  --color-text-link: var(--accent);
   --color-text-danger: var(--danger);
 
   --color-border-default: var(--border-subtle);
-  --color-border-focus: rgba(99, 102, 241, 0.55);
-  --color-border-selected: rgba(99, 102, 241, 0.65);
-  --color-border-today: rgba(99, 102, 241, 0.65);
-  --color-border-danger: rgba(239, 68, 68, 0.55);
+  --color-border-focus: rgba(var(--primary-rgb), 0.6);
+  --color-border-selected: rgba(var(--primary-rgb), 0.55);
+  --color-border-today: rgba(var(--accent-rgb), 0.65);
+  --color-border-danger: rgba(var(--danger-rgb), 0.55);
 
   --color-state-planned: var(--primary);
-  --color-state-active: #38bdf8;
+  --color-state-active: var(--accent);
   --color-state-overdue: var(--danger);
   --color-state-done: var(--success);
 
-  --shadow-subtle: 0 6px 18px rgba(0, 0, 0, 0.35);
+  --shadow-subtle: 0 20px 40px rgba(7, 10, 18, 0.55);
+  --shadow-soft: 0 10px 24px rgba(7, 10, 18, 0.35);
   --shadow-none: none;
 
-  --font-family-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-family-display: "Space Grotesk", "Manrope", "Segoe UI", system-ui, sans-serif;
+  --font-family-sans: "Manrope", "Segoe UI", system-ui, sans-serif;
   --font-size-caption: 12px;
   --font-size-body: 14px;
-  --font-size-body-lg: 15px;
-  --font-size-h2: 16px;
-  --font-size-h1: 20px;
+  --font-size-body-lg: 16px;
+  --font-size-h2: 17px;
+  --font-size-h1: 22px;
+  --font-size-display: 28px;
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
-  --font-line-height-tight: 1.35;
+  --font-weight-bold: 700;
+  --font-line-height-tight: 1.25;
   --font-line-height-base: 1.45;
-  --font-line-height-relaxed: 1.55;
+  --font-line-height-relaxed: 1.6;
   --font-letter-spacing-normal: 0em;
   --font-letter-spacing-tight: -0.01em;
 
   --radius-sm: 12px;
-  --radius-md: 14px;
-  --radius-lg: 16px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
   --radius-pill: 999px;
 
   --space-0: 0px;
@@ -68,64 +86,65 @@
   --space-5: 24px;
   --space-6: 32px;
   --space-7: 48px;
+  --space-8: 64px;
 
-  --size-top-bar-height: 56px;
-  --size-icon-button: 36px;
+  --size-top-bar-height: 64px;
+  --size-icon-button: 40px;
   --size-icon: 20px;
-  --size-input-height: 40px;
-  --size-search-height: 44px;
-  --size-chip-height: 32px;
-  --size-day-chip-desktop-width: 72px;
-  --size-day-chip-desktop-height: 52px;
-  --size-day-chip-mobile-width: 64px;
-  --size-day-chip-mobile-height: 52px;
-  --size-task-state-bar-width: 3px;
-  --size-drawer-width: 400px;
-  --size-modal-width: 600px;
-  --size-calendar-cell-desktop: 40px;
-  --size-calendar-cell-mobile: 36px;
+  --size-input-height: 44px;
+  --size-search-height: 46px;
+  --size-chip-height: 34px;
+  --size-day-chip-desktop-width: 76px;
+  --size-day-chip-desktop-height: 56px;
+  --size-day-chip-mobile-width: 66px;
+  --size-day-chip-mobile-height: 56px;
+  --size-task-state-bar-width: 4px;
+  --size-drawer-width: 420px;
+  --size-modal-width: 640px;
+  --size-calendar-cell-desktop: 44px;
+  --size-calendar-cell-mobile: 38px;
 
   --grid-columns-desktop: 12;
   --grid-columns-mobile: 4;
   --grid-gutter-desktop: 24px;
   --grid-gutter-mobile: 16px;
-  --grid-page-padding-desktop: 32px;
+  --grid-page-padding-desktop: 40px;
   --grid-page-padding-mobile: 18px;
 
   --motion-duration-fast: 140ms;
-  --motion-duration-base: 200ms;
-  --motion-duration-slow: 260ms;
+  --motion-duration-base: 220ms;
+  --motion-duration-slow: 320ms;
   --motion-easing-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
   --motion-easing-linear: linear;
-  --motion-transition-fade: opacity 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  --motion-transition-slide-right: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  --motion-transition-slide-up: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  --motion-transition-scale-fade: opacity 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-transition-fade: opacity 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-transition-slide-right: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-transition-slide-up: transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-transition-scale-fade: opacity 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
 
-  --component-card-radius: var(--radius-md);
-  --component-card-padding: 14px;
+  --component-card-radius: var(--radius-lg);
+  --component-card-padding: 16px;
   --component-card-border-width: 1px;
   --component-card-border-color: var(--color-border-default);
-  --component-card-background: var(--color-background-elevated);
+  --component-card-background: var(--color-background-raised);
   --component-card-shadow: var(--shadow-subtle);
 
   --component-input-height: var(--size-input-height);
   --component-input-radius: var(--radius-sm);
-  --component-input-padding-x: 12px;
+  --component-input-padding-x: 14px;
   --component-input-border-color: var(--color-border-default);
-  --component-input-background: var(--color-background-elevated);
+  --component-input-background: var(--color-background-raised);
   --component-input-focus-ring: var(--color-border-focus);
 
   --component-task-card-radius: var(--radius-card);
-  --component-task-card-padding: 16px;
-  --component-task-card-state-bar-width: 4px;
+  --component-task-card-padding: 18px;
+  --component-task-card-state-bar-width: 5px;
   --component-task-card-title-max-lines: 1;
   --component-task-card-meta-max-lines: 1;
 
   --component-drawer-width: var(--size-drawer-width);
-  --component-drawer-padding: 16px;
-  --component-drawer-header-height: 56px;
+  --component-drawer-padding: 18px;
+  --component-drawer-header-height: 60px;
   --component-drawer-border-color: var(--color-border-default);
   --component-drawer-background: var(--color-background-elevated);
 }

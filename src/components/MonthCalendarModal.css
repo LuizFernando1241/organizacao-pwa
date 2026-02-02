@@ -32,15 +32,31 @@
   font-size: var(--font-size-h2);
   font-weight: var(--font-weight-semibold);
   text-align: center;
+  font-family: var(--font-family-display);
 }
 
 .month-calendar__nav {
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-sm);
-  background: transparent;
+  background: rgba(12, 16, 24, 0.4);
   width: 32px;
   height: 32px;
   cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: background var(--motion-duration-fast) var(--motion-easing-standard),
+    border-color var(--motion-duration-fast) var(--motion-easing-standard),
+    color var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.month-calendar__nav:hover {
+  background: rgba(var(--primary-rgb), 0.15);
+  border-color: rgba(var(--primary-rgb), 0.4);
+  color: var(--color-text-primary);
+}
+
+.month-calendar__nav:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.35);
 }
 
 .month-calendar__grid {
@@ -55,7 +71,7 @@
   gap: var(--space-2);
   text-align: center;
   font-size: var(--font-size-caption);
-  color: #8e8e93;
+  color: var(--color-text-secondary);
 }
 
 .month-calendar__weekday {

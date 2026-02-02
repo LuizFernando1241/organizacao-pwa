@@ -20,20 +20,25 @@ function TopBar({ title, children, onCalendarClick, onNotesClick, onInboxClick, 
         <>
           <div className="top-bar__left">
             {onInboxClick && (
-              <button className="icon-button" aria-label="Inbox" onClick={onInboxClick}>
+              <button type="button" className="icon-button" aria-label="Inbox" onClick={onInboxClick}>
                 <Inbox size={18} aria-hidden="true" />
               </button>
             )}
             <div className="top-bar__title">{title}</div>
           </div>
           <div className="top-bar__actions">
-            <button className="icon-button" aria-label="Calendario" onClick={onCalendarClick}>
+            <button type="button" className="icon-button" aria-label="Calendário" onClick={onCalendarClick}>
               <Calendar size={20} aria-hidden="true" />
             </button>
-            <button className="icon-button" aria-label="Notas" onClick={onNotesClick}>
+            <button type="button" className="icon-button" aria-label="Notas" onClick={onNotesClick}>
               <StickyNote size={20} aria-hidden="true" />
             </button>
-            <button className="icon-button icon-button--small" aria-label="Configuracoes" onClick={onSettingsClick}>
+            <button
+              type="button"
+              className="icon-button icon-button--small"
+              aria-label="Configurações"
+              onClick={onSettingsClick}
+            >
               <Settings size={18} aria-hidden="true" />
             </button>
           </div>

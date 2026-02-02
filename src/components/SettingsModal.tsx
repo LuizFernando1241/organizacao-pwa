@@ -37,9 +37,9 @@ function SettingsModal({
 
   return (
     <div className="settings-modal__backdrop">
-      <section className="settings-modal">
+      <section className="settings-modal" role="dialog" aria-modal="true" aria-label="Configurações">
         <header className="settings-modal__header">
-          <div className="settings-modal__title">Configuracoes</div>
+          <div className="settings-modal__title">Configurações</div>
           <button type="button" className="settings-modal__close" onClick={onClose}>
             Fechar
           </button>
@@ -89,18 +89,19 @@ function SettingsModal({
               checked={blockOverbooked}
               onChange={(event) => onChange({ blockOverbooked: event.target.checked })}
             />
-            <span>Bloquear (modo avancado)</span>
+            <span>Bloquear (modo avançado)</span>
           </label>
         </div>
         <div className="settings-modal__section">
-          <div className="settings-modal__section-title">Sincronizacao</div>
+          <div className="settings-modal__section-title">Sincronização</div>
           <button
             type="button"
             className="settings-modal__sync"
             onClick={onForceSync}
             disabled={isSyncing}
+            aria-busy={isSyncing}
           >
-            {isSyncing ? 'Sincronizando...' : 'Forcar sincronizacao'}
+            {isSyncing ? 'Sincronizando...' : 'Forçar sincronização'}
           </button>
         </div>
       </section>

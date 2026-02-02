@@ -68,7 +68,7 @@ function LinkNoteModal({ isOpen, noteId, tasks, onClose, onLink }: LinkNoteModal
 
   return (
     <div className="link-modal__backdrop">
-      <section className="link-modal">
+      <section className="link-modal" role="dialog" aria-modal="true" aria-label="Vincular nota">
         <div className="link-modal__header">
           <div className="link-modal__title">Vincular a tarefa</div>
           <button type="button" className="link-modal__close" onClick={onClose}>
@@ -81,6 +81,7 @@ function LinkNoteModal({ isOpen, noteId, tasks, onClose, onLink }: LinkNoteModal
             type="search"
             className="link-modal__search"
             placeholder="Buscar tarefas..."
+            aria-label="Buscar tarefas"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />

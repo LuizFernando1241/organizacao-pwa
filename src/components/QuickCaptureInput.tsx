@@ -28,6 +28,7 @@ function QuickCaptureInput({ onSubmit, placeholder = 'Digite algo...', value, on
       type="text"
       className="quick-capture"
       placeholder={placeholder}
+      aria-label={placeholder}
       onKeyDown={handleKeyDown}
       value={value}
       onChange={(event) => onChange?.(event.currentTarget.value)}

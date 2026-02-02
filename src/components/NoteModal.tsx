@@ -36,7 +36,7 @@ function NoteModal({ isOpen, note, onSave, onClose, onLink }: NoteModalProps) {
 
   return (
     <div className="note-modal__backdrop">
-      <section className="note-modal">
+      <section className="note-modal" role="dialog" aria-modal="true" aria-label="Editar nota">
         <div className="note-modal__header">
           <button type="button" className="note-modal__close" onClick={onClose}>
             Fechar
@@ -78,13 +78,15 @@ function NoteModal({ isOpen, note, onSave, onClose, onLink }: NoteModalProps) {
           <input
             type="text"
             className="note-modal__input"
-            placeholder="Titulo"
+            placeholder="Título"
+            aria-label="Título"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
           />
           <textarea
             className="note-modal__textarea"
             placeholder="Escreva sua nota..."
+            aria-label="Conteudo da nota"
             value={body}
             onChange={(event) => setBody(event.target.value)}
           />

@@ -12,7 +12,7 @@
 .note-modal {
   width: min(96vw, 960px);
   height: min(88vh, 780px);
-  background: #1c1c1e;
+  background: var(--color-background-elevated);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
   display: flex;
@@ -27,19 +27,23 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(30, 30, 30, 0.8);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--color-background-glass);
+  backdrop-filter: blur(22px);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
   padding-bottom: var(--space-2);
 }
 
 .note-modal__close {
   border: none;
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   font-size: 14px;
   cursor: pointer;
   padding: 0;
+}
+
+.note-modal__close:hover {
+  color: var(--color-text-primary);
 }
 
 .note-modal__actions {
@@ -52,11 +56,16 @@
 .note-modal__save {
   border: none;
   background: transparent;
-  color: var(--primary);
+  color: var(--accent);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   padding: 0;
+}
+
+.note-modal__link:hover,
+.note-modal__save:hover {
+  color: var(--color-text-primary);
 }
 
 .note-modal__body {
@@ -74,7 +83,7 @@
   border-radius: 0;
   padding: 0;
   font-size: 16px;
-  color: var(--text-primary);
+  color: var(--color-text-primary);
   background: transparent;
   outline: none;
 }
@@ -82,6 +91,7 @@
 .note-modal__input {
   font-size: 28px;
   font-weight: 700;
+  font-family: var(--font-family-display);
 }
 
 .note-modal__textarea {
@@ -101,7 +111,7 @@
 .note-modal__colors-label {
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -114,9 +124,9 @@
 }
 
 .note-modal__color {
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text-secondary);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(12, 16, 24, 0.35);
+  color: var(--color-text-secondary);
   font-size: 12px;
   padding: 6px 10px;
   border-radius: 999px;
@@ -126,10 +136,15 @@
   gap: 6px;
 }
 
+.note-modal__color:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.35);
+}
+
 .note-modal__color--active {
-  border-color: rgba(99, 102, 241, 0.6);
-  color: var(--text-primary);
-  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(var(--primary-rgb), 0.6);
+  color: var(--color-text-primary);
+  background: rgba(var(--primary-rgb), 0.18);
 }
 
 .note-modal__color-swatch {
@@ -159,7 +174,7 @@
 
 .note-modal__input::placeholder,
 .note-modal__textarea::placeholder {
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
 }
 
 @keyframes modal-fade {

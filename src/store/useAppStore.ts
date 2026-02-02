@@ -127,7 +127,7 @@ const buildTimeLabel = (start: string, end: string) => {
   if (start) {
     return start
   }
-  return 'Sem horario'
+  return 'Sem horário'
 }
 
 const isFutureTime = (dayKey: string, start: string) => {
@@ -580,7 +580,7 @@ export const useAppStore = create<AppState>((set, get) => {
     const task: Task = {
       id: taskId,
       title: '',
-      timeLabel: 'Sem horario',
+      timeLabel: 'Sem horário',
       timeStart: '',
       timeEnd: '',
       status: 'planned',
@@ -616,7 +616,7 @@ export const useAppStore = create<AppState>((set, get) => {
     const task: Task = {
       id: taskId,
       title: item.text,
-      timeLabel: 'Sem horario',
+      timeLabel: 'Sem horário',
       timeStart: '',
       timeEnd: '',
       status: 'planned',

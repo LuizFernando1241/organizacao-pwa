@@ -10,12 +10,13 @@
 }
 
 .notes-grid__empty {
-  border: 1px dashed var(--color-border-default);
+  border: 1px dashed rgba(148, 163, 184, 0.35);
   border-radius: var(--radius-md);
   padding: var(--space-3);
   text-align: center;
   font-size: var(--font-size-caption);
   color: var(--color-text-secondary);
+  background: rgba(12, 16, 24, 0.4);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -38,11 +39,23 @@
   border: none;
   border-radius: var(--radius-pill);
   padding: 8px 14px;
-  background: var(--color-state-planned);
-  color: var(--color-text-inverse);
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.95), rgba(var(--accent-rgb), 0.85));
+  color: #ffffff;
   font-size: var(--font-size-caption);
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
+  transition: transform var(--motion-duration-fast) var(--motion-easing-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.notes-grid__empty-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(var(--primary-rgb), 0.25);
+}
+
+.notes-grid__empty-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.35);
 }
 
 @media (min-width: 768px) {

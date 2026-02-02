@@ -14,7 +14,7 @@ type MonthCalendarModalProps = {
 const monthNames = [
   'Janeiro',
   'Fevereiro',
-  'Marco',
+  'Março',
   'Abril',
   'Maio',
   'Junho',
@@ -26,7 +26,7 @@ const monthNames = [
   'Dezembro',
 ]
 
-const weekDayLabels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom']
+const weekDayLabels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 
 const formatDayKey = (date: Date) => {
   const year = date.getFullYear()
@@ -74,13 +74,19 @@ function MonthCalendarModal({
 
   return (
     <div className="month-calendar__backdrop" onClick={onClose}>
-      <section className="month-calendar" onClick={(event) => event.stopPropagation()}>
+      <section
+        className="month-calendar"
+        onClick={(event) => event.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Calendário mensal"
+      >
         <header className="month-calendar__header">
-          <button type="button" className="month-calendar__nav" onClick={onPrev} aria-label="Mes anterior">
+          <button type="button" className="month-calendar__nav" onClick={onPrev} aria-label="Mês anterior">
             {'<'}
           </button>
           <div className="month-calendar__title">{monthLabel}</div>
-          <button type="button" className="month-calendar__nav" onClick={onNext} aria-label="Proximo mes">
+          <button type="button" className="month-calendar__nav" onClick={onNext} aria-label="Próximo mês">
             {'>'}
           </button>
         </header>

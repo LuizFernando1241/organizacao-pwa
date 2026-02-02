@@ -62,7 +62,7 @@ function WeekStrip({ days, selectedKey, todayKey, overbookedKeys, onSelect, onPr
           />
         ))}
       </div>
-      <button type="button" className="week-strip__nav" onClick={handleNext} aria-label="Proxima semana">
+      <button type="button" className="week-strip__nav" onClick={handleNext} aria-label="Próxima semana">
         <ChevronRight size={18} aria-hidden="true" />
       </button>
     </section>

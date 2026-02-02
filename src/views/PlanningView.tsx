@@ -68,7 +68,7 @@ function PlanningView() {
           <div className="planning-list__header">
             <div>
               <h1 className="page-title">Planejamentos</h1>
-              <p className="planning-list__subtitle">Organize a estrategia e acompanhe metas numericas.</p>
+              <p className="planning-list__subtitle">Organize a estratégia e acompanhe metas numéricas.</p>
             </div>
             <button type="button" className="planning-list__create" onClick={handleCreatePlan}>
               <Plus size={18} aria-hidden="true" /> Novo plano
@@ -79,6 +79,7 @@ function PlanningView() {
               type="button"
               role="tab"
               aria-selected={filter === 'active'}
+              tabIndex={filter === 'active' ? 0 : -1}
               className={`planning-filter${filter === 'active' ? ' planning-filter--active' : ''}`}
               onClick={() => setFilter('active')}
             >
@@ -88,15 +89,17 @@ function PlanningView() {
               type="button"
               role="tab"
               aria-selected={filter === 'done'}
+              tabIndex={filter === 'done' ? 0 : -1}
               className={`planning-filter${filter === 'done' ? ' planning-filter--active' : ''}`}
               onClick={() => setFilter('done')}
             >
-              Concluidos
+              Concluídos
             </button>
             <button
               type="button"
               role="tab"
               aria-selected={filter === 'archived'}
+              tabIndex={filter === 'archived' ? 0 : -1}
               className={`planning-filter${filter === 'archived' ? ' planning-filter--active' : ''}`}
               onClick={() => setFilter('archived')}
             >
@@ -106,6 +109,7 @@ function PlanningView() {
               type="button"
               role="tab"
               aria-selected={filter === 'all'}
+              tabIndex={filter === 'all' ? 0 : -1}
               className={`planning-filter${filter === 'all' ? ' planning-filter--active' : ''}`}
               onClick={() => setFilter('all')}
             >
@@ -114,9 +118,9 @@ function PlanningView() {
           </div>
           <div className="planning-list__items">
             {filteredPlans.length === 0 ? (
-              <div className="planning-empty">
+              <div className="planning-empty" role="status">
                 <div className="planning-empty__title">Nenhum planejamento encontrado.</div>
-                <div className="planning-empty__text">Crie um plano para organizar seus proximos passos.</div>
+                <div className="planning-empty__text">Crie um plano para organizar seus próximos passos.</div>
                 <button type="button" className="planning-empty__button" onClick={handleCreatePlan}>
                   Criar planejamento
                 </button>
@@ -144,7 +148,7 @@ function PlanningView() {
               onDelete={handleDeletePlan}
             />
           ) : (
-            <div className="planning-detail__empty">
+            <div className="planning-detail__empty" role="status">
               <div className="planning-detail__title">Selecione um planejamento</div>
               <div className="planning-detail__text">Crie ou escolha um plano para editar.</div>
             </div>

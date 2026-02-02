@@ -8,9 +8,10 @@
   padding: var(--space-3);
   font-size: var(--font-size-caption);
   color: var(--color-text-secondary);
-  border: 1px dashed var(--color-border-default);
+  border: 1px dashed rgba(148, 163, 184, 0.35);
   border-radius: var(--radius-md);
   text-align: center;
+  background: rgba(12, 16, 24, 0.45);
 }
 
 .task-list__done {
@@ -44,11 +45,11 @@
 
 .task-list__add {
   border: none;
-  background: transparent;
+  background: rgba(var(--primary-rgb), 0.12);
   border-radius: 12px;
   padding: 8px 12px;
   font-size: var(--font-size-body);
-  color: var(--primary);
+  color: var(--color-text-primary);
   cursor: pointer;
   align-self: center;
   margin-top: var(--space-4);
@@ -57,11 +58,16 @@
 }
 
 .task-list__add:hover {
-  background: rgba(99, 102, 241, 0.1);
+  background: rgba(var(--primary-rgb), 0.22);
+}
+
+.task-list__add:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.35);
 }
 
 .task-list__add--cta {
-  background: transparent;
-  border: none;
-  color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.18);
+  border: 1px solid rgba(var(--primary-rgb), 0.35);
+  color: var(--color-text-primary);
 }

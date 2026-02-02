@@ -26,7 +26,7 @@ function FeedbackView() {
       <main className="app-content">
         <div className="feedback-grid">
           <section className="feedback-card">
-            <div className="feedback-card__title">Taxa de conclusao</div>
+            <div className="feedback-card__title">Taxa de conclusão</div>
             <div className="feedback-card__progress">
               <div className="feedback-card__ring">
                 <svg viewBox="0 0 36 36" className="ring">
@@ -43,7 +43,7 @@ function FeedbackView() {
                 <div className="feedback-card__progress-value">{progress}%</div>
               </div>
               <div className="feedback-card__progress-meta">
-                {completion.completed} concluida(s) de {completion.total}
+                {completion.completed} concluída(s) de {completion.total}
               </div>
             </div>
           </section>
@@ -63,7 +63,7 @@ function FeedbackView() {
               </div>
               <div className="feedback-card__status-item">
                 <span className="feedback-card__status-count">{status.done}</span>
-                <span className="feedback-card__status-label">Concluidas</span>
+                <span className="feedback-card__status-label">Concluídas</span>
               </div>
               <div className="feedback-card__status-item">
                 <span className="feedback-card__status-count">{status.planned}</span>

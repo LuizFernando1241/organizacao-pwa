@@ -13,11 +13,23 @@
   border: none;
   border-radius: var(--radius-pill);
   padding: 8px 14px;
-  background: var(--color-state-planned);
-  color: var(--color-text-inverse);
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.95), rgba(var(--accent-rgb), 0.85));
+  color: #ffffff;
   font-size: var(--font-size-caption);
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
+  transition: transform var(--motion-duration-fast) var(--motion-easing-standard),
+    box-shadow var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.notes-header__button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(var(--primary-rgb), 0.25);
+}
+
+.notes-header__button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.35);
 }
 
 .notes-toolbar {
@@ -34,8 +46,8 @@
   gap: 6px;
   padding: 4px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--color-border-default);
+  background: rgba(12, 16, 24, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 .notes-filter {
@@ -54,16 +66,27 @@
     color var(--motion-duration-fast) var(--motion-easing-standard);
 }
 
-.notes-filter--active {
-  background: var(--color-background-pressed-fill);
-  border-color: var(--color-border-default);
+.notes-filter:hover {
+  background: rgba(var(--primary-rgb), 0.12);
+  border-color: rgba(var(--primary-rgb), 0.25);
   color: var(--color-text-primary);
+}
+
+.notes-filter--active {
+  background: rgba(var(--primary-rgb), 0.2);
+  border-color: rgba(var(--primary-rgb), 0.4);
+  color: var(--color-text-primary);
+}
+
+.notes-filter:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.35);
 }
 
 .notes-filter__count {
   padding: 2px 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(148, 163, 184, 0.18);
   color: inherit;
   font-weight: 600;
   font-size: 11px;
@@ -86,14 +109,15 @@
 .notes-sort__select {
   border-radius: 10px;
   border: 1px solid var(--color-border-default);
-  background: var(--color-background-elevated);
+  background: rgba(12, 16, 24, 0.6);
   color: var(--color-text-primary);
   padding: 6px 10px;
   font-size: 12px;
+  cursor: pointer;
 }
 
 .notes-sort__select:focus {
   outline: none;
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.35);
 }

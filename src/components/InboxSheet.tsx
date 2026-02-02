@@ -38,7 +38,13 @@ function InboxSheet({
   return (
     <>
       <div className={`sheet-backdrop${isOpen ? ' sheet-backdrop--open' : ''}`} onClick={onClose} />
-      <section className={`inbox-sheet${isOpen ? ' inbox-sheet--open' : ''}`}>
+      <section
+        className={`inbox-sheet${isOpen ? ' inbox-sheet--open' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Inbox"
+        aria-hidden={!isOpen}
+      >
         <div className="inbox-sheet__capture">
           <QuickCaptureInput
             onSubmit={(value) => {
@@ -55,7 +61,9 @@ function InboxSheet({
         </div>
         <div className="inbox-sheet__list">
           {items.length === 0 ? (
-            <div className="inbox-sheet__empty">Caixa de entrada limpa!</div>
+            <div className="inbox-sheet__empty" role="status">
+              Caixa de entrada limpa!
+            </div>
           ) : (
             items.map((item) => (
               <InboxItem

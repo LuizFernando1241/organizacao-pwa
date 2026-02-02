@@ -19,11 +19,11 @@
   top: 0;
   bottom: 0;
   width: min(85vw, 360px);
-  background: rgba(30, 30, 30, 0.8);
-  backdrop-filter: blur(20px);
+  background: rgba(12, 16, 24, 0.92);
+  backdrop-filter: blur(24px);
   border-top-right-radius: var(--radius-lg);
   border-bottom-right-radius: var(--radius-lg);
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid rgba(148, 163, 184, 0.2);
   padding: var(--space-4);
   display: flex;
   flex-direction: column;
@@ -32,6 +32,7 @@
   transition: transform var(--motion-duration-base) var(--motion-easing-standard);
   z-index: 11;
   pointer-events: none;
+  box-shadow: var(--shadow-subtle);
 }
 
 .inbox-sheet__capture {
@@ -44,8 +45,8 @@
   width: 32px;
   height: 32px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(44, 44, 46, 0.7);
+  border: 1px solid rgba(var(--primary-rgb), 0.4);
+  background: rgba(var(--primary-rgb), 0.2);
   color: #ffffff;
   font-size: 16px;
   cursor: pointer;
@@ -57,8 +58,13 @@
 }
 
 .inbox-sheet__add:hover {
-  background: rgba(99, 102, 241, 0.2);
-  border-color: rgba(99, 102, 241, 0.5);
+  background: rgba(var(--primary-rgb), 0.3);
+  border-color: rgba(var(--primary-rgb), 0.7);
+}
+
+.inbox-sheet__add:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.45);
 }
 
 .inbox-sheet--open {

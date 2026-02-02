@@ -246,7 +246,7 @@ function StickyNoteCard({
             type="text"
             className="sticky-note__title-input"
             value={draftTitle}
-            placeholder={showTitlePlaceholder ? displayTitle : 'Titulo da nota'}
+            placeholder={showTitlePlaceholder ? displayTitle : 'Título da nota'}
             onChange={(event) => setDraftTitle(event.target.value)}
             onClick={(event) => event.stopPropagation()}
             onKeyDown={(event) => {
