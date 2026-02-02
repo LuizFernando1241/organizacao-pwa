@@ -204,101 +204,107 @@ function NotesView() {
             </button>
           </div>
         </div>
-        <div className="notes-overview">
-          <div className="notes-overview__card">
-            <span>Total</span>
-            <strong>{noteCounts.all}</strong>
-            <small>Notas no seu acervo</small>
-          </div>
-          <div className="notes-overview__card">
-            <span>Vinculadas</span>
-            <strong>{noteCounts.linked}</strong>
-            <small>Conectadas a tarefas</small>
-          </div>
-          <div className="notes-overview__card">
-            <span>Recentes</span>
-            <strong>{noteCounts.recent}</strong>
-            <small>Últimos 7 dias</small>
-          </div>
-          <div className="notes-overview__card notes-overview__card--accent">
-            <span>Fluxo</span>
-            <strong>{sortedNotes.length}</strong>
-            <small>Notas filtradas agora</small>
-          </div>
-        </div>
-        <div className="notes-controls">
-          <div className="notes-filters" role="tablist" aria-label="Filtros de notas">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={filter === 'all'}
-              tabIndex={filter === 'all' ? 0 : -1}
-              className={`notes-filter${filter === 'all' ? ' notes-filter--active' : ''}`}
-              onClick={() => setFilter('all')}
-              aria-controls="notes-grid"
-            >
-              Todas
-              <span className="notes-filter__count">{noteCounts.all}</span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={filter === 'linked'}
-              tabIndex={filter === 'linked' ? 0 : -1}
-              className={`notes-filter${filter === 'linked' ? ' notes-filter--active' : ''}`}
-              onClick={() => setFilter('linked')}
-              aria-controls="notes-grid"
-            >
-              Vinculadas
-              <span className="notes-filter__count">{noteCounts.linked}</span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={filter === 'recent'}
-              tabIndex={filter === 'recent' ? 0 : -1}
-              className={`notes-filter${filter === 'recent' ? ' notes-filter--active' : ''}`}
-              onClick={() => setFilter('recent')}
-              aria-controls="notes-grid"
-            >
-              Recentes
-              <span className="notes-filter__count">{noteCounts.recent}</span>
-            </button>
-          </div>
-          <label className="notes-sort">
-            <span className="notes-sort__label">Ordenar</span>
-            <select
-              className="notes-sort__select"
-              value={sort}
-              onChange={(event) => setSort(event.target.value as typeof sort)}
-            >
-              <option value="recent">Mais recentes</option>
-              <option value="alpha">A-Z</option>
-              <option value="long">Mais longas</option>
-              <option value="linked">Com link</option>
-            </select>
-          </label>
-        </div>
-        <div className="notes-surface">
-          <div className="notes-surface__header">
-            <div>
-              <h2 className="notes-surface__title">Biblioteca</h2>
-              <p className="notes-surface__subtitle">Revise, conecte e refine suas notas.</p>
+        <div className="notes-layout">
+          <section className="notes-main">
+            <div className="notes-surface">
+              <div className="notes-surface__header">
+                <div>
+                  <h2 className="notes-surface__title">Biblioteca</h2>
+                  <p className="notes-surface__subtitle">Revise, conecte e refine suas notas.</p>
+                </div>
+                <span className="notes-surface__meta">{sortedNotes.length} nota(s)</span>
+              </div>
+              <NotesGrid
+                notes={sortedNotes}
+                highlightTerm={searchTerm}
+                linkedNoteIds={linkedNoteIds}
+                onCreateNote={handleCreateNote}
+                onSelectNote={handleSelectNote}
+                onLinkNote={handleLinkNote}
+                onDeleteNote={handleDeleteNote}
+                onUpdateTitle={handleUpdateTitle}
+                onUpdateColor={handleUpdateColor}
+                isVirtualized={sortedNotes.length > 300}
+              />
             </div>
-            <span className="notes-surface__meta">{sortedNotes.length} nota(s)</span>
-          </div>
-          <NotesGrid
-            notes={sortedNotes}
-            highlightTerm={searchTerm}
-            linkedNoteIds={linkedNoteIds}
-            onCreateNote={handleCreateNote}
-            onSelectNote={handleSelectNote}
-            onLinkNote={handleLinkNote}
-            onDeleteNote={handleDeleteNote}
-            onUpdateTitle={handleUpdateTitle}
-            onUpdateColor={handleUpdateColor}
-            isVirtualized={sortedNotes.length > 300}
-          />
+          </section>
+          <aside className="notes-side">
+            <div className="notes-overview">
+              <div className="notes-overview__card">
+                <span>Total</span>
+                <strong>{noteCounts.all}</strong>
+                <small>Notas no seu acervo</small>
+              </div>
+              <div className="notes-overview__card">
+                <span>Vinculadas</span>
+                <strong>{noteCounts.linked}</strong>
+                <small>Conectadas a tarefas</small>
+              </div>
+              <div className="notes-overview__card">
+                <span>Recentes</span>
+                <strong>{noteCounts.recent}</strong>
+                <small>Últimos 7 dias</small>
+              </div>
+              <div className="notes-overview__card notes-overview__card--accent">
+                <span>Fluxo</span>
+                <strong>{sortedNotes.length}</strong>
+                <small>Notas filtradas agora</small>
+              </div>
+            </div>
+            <div className="notes-controls">
+              <div className="notes-filters" role="tablist" aria-label="Filtros de notas">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={filter === 'all'}
+                  tabIndex={filter === 'all' ? 0 : -1}
+                  className={`notes-filter${filter === 'all' ? ' notes-filter--active' : ''}`}
+                  onClick={() => setFilter('all')}
+                  aria-controls="notes-grid"
+                >
+                  Todas
+                  <span className="notes-filter__count">{noteCounts.all}</span>
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={filter === 'linked'}
+                  tabIndex={filter === 'linked' ? 0 : -1}
+                  className={`notes-filter${filter === 'linked' ? ' notes-filter--active' : ''}`}
+                  onClick={() => setFilter('linked')}
+                  aria-controls="notes-grid"
+                >
+                  Vinculadas
+                  <span className="notes-filter__count">{noteCounts.linked}</span>
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={filter === 'recent'}
+                  tabIndex={filter === 'recent' ? 0 : -1}
+                  className={`notes-filter${filter === 'recent' ? ' notes-filter--active' : ''}`}
+                  onClick={() => setFilter('recent')}
+                  aria-controls="notes-grid"
+                >
+                  Recentes
+                  <span className="notes-filter__count">{noteCounts.recent}</span>
+                </button>
+              </div>
+              <label className="notes-sort">
+                <span className="notes-sort__label">Ordenar</span>
+                <select
+                  className="notes-sort__select"
+                  value={sort}
+                  onChange={(event) => setSort(event.target.value as typeof sort)}
+                >
+                  <option value="recent">Mais recentes</option>
+                  <option value="alpha">A-Z</option>
+                  <option value="long">Mais longas</option>
+                  <option value="linked">Com link</option>
+                </select>
+              </label>
+            </div>
+          </aside>
         </div>
       </main>
       <NoteModal

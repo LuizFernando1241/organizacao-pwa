@@ -8,6 +8,9 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  width: 100%;
+  flex: 1;
+  min-height: calc(100svh - var(--size-top-bar-height) - 88px);
 }
 
 .notes-hero {
@@ -99,6 +102,23 @@
   justify-content: space-between;
   gap: var(--space-3);
   flex-wrap: wrap;
+}
+
+.notes-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.notes-main {
+  min-width: 0;
+}
+
+.notes-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 .notes-filters {
@@ -224,5 +244,20 @@
 @media (max-width: 640px) {
   .notes-hero__shortcut {
     display: none;
+  }
+}
+
+@media (min-width: 960px) {
+  .notes-layout {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+
+  .notes-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .notes-controls {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
