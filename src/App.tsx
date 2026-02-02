@@ -708,7 +708,6 @@ function App() {
               <div className="home-header">
                 <div>
                   <h1 className="page-title">Hoje / Semana</h1>
-                  <p className="page-subtitle">Seu dia, sua energia, sem ruído.</p>
                 </div>
                 <div className="home-header__actions">
                   <button type="button" className="home-primary-action" onClick={handleAddTask}>
@@ -742,12 +741,6 @@ function App() {
                     <div className="home-panel__header">
                       <div>
                         <h2 className="home-panel__title">Agenda do dia</h2>
-                        <p className="home-panel__subtitle">Organize sua semana e mantenha o foco nas prioridades.</p>
-                      </div>
-                      <div className="home-panel__chips">
-                        <span className="home-chip">Planejadas {taskCounts.planned}</span>
-                        <span className="home-chip home-chip--accent">Ativas {taskCounts.active}</span>
-                        <span className="home-chip home-chip--danger">Atrasadas {taskCounts.overdue}</span>
                       </div>
                     </div>
                     <div className="home-panel__body">
@@ -842,11 +835,7 @@ function App() {
                     <div className="quick-capture-card__header">
                       <div>
                         <h2 className="quick-capture-card__title">Captura rápida</h2>
-                        <p className="quick-capture-card__subtitle">
-                          Transforme ideias em tarefas, notas ou lembretes.
-                        </p>
                       </div>
-                      <span className="quick-capture-card__badge">Enter para salvar</span>
                     </div>
                     <div className="quick-capture-bar">
                       <QuickCaptureInput
@@ -863,11 +852,6 @@ function App() {
                       >
                         +
                       </button>
-                    </div>
-                    <div className="quick-capture-hints" aria-hidden="true">
-                      <span className="quick-capture-hint">Ex: 09:30 Reunião com time</span>
-                      <span className="quick-capture-hint">Ex: ideia app de hábitos</span>
-                      <span className="quick-capture-hint">Ex: ligar para cliente</span>
                     </div>
                   </section>
                 </aside>

@@ -35,6 +35,12 @@
   box-shadow: var(--shadow-subtle);
 }
 
+@media (min-width: 1100px) {
+  .inbox-sheet {
+    left: calc(var(--size-nav-rail-width) + var(--space-5));
+  }
+}
+
 .inbox-sheet__capture {
   display: flex;
   align-items: center;

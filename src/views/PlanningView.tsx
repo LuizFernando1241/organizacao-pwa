@@ -11,31 +11,11 @@ import './PlanningView.css'
 function PlanningView() {
   const { plans, tasks, createPlan, updatePlan, deletePlan } = useAppStore()
   const [query, setQuery] = useState('')
-  const [filter, setFilter] = useState<'all' | 'active' | 'done' | 'archived'>('active')
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
-
-  const statusCounts = useMemo(
-    () =>
-      plans.reduce(
-        (acc, plan) => {
-          acc.total += 1
-          acc[plan.status] += 1
-          return acc
-        },
-        { total: 0, active: 0, done: 0, archived: 0 },
-      ),
-    [plans],
-  )
 
   const filteredPlans = useMemo(() => {
     const term = query.trim().toLowerCase()
     return plans
-      .filter((plan) => {
-        if (filter === 'all') {
-          return true
-        }
-        return plan.status === filter
-      })
       .filter((plan) => {
         if (!term) {
           return true
@@ -44,7 +24,7 @@ function PlanningView() {
         return haystack.includes(term)
       })
       .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-  }, [plans, query, filter])
+  }, [plans, query])
 
   useEffect(() => {
     if (!selectedPlanId) {
@@ -89,77 +69,17 @@ function PlanningView() {
           <div className="planning-list__header">
             <div>
               <h1 className="page-title">Planejamentos</h1>
-              <p className="planning-list__subtitle">Organize a estratégia e acompanhe metas numéricas.</p>
+              <p className="planning-list__subtitle">Crie um plano simples e edite os detalhes ao lado.</p>
             </div>
             <button type="button" className="planning-list__create" onClick={handleCreatePlan}>
               <Plus size={18} aria-hidden="true" /> Novo plano
-            </button>
-          </div>
-          <div className="planning-summary">
-            <div className="planning-summary__card">
-              <span>Total</span>
-              <strong>{statusCounts.total}</strong>
-            </div>
-            <div className="planning-summary__card">
-              <span>Ativos</span>
-              <strong>{statusCounts.active}</strong>
-            </div>
-            <div className="planning-summary__card">
-              <span>Concluídos</span>
-              <strong>{statusCounts.done}</strong>
-            </div>
-            <div className="planning-summary__card">
-              <span>Arquivados</span>
-              <strong>{statusCounts.archived}</strong>
-            </div>
-          </div>
-          <div className="planning-filters" role="tablist" aria-label="Filtros de planejamento">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={filter === 'active'}
-              tabIndex={filter === 'active' ? 0 : -1}
-              className={`planning-filter${filter === 'active' ? ' planning-filter--active' : ''}`}
-              onClick={() => setFilter('active')}
-            >
-              Ativos ({statusCounts.active})
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={filter === 'done'}
-              tabIndex={filter === 'done' ? 0 : -1}
-              className={`planning-filter${filter === 'done' ? ' planning-filter--active' : ''}`}
-              onClick={() => setFilter('done')}
-            >
-              Concluídos ({statusCounts.done})
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={filter === 'archived'}
-              tabIndex={filter === 'archived' ? 0 : -1}
-              className={`planning-filter${filter === 'archived' ? ' planning-filter--active' : ''}`}
-              onClick={() => setFilter('archived')}
-            >
-              Arquivados ({statusCounts.archived})
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={filter === 'all'}
-              tabIndex={filter === 'all' ? 0 : -1}
-              className={`planning-filter${filter === 'all' ? ' planning-filter--active' : ''}`}
-              onClick={() => setFilter('all')}
-            >
-              Todos ({statusCounts.total})
             </button>
           </div>
           <div className="planning-list__items">
             {filteredPlans.length === 0 ? (
               <div className="planning-empty" role="status">
                 <div className="planning-empty__title">Nenhum planejamento encontrado.</div>
-                <div className="planning-empty__text">Crie um plano para organizar seus próximos passos.</div>
+                <div className="planning-empty__text">Comece criando um plano simples.</div>
                 <button type="button" className="planning-empty__button" onClick={handleCreatePlan}>
                   Criar planejamento
                 </button>

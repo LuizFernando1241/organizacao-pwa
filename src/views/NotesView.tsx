@@ -197,16 +197,11 @@ function NotesView() {
         <div className="notes-hero">
           <div>
             <h1 className="page-title">Notas</h1>
-            <p className="page-subtitle">Centralize ideias, decisões e referências em um só lugar.</p>
           </div>
           <div className="notes-hero__actions">
             <button type="button" className="notes-hero__primary" onClick={handleCreateNote}>
               Nova nota
             </button>
-            <div className="notes-hero__shortcut">
-              <span>/ buscar</span>
-              <span>N para nova</span>
-            </div>
           </div>
         </div>
         <div className="notes-overview">
