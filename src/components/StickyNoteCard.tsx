@@ -266,7 +266,7 @@ function StickyNoteCard({
         {bodyPreview ? (
           <div className="sticky-note__body">{highlightText(bodyPreview, highlightTerm)}</div>
         ) : (
-          <div className="sticky-note__body sticky-note__body--empty">Sem conteudo.</div>
+          <div className="sticky-note__body sticky-note__body--empty">Sem conteúdo.</div>
         )}
       </div>
       <div className="sticky-note__meta">
@@ -285,7 +285,7 @@ function StickyNoteCard({
               type="button"
               className="sticky-note__action"
               onClick={handleEditStart}
-              aria-label="Editar titulo"
+              aria-label="Editar título"
             >
               <PencilLine size={16} aria-hidden="true" />
             </button>

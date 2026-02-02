@@ -1,19 +1,23 @@
 .plan-editor {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
-  gap: var(--space-4);
-}
-
-.plan-editor__main {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
 }
 
-.plan-editor__header {
+.plan-editor__hero {
+  border-radius: 20px;
+  padding: var(--space-4);
+  background: rgba(12, 16, 24, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.2);
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-3);
+}
+
+.plan-editor__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .plan-editor__title {
@@ -34,7 +38,7 @@
   outline: none;
 }
 
-.plan-editor__meta-row {
+.plan-editor__meta {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: var(--space-2);
@@ -65,6 +69,213 @@
   align-self: end;
 }
 
+.plan-editor__nav {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(12, 16, 24, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  align-self: flex-start;
+}
+
+.plan-editor__nav-item {
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.plan-editor__nav-item:hover {
+  background: rgba(var(--primary-rgb), 0.12);
+  border-color: rgba(var(--primary-rgb), 0.25);
+  color: var(--color-text-primary);
+}
+
+.plan-editor__nav-item.is-active {
+  background: rgba(var(--primary-rgb), 0.2);
+  border-color: rgba(var(--primary-rgb), 0.4);
+  color: var(--color-text-primary);
+}
+
+.plan-editor__nav-item:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.35);
+}
+
+.plan-editor__nav-count {
+  background: rgba(148, 163, 184, 0.2);
+  color: var(--color-text-primary);
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+
+.plan-editor__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.plan-overview__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-2);
+}
+
+.plan-overview__card {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(12, 16, 24, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.plan-overview__card h3 {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  font-family: var(--font-family-display);
+}
+
+.plan-overview__card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.plan-overview__status {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.plan-overview__status--active {
+  color: #dbeafe;
+  background: rgba(var(--primary-rgb), 0.2);
+  border-color: rgba(var(--primary-rgb), 0.4);
+}
+
+.plan-overview__status--done {
+  color: #dcfce7;
+  background: rgba(var(--success-rgb), 0.18);
+  border-color: rgba(var(--success-rgb), 0.4);
+}
+
+.plan-overview__status--archived {
+  color: #e2e8f0;
+  background: rgba(148, 163, 184, 0.18);
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+.plan-overview__progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 12px;
+}
+
+.plan-overview__progress-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.plan-overview__progress-bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(var(--primary-rgb), 0.9), rgba(var(--accent-rgb), 0.9));
+}
+
+.plan-overview__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.plan-overview__meta strong {
+  color: var(--color-text-primary);
+  font-size: 14px;
+}
+
+.plan-overview__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 8px;
+}
+
+.plan-overview__stats strong {
+  display: block;
+  color: var(--color-text-primary);
+  font-size: 16px;
+}
+
+.plan-overview__dates {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.plan-overview__dates strong {
+  color: var(--color-text-primary);
+  font-size: 12px;
+}
+
+.plan-overview__link {
+  border: none;
+  background: transparent;
+  color: #dbeafe;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.plan-overview__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--color-text-secondary);
+}
+
+.plan-overview__list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.plan-overview__list li.is-done {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+.plan-overview__list small {
+  color: var(--color-text-muted);
+}
+
+.plan-overview__empty {
+  color: var(--color-text-muted);
+}
+
 .plan-section {
   display: flex;
   flex-direction: column;
@@ -77,10 +288,17 @@
   font-family: var(--font-family-display);
 }
 
+.plan-section__subtitle {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
 .plan-section__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-2);
 }
 
 .plan-section__add {
@@ -260,13 +478,14 @@
   gap: var(--space-2);
 }
 
-.plan-editor__side {
-  display: flex;
-  flex-direction: column;
+.plan-task-manager {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(220px, 1.2fr);
   gap: var(--space-3);
 }
 
-.plan-side-card {
+.plan-task-manager__linked,
+.plan-task-manager__all {
   border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 14px;
   padding: 12px;
@@ -276,75 +495,63 @@
   gap: var(--space-2);
 }
 
-.plan-side-card h3 {
-  margin: 0;
-  font-size: 14px;
-  font-family: var(--font-family-display);
-}
-
-.plan-side-card__progress {
+.plan-task-manager__title {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  font-size: 12px;
-}
-
-.plan-side-card__bar {
-  flex: 1;
-  height: 6px;
-  background: rgba(148, 163, 184, 0.2);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.plan-side-card__bar span {
-  display: block;
-  height: 100%;
-  background: linear-gradient(90deg, rgba(var(--success-rgb), 0.9), rgba(var(--success-rgb), 0.6));
-}
-
-.plan-side-card__meta {
-  display: flex;
   justify-content: space-between;
+  color: var(--color-text-primary);
+}
+
+.plan-task-manager__title span {
   font-size: 12px;
   color: var(--color-text-secondary);
 }
 
-.plan-side-card__meta span {
-  display: block;
-}
-
-.plan-side-card__meta strong {
-  color: var(--color-text-primary);
-}
-
-.plan-side-card__tasks {
+.plan-task-manager__list {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   font-size: 12px;
   color: var(--color-text-secondary);
 }
 
-.plan-side-card__tasks li.is-done {
+.plan-task-manager__list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.plan-task-manager__list li.is-done {
   text-decoration: line-through;
   color: var(--color-text-muted);
 }
 
-.plan-side-card__search {
+.plan-task-manager__list button {
+  border: none;
+  background: rgba(148, 163, 184, 0.16);
+  color: var(--color-text-primary);
+  border-radius: 8px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.plan-task-manager__search input {
   border: 1px solid var(--color-border-default);
   background: rgba(12, 16, 24, 0.6);
   border-radius: 10px;
   padding: 6px 8px;
   color: var(--color-text-primary);
   font-size: 12px;
+  width: 100%;
 }
 
-.plan-side-card__task-list {
-  max-height: 200px;
+.plan-task-manager__options {
+  max-height: 240px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -363,11 +570,29 @@
   color: var(--color-text-primary);
 }
 
-.plan-side-card--danger {
-  border-color: rgba(var(--danger-rgb), 0.4);
+.plan-task-manager__empty {
+  color: var(--color-text-muted);
+  font-size: 12px;
 }
 
-.plan-side-card__delete {
+.plan-danger {
+  border: 1px solid rgba(var(--danger-rgb), 0.4);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(12, 16, 24, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.plan-danger p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.plan-danger__delete {
   border: none;
   background: rgba(var(--danger-rgb), 0.16);
   color: #ffe4e6;
@@ -375,14 +600,15 @@
   padding: 8px 10px;
   cursor: pointer;
   font-size: 12px;
+  white-space: nowrap;
 }
 
-.plan-side-card__delete:hover {
+.plan-danger__delete:hover {
   background: rgba(var(--danger-rgb), 0.25);
 }
 
 @media (max-width: 1024px) {
-  .plan-editor {
+  .plan-task-manager {
     grid-template-columns: 1fr;
   }
 }

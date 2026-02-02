@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import TopBar from '../components/TopBar'
 import SearchBar from '../components/SearchBar'
@@ -13,6 +13,19 @@ function PlanningView() {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'active' | 'done' | 'archived'>('active')
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
+
+  const statusCounts = useMemo(
+    () =>
+      plans.reduce(
+        (acc, plan) => {
+          acc.total += 1
+          acc[plan.status] += 1
+          return acc
+        },
+        { total: 0, active: 0, done: 0, archived: 0 },
+      ),
+    [plans],
+  )
 
   const filteredPlans = useMemo(() => {
     const term = query.trim().toLowerCase()
@@ -33,12 +46,20 @@ function PlanningView() {
       .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
   }, [plans, query, filter])
 
-  const fallbackPlanId = plans[0]?.id ?? null
-  const effectiveSelectedId = selectedPlanId ?? fallbackPlanId
-  const selectedPlan =
-    filteredPlans.find((plan) => plan.id === effectiveSelectedId) ??
-    plans.find((plan) => plan.id === effectiveSelectedId) ??
-    null
+  useEffect(() => {
+    if (!selectedPlanId) {
+      if (filteredPlans[0]?.id) {
+        setSelectedPlanId(filteredPlans[0].id)
+      }
+      return
+    }
+    if (!filteredPlans.some((plan) => plan.id === selectedPlanId)) {
+      setSelectedPlanId(filteredPlans[0]?.id ?? null)
+    }
+  }, [filteredPlans, selectedPlanId])
+
+  const effectiveSelectedId = selectedPlanId ?? filteredPlans[0]?.id ?? null
+  const selectedPlan = plans.find((plan) => plan.id === effectiveSelectedId) ?? null
 
   const handleCreatePlan = () => {
     const id = createPlan()
@@ -53,7 +74,7 @@ function PlanningView() {
     if (window.confirm('Excluir este planejamento?')) {
       deletePlan(plan.id)
       if (effectiveSelectedId === plan.id) {
-        setSelectedPlanId(plans.find((item) => item.id !== plan.id)?.id ?? null)
+        setSelectedPlanId(filteredPlans.find((item) => item.id !== plan.id)?.id ?? null)
       }
     }
   }
@@ -61,7 +82,7 @@ function PlanningView() {
   return (
     <div className="planning-screen">
       <TopBar>
-        <SearchBar value={query} onChange={setQuery} placeholder="Buscar planejamentos..." />
+        <SearchBar value={query} onChange={setQuery} placeholder="Buscar planejamentos, metas ou decisões..." />
       </TopBar>
       <main className="app-content planning-content">
         <section className="planning-list">
@@ -74,6 +95,24 @@ function PlanningView() {
               <Plus size={18} aria-hidden="true" /> Novo plano
             </button>
           </div>
+          <div className="planning-summary">
+            <div className="planning-summary__card">
+              <span>Total</span>
+              <strong>{statusCounts.total}</strong>
+            </div>
+            <div className="planning-summary__card">
+              <span>Ativos</span>
+              <strong>{statusCounts.active}</strong>
+            </div>
+            <div className="planning-summary__card">
+              <span>Concluídos</span>
+              <strong>{statusCounts.done}</strong>
+            </div>
+            <div className="planning-summary__card">
+              <span>Arquivados</span>
+              <strong>{statusCounts.archived}</strong>
+            </div>
+          </div>
           <div className="planning-filters" role="tablist" aria-label="Filtros de planejamento">
             <button
               type="button"
@@ -83,7 +122,7 @@ function PlanningView() {
               className={`planning-filter${filter === 'active' ? ' planning-filter--active' : ''}`}
               onClick={() => setFilter('active')}
             >
-              Ativos
+              Ativos ({statusCounts.active})
             </button>
             <button
               type="button"
@@ -93,7 +132,7 @@ function PlanningView() {
               className={`planning-filter${filter === 'done' ? ' planning-filter--active' : ''}`}
               onClick={() => setFilter('done')}
             >
-              Concluídos
+              Concluídos ({statusCounts.done})
             </button>
             <button
               type="button"
@@ -103,7 +142,7 @@ function PlanningView() {
               className={`planning-filter${filter === 'archived' ? ' planning-filter--active' : ''}`}
               onClick={() => setFilter('archived')}
             >
-              Arquivados
+              Arquivados ({statusCounts.archived})
             </button>
             <button
               type="button"
@@ -113,7 +152,7 @@ function PlanningView() {
               className={`planning-filter${filter === 'all' ? ' planning-filter--active' : ''}`}
               onClick={() => setFilter('all')}
             >
-              Todos
+              Todos ({statusCounts.total})
             </button>
           </div>
           <div className="planning-list__items">

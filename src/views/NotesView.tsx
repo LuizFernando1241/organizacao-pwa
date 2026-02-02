@@ -193,14 +193,45 @@ function NotesView() {
       <TopBar>
         <SearchBar ref={searchInputRef} value={query} onChange={setQuery} placeholder="Buscar notas..." />
       </TopBar>
-      <main className="app-content">
-        <div className="notes-header">
-          <h1 className="page-title">Notas</h1>
-          <button type="button" className="notes-header__button" onClick={handleCreateNote}>
-            Criar nota
-          </button>
+      <main className="app-content notes-content">
+        <div className="notes-hero">
+          <div>
+            <h1 className="page-title">Notas</h1>
+            <p className="page-subtitle">Centralize ideias, decisões e referências em um só lugar.</p>
+          </div>
+          <div className="notes-hero__actions">
+            <button type="button" className="notes-hero__primary" onClick={handleCreateNote}>
+              Nova nota
+            </button>
+            <div className="notes-hero__shortcut">
+              <span>/ buscar</span>
+              <span>N para nova</span>
+            </div>
+          </div>
         </div>
-        <div className="notes-toolbar">
+        <div className="notes-overview">
+          <div className="notes-overview__card">
+            <span>Total</span>
+            <strong>{noteCounts.all}</strong>
+            <small>Notas no seu acervo</small>
+          </div>
+          <div className="notes-overview__card">
+            <span>Vinculadas</span>
+            <strong>{noteCounts.linked}</strong>
+            <small>Conectadas a tarefas</small>
+          </div>
+          <div className="notes-overview__card">
+            <span>Recentes</span>
+            <strong>{noteCounts.recent}</strong>
+            <small>Últimos 7 dias</small>
+          </div>
+          <div className="notes-overview__card notes-overview__card--accent">
+            <span>Fluxo</span>
+            <strong>{sortedNotes.length}</strong>
+            <small>Notas filtradas agora</small>
+          </div>
+        </div>
+        <div className="notes-controls">
           <div className="notes-filters" role="tablist" aria-label="Filtros de notas">
             <button
               type="button"
@@ -241,7 +272,11 @@ function NotesView() {
           </div>
           <label className="notes-sort">
             <span className="notes-sort__label">Ordenar</span>
-            <select className="notes-sort__select" value={sort} onChange={(event) => setSort(event.target.value as typeof sort)}>
+            <select
+              className="notes-sort__select"
+              value={sort}
+              onChange={(event) => setSort(event.target.value as typeof sort)}
+            >
               <option value="recent">Mais recentes</option>
               <option value="alpha">A-Z</option>
               <option value="long">Mais longas</option>
@@ -249,18 +284,27 @@ function NotesView() {
             </select>
           </label>
         </div>
-        <NotesGrid
-          notes={sortedNotes}
-          highlightTerm={searchTerm}
-          linkedNoteIds={linkedNoteIds}
-          onCreateNote={handleCreateNote}
-          onSelectNote={handleSelectNote}
-          onLinkNote={handleLinkNote}
-          onDeleteNote={handleDeleteNote}
-          onUpdateTitle={handleUpdateTitle}
-          onUpdateColor={handleUpdateColor}
-          isVirtualized={sortedNotes.length > 300}
-        />
+        <div className="notes-surface">
+          <div className="notes-surface__header">
+            <div>
+              <h2 className="notes-surface__title">Biblioteca</h2>
+              <p className="notes-surface__subtitle">Revise, conecte e refine suas notas.</p>
+            </div>
+            <span className="notes-surface__meta">{sortedNotes.length} nota(s)</span>
+          </div>
+          <NotesGrid
+            notes={sortedNotes}
+            highlightTerm={searchTerm}
+            linkedNoteIds={linkedNoteIds}
+            onCreateNote={handleCreateNote}
+            onSelectNote={handleSelectNote}
+            onLinkNote={handleLinkNote}
+            onDeleteNote={handleDeleteNote}
+            onUpdateTitle={handleUpdateTitle}
+            onUpdateColor={handleUpdateColor}
+            isVirtualized={sortedNotes.length > 300}
+          />
+        </div>
       </main>
       <NoteModal
         isOpen={isNoteModalOpen}

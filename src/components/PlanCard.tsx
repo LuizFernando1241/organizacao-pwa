@@ -30,7 +30,7 @@ function PlanCard({ plan, tasks, isActive, onSelect }: PlanCardProps) {
     >
       <div className="plan-card__header">
         <div>
-          <div className="plan-card__title">{plan.title || 'Planejamento sem titulo'}</div>
+          <div className="plan-card__title">{plan.title || 'Planejamento sem título'}</div>
           {plan.subtitle && <div className="plan-card__subtitle">{plan.subtitle}</div>}
         </div>
         <span className={`plan-card__status plan-card__status--${plan.status}`}>{statusLabels[plan.status]}</span>

@@ -16,15 +16,17 @@
 
 .planning-list__header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
 .planning-list__subtitle {
   margin: 0;
   font-size: 13px;
   color: var(--color-text-secondary);
+  max-width: 320px;
 }
 
 .planning-list__create {
@@ -42,6 +44,29 @@
   white-space: nowrap;
   transition: transform var(--motion-duration-fast) var(--motion-easing-standard),
     box-shadow var(--motion-duration-fast) var(--motion-easing-standard);
+}
+
+.planning-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-2);
+}
+
+.planning-summary__card {
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(12, 16, 24, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.planning-summary__card strong {
+  font-size: 16px;
+  color: var(--color-text-primary);
 }
 
 .planning-list__create:hover {

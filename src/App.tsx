@@ -731,110 +731,143 @@ function App() {
                   </div>
                 </div>
               )}
-              <section className="home-hero" aria-label="Resumo do dia">
-                <div className="home-hero__top">
-                  <div>
-                    <div className="home-hero__title">Resumo do dia</div>
-                    <div className="home-hero__date">{heroDateLabel}</div>
+              <div className="home-layout">
+                <section className="home-main">
+                  <div className="home-panel">
+                    <div className="home-panel__header">
+                      <div>
+                        <h2 className="home-panel__title">Agenda do dia</h2>
+                        <p className="home-panel__subtitle">Organize sua semana e mantenha o foco nas prioridades.</p>
+                      </div>
+                      <div className="home-panel__chips">
+                        <span className="home-chip">Planejadas {taskCounts.planned}</span>
+                        <span className="home-chip home-chip--accent">Ativas {taskCounts.active}</span>
+                        <span className="home-chip home-chip--danger">Atrasadas {taskCounts.overdue}</span>
+                        <span className="home-chip home-chip--success">Concluídas {taskCounts.done}</span>
+                      </div>
+                    </div>
+                    <div className="home-panel__body">
+                      <WeekStrip
+                        days={days}
+                        selectedKey={selectedDayKey}
+                        todayKey={todayKey}
+                        overbookedKeys={overbookedKeys}
+                        onSelect={setSelectedDayKey}
+                        onPrevWeek={() => setSelectedDayKey(shiftDayKey(selectedDayKey, -7))}
+                        onNextWeek={() => setSelectedDayKey(shiftDayKey(selectedDayKey, 7))}
+                      />
+                      <TaskList
+                        tasks={visibleTasks}
+                        onSelectTask={handleSelectTask}
+                        onToggleDone={toggleTaskDone}
+                        onStartTimer={startTimer}
+                        onStopTimer={stopTimer}
+                        onAddTask={handleAddTask}
+                      />
+                    </div>
                   </div>
-                  <div className={`hero-progress__badge${plannedMinutes > capacityMinutes ? ' is-over' : ''}`}>
-                    {capacityMinutes > 0
-                      ? plannedMinutes > capacityMinutes
-                        ? 'Acima da capacidade'
-                        : `${formatMinutes(remainingMinutes)} livres`
-                      : 'Defina sua rotina'}
-                  </div>
-                </div>
-                <div className="home-hero__stats">
-                  <div className="hero-stat">
-                    <span className="hero-stat__label">Planejadas</span>
-                    <span className="hero-stat__value">{taskCounts.planned}</span>
-                  </div>
-                  <div className="hero-stat">
-                    <span className="hero-stat__label">Ativas</span>
-                    <span className="hero-stat__value hero-stat__value--accent">{taskCounts.active}</span>
-                  </div>
-                  <div className="hero-stat">
-                    <span className="hero-stat__label">Atrasadas</span>
-                    <span className="hero-stat__value hero-stat__value--danger">{taskCounts.overdue}</span>
-                  </div>
-                  <div className="hero-stat">
-                    <span className="hero-stat__label">Concluídas</span>
-                    <span className="hero-stat__value hero-stat__value--success">{taskCounts.done}</span>
-                  </div>
-                  <div className="hero-stat">
-                    <span className="hero-stat__label">Foco</span>
-                    <span className="hero-stat__value">{formatMinutes(focusMinutes)}</span>
-                  </div>
-                </div>
-                <div className="hero-progress">
-                  <div className="hero-progress__meta">
-                    <span>Capacidade do dia</span>
-                    <span>
-                      {capacityMinutes > 0
-                        ? `${formatMinutes(plannedMinutes)} de ${formatMinutes(capacityMinutes)}`
-                        : 'Sem rotina'}
-                    </span>
-                  </div>
-                  <div
-                    className="hero-progress__bar"
-                    role="progressbar"
-                    aria-label="Capacidade do dia"
-                    aria-valuemin={0}
-                    aria-valuemax={capacityMinutes || 1}
-                    aria-valuenow={capacityMinutes > 0 ? Math.min(plannedMinutes, capacityMinutes) : 0}
-                    aria-valuetext={
-                      capacityMinutes > 0
-                        ? `${formatMinutes(plannedMinutes)} de ${formatMinutes(capacityMinutes)}`
-                        : 'Sem rotina'
-                    }
-                  >
-                    <span
-                      className={`hero-progress__fill${plannedMinutes > capacityMinutes ? ' is-over' : ''}`}
-                      style={{ width: `${Math.round(capacityRatio * 100)}%` }}
-                      aria-hidden="true"
-                    />
-                  </div>
-                </div>
-              </section>
-              <div className="quick-capture-bar">
-                <QuickCaptureInput
-                  placeholder="Digite qualquer coisa... tarefa, ideia, lembrete"
-                  value={quickCapture}
-                  onChange={setQuickCapture}
-                  onSubmit={(value) => handleQuickCaptureSubmit(value)}
-                />
-                <button
-                  type="button"
-                  className="quick-capture-bar__add"
-                  onClick={() => handleQuickCaptureSubmit()}
-                  aria-label="Adicionar na inbox"
-                >
-                  +
-                </button>
+                </section>
+                <aside className="home-side">
+                  <section className="home-hero" aria-label="Resumo do dia">
+                    <div className="home-hero__top">
+                      <div>
+                        <div className="home-hero__title">Resumo do dia</div>
+                        <div className="home-hero__date">{heroDateLabel}</div>
+                      </div>
+                      <div className={`hero-progress__badge${plannedMinutes > capacityMinutes ? ' is-over' : ''}`}>
+                        {capacityMinutes > 0
+                          ? plannedMinutes > capacityMinutes
+                            ? 'Acima da capacidade'
+                            : `${formatMinutes(remainingMinutes)} livres`
+                          : 'Defina sua rotina'}
+                      </div>
+                    </div>
+                    <div className="home-hero__stats">
+                      <div className="hero-stat">
+                        <span className="hero-stat__label">Planejadas</span>
+                        <span className="hero-stat__value">{taskCounts.planned}</span>
+                      </div>
+                      <div className="hero-stat">
+                        <span className="hero-stat__label">Ativas</span>
+                        <span className="hero-stat__value hero-stat__value--accent">{taskCounts.active}</span>
+                      </div>
+                      <div className="hero-stat">
+                        <span className="hero-stat__label">Atrasadas</span>
+                        <span className="hero-stat__value hero-stat__value--danger">{taskCounts.overdue}</span>
+                      </div>
+                      <div className="hero-stat">
+                        <span className="hero-stat__label">Concluídas</span>
+                        <span className="hero-stat__value hero-stat__value--success">{taskCounts.done}</span>
+                      </div>
+                      <div className="hero-stat">
+                        <span className="hero-stat__label">Foco</span>
+                        <span className="hero-stat__value">{formatMinutes(focusMinutes)}</span>
+                      </div>
+                    </div>
+                    <div className="hero-progress">
+                      <div className="hero-progress__meta">
+                        <span>Capacidade do dia</span>
+                        <span>
+                          {capacityMinutes > 0
+                            ? `${formatMinutes(plannedMinutes)} de ${formatMinutes(capacityMinutes)}`
+                            : 'Sem rotina'}
+                        </span>
+                      </div>
+                      <div
+                        className="hero-progress__bar"
+                        role="progressbar"
+                        aria-label="Capacidade do dia"
+                        aria-valuemin={0}
+                        aria-valuemax={capacityMinutes || 1}
+                        aria-valuenow={capacityMinutes > 0 ? Math.min(plannedMinutes, capacityMinutes) : 0}
+                        aria-valuetext={
+                          capacityMinutes > 0
+                            ? `${formatMinutes(plannedMinutes)} de ${formatMinutes(capacityMinutes)}`
+                            : 'Sem rotina'
+                        }
+                      >
+                        <span
+                          className={`hero-progress__fill${plannedMinutes > capacityMinutes ? ' is-over' : ''}`}
+                          style={{ width: `${Math.round(capacityRatio * 100)}%` }}
+                          aria-hidden="true"
+                        />
+                      </div>
+                    </div>
+                  </section>
+                  <section className="quick-capture-card" aria-label="Captura rápida">
+                    <div className="quick-capture-card__header">
+                      <div>
+                        <h2 className="quick-capture-card__title">Captura rápida</h2>
+                        <p className="quick-capture-card__subtitle">
+                          Transforme ideias em tarefas, notas ou lembretes.
+                        </p>
+                      </div>
+                      <span className="quick-capture-card__badge">Enter para salvar</span>
+                    </div>
+                    <div className="quick-capture-bar">
+                      <QuickCaptureInput
+                        placeholder="Digite qualquer coisa... tarefa, ideia, lembrete"
+                        value={quickCapture}
+                        onChange={setQuickCapture}
+                        onSubmit={(value) => handleQuickCaptureSubmit(value)}
+                      />
+                      <button
+                        type="button"
+                        className="quick-capture-bar__add"
+                        onClick={() => handleQuickCaptureSubmit()}
+                        aria-label="Adicionar na inbox"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <div className="quick-capture-hints" aria-hidden="true">
+                      <span className="quick-capture-hint">Ex: 09:30 Reunião com time</span>
+                      <span className="quick-capture-hint">Ex: ideia app de hábitos</span>
+                      <span className="quick-capture-hint">Ex: ligar para cliente</span>
+                    </div>
+                  </section>
+                </aside>
               </div>
-              <div className="quick-capture-hints" aria-hidden="true">
-                <span className="quick-capture-hint">Ex: 09:30 Reunião com time</span>
-                <span className="quick-capture-hint">Ex: ideia app de habitos</span>
-                <span className="quick-capture-hint">Ex: ligar para cliente</span>
-              </div>
-              <WeekStrip
-                days={days}
-                selectedKey={selectedDayKey}
-                todayKey={todayKey}
-                overbookedKeys={overbookedKeys}
-                onSelect={setSelectedDayKey}
-                onPrevWeek={() => setSelectedDayKey(shiftDayKey(selectedDayKey, -7))}
-                onNextWeek={() => setSelectedDayKey(shiftDayKey(selectedDayKey, 7))}
-              />
-              <TaskList
-                tasks={visibleTasks}
-                onSelectTask={handleSelectTask}
-                onToggleDone={toggleTaskDone}
-                onStartTimer={startTimer}
-                onStopTimer={stopTimer}
-                onAddTask={handleAddTask}
-              />
             </div>
           </main>
         </>
