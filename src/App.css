@@ -36,9 +36,10 @@
 .app-content {
   flex: 1;
   width: 100%;
-  padding: var(--grid-page-padding-mobile);
   padding-top: calc(var(--grid-page-padding-mobile) + var(--size-top-bar-height));
   padding-bottom: calc(var(--grid-page-padding-mobile) + 88px + env(safe-area-inset-bottom));
+  padding-left: calc(var(--grid-page-padding-mobile) + env(safe-area-inset-left));
+  padding-right: calc(var(--grid-page-padding-mobile) + env(safe-area-inset-right));
   max-width: none;
   margin: 0 auto;
 }
@@ -639,9 +640,10 @@
 
 @media (min-width: 960px) {
   .app-content {
-    padding: var(--grid-page-padding-desktop);
     padding-top: calc(var(--grid-page-padding-desktop) + var(--size-top-bar-height));
     padding-bottom: calc(var(--grid-page-padding-desktop) + 88px + env(safe-area-inset-bottom));
+    padding-left: calc(var(--grid-page-padding-desktop) + env(safe-area-inset-left));
+    padding-right: calc(var(--grid-page-padding-desktop) + env(safe-area-inset-right));
     max-width: none;
   }
 }
@@ -658,9 +660,10 @@
   }
 
   .app-content {
-    padding: 14px;
     padding-top: calc(14px + var(--size-top-bar-height));
     padding-bottom: calc(14px + 76px + env(safe-area-inset-bottom));
+    padding-left: calc(14px + env(safe-area-inset-left));
+    padding-right: calc(14px + env(safe-area-inset-right));
   }
 
   .page-title {
@@ -766,7 +769,7 @@
 
 @media (min-width: 1100px) {
   .app-content {
-    padding-left: calc(var(--grid-page-padding-desktop) + var(--size-nav-rail-width));
+    padding-left: calc(var(--grid-page-padding-desktop) + var(--size-nav-rail-width) + env(safe-area-inset-left));
   }
 }
 
