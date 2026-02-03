@@ -7,7 +7,6 @@ import LinkedNotesSheet from './components/LinkedNotesSheet'
 import LinkNoteModal from './components/LinkNoteModal'
 import MonthCalendarModal from './components/MonthCalendarModal'
 import NoteModal from './components/NoteModal'
-import QuickCaptureInput from './components/QuickCaptureInput'
 import SettingsModal from './components/SettingsModal'
 import TaskSheet from './components/TaskSheet'
 import TopBar from './components/TopBar'
@@ -183,7 +182,6 @@ function App() {
   const syncInFlightRef = useRef(false)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [rolloverDismissed, setRolloverDismissed] = useState(false)
-  const [quickCapture, setQuickCapture] = useState('')
   const [pendingNoteId, setPendingNoteId] = useState<string | null>(null)
 
   const todayKeyActual = formatLocalDayKey(new Date())
@@ -639,15 +637,14 @@ function App() {
   const showFab = activeTab === 'today' && !hasOverlayOpen
   const showRolloverBanner = rolloverCandidates.length > 0 && !rolloverDismissed
 
-  const handleQuickCaptureSubmit = (value?: string) => {
-    const text = (value ?? quickCapture).trim()
+  const handleCaptureSubmit = (value: string) => {
+    const text = value.trim()
     if (!text) {
       return
     }
     const parsed = parseCaptureInput(text)
     if (parsed.kind === 'note') {
       createNote({ title: '', body: parsed.title })
-      setQuickCapture('')
       setToast({ type: 'success', message: 'Nota salva.' })
       return
     }
@@ -659,12 +656,10 @@ function App() {
         timeStart: parsed.timeStart ?? '',
         timeEnd: parsed.timeEnd ?? '',
       })
-      setQuickCapture('')
       setToast({ type: 'success', message: 'Tarefa criada.' })
       return
     }
     addInboxItem(text)
-    setQuickCapture('')
     setToast({ type: 'success', message: 'Adicionado na inbox.' })
   }
 
@@ -831,29 +826,6 @@ function App() {
                       </div>
                     </div>
                   </section>
-                  <section className="quick-capture-card" aria-label="Captura rápida">
-                    <div className="quick-capture-card__header">
-                      <div>
-                        <h2 className="quick-capture-card__title">Captura rápida</h2>
-                      </div>
-                    </div>
-                    <div className="quick-capture-bar">
-                      <QuickCaptureInput
-                        placeholder="Digite qualquer coisa... tarefa, ideia, lembrete"
-                        value={quickCapture}
-                        onChange={setQuickCapture}
-                        onSubmit={(value) => handleQuickCaptureSubmit(value)}
-                      />
-                      <button
-                        type="button"
-                        className="quick-capture-bar__add"
-                        onClick={() => handleQuickCaptureSubmit()}
-                        aria-label="Adicionar na inbox"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </section>
                 </aside>
               </div>
             </div>
@@ -870,7 +842,7 @@ function App() {
         isOpen={isInboxOpen}
         items={inboxItems}
         onClose={handleCloseInbox}
-        onAddItem={addInboxItem}
+        onCapture={handleCaptureSubmit}
         onConvertToTask={handleConvertToTask}
         onConvertToNote={handleConvertToNote}
         onDeleteItem={deleteInboxItem}

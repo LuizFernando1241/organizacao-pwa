@@ -90,3 +90,9 @@
     padding: 0 var(--grid-page-padding-desktop);
   }
 }
+
+@media (min-width: 1100px) {
+  .top-bar {
+    padding-left: calc(var(--grid-page-padding-desktop) + var(--size-nav-rail-width));
+  }
+}

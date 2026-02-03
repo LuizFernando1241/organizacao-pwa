@@ -5,7 +5,7 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--motion-duration-base) var(--motion-easing-standard);
-  z-index: 10;
+  z-index: 1300;
 }
 
 .sheet-backdrop--open {
@@ -14,8 +14,9 @@
 }
 
 .inbox-sheet {
+  --inbox-sheet-offset: 0px;
   position: fixed;
-  left: 0;
+  left: var(--inbox-sheet-offset);
   top: 0;
   bottom: 0;
   width: min(85vw, 360px);
@@ -28,16 +29,16 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  transform: translateX(-100%);
+  transform: translateX(calc(-100% - var(--inbox-sheet-offset)));
   transition: transform var(--motion-duration-base) var(--motion-easing-standard);
-  z-index: 11;
+  z-index: 1301;
   pointer-events: none;
   box-shadow: var(--shadow-subtle);
 }
 
 @media (min-width: 1100px) {
   .inbox-sheet {
-    left: calc(var(--size-nav-rail-width) + var(--space-5));
+    --inbox-sheet-offset: calc(var(--size-nav-rail-width) + var(--space-5));
   }
 }
 

@@ -3,14 +3,15 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 72px;
+  height: calc(72px + env(safe-area-inset-bottom));
   background: rgba(12, 16, 24, 0.9);
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
   border-top: 1px solid rgba(148, 163, 184, 0.2);
   display: flex;
   justify-content: space-evenly;
-  z-index: 1000;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 9;
   box-shadow: 0 -10px 26px rgba(7, 10, 18, 0.4);
 }
 

@@ -38,7 +38,7 @@
   width: 100%;
   padding: var(--grid-page-padding-mobile);
   padding-top: calc(var(--grid-page-padding-mobile) + var(--size-top-bar-height));
-  padding-bottom: calc(var(--grid-page-padding-mobile) + 88px);
+  padding-bottom: calc(var(--grid-page-padding-mobile) + 88px + env(safe-area-inset-bottom));
   max-width: none;
   margin: 0 auto;
 }
@@ -476,7 +476,7 @@
 .toast {
   position: fixed;
   left: 50%;
-  bottom: 96px;
+  bottom: calc(96px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
   background: rgba(12, 16, 24, 0.9);
   color: #ffffff;
@@ -569,7 +569,7 @@
 .fab-add-task {
   position: fixed;
   right: 18px;
-  bottom: 96px;
+  bottom: calc(96px + env(safe-area-inset-bottom));
   width: 54px;
   height: 54px;
   border-radius: 50%;
@@ -641,7 +641,7 @@
   .app-content {
     padding: var(--grid-page-padding-desktop);
     padding-top: calc(var(--grid-page-padding-desktop) + var(--size-top-bar-height));
-    padding-bottom: calc(var(--grid-page-padding-desktop) + 88px);
+    padding-bottom: calc(var(--grid-page-padding-desktop) + 88px + env(safe-area-inset-bottom));
     max-width: none;
   }
 }
@@ -660,7 +660,7 @@
   .app-content {
     padding: 14px;
     padding-top: calc(14px + var(--size-top-bar-height));
-    padding-bottom: calc(14px + 76px);
+    padding-bottom: calc(14px + 76px + env(safe-area-inset-bottom));
   }
 
   .page-title {
@@ -727,11 +727,11 @@
   }
 
   .home-main {
-    order: 2;
+    order: 1;
   }
 
   .home-side {
-    order: 1;
+    order: 2;
   }
 
   .home-panel {

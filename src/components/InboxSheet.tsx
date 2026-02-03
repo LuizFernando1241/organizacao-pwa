@@ -8,7 +8,7 @@ type InboxSheetProps = {
   isOpen: boolean
   items: InboxItemType[]
   onClose: () => void
-  onAddItem: (text: string) => void
+  onCapture: (text: string) => void
   onConvertToTask: (id: string) => void
   onConvertToNote: (id: string) => void
   onDeleteItem: (id: string) => void
@@ -19,7 +19,7 @@ function InboxSheet({
   isOpen,
   items,
   onClose,
-  onAddItem,
+  onCapture,
   onConvertToTask,
   onConvertToNote,
   onDeleteItem,
@@ -32,7 +32,7 @@ function InboxSheet({
     if (!value) {
       return
     }
-    onAddItem(value)
+    onCapture(value)
     setDraftText('')
   }
   return (
@@ -48,10 +48,10 @@ function InboxSheet({
         <div className="inbox-sheet__capture">
           <QuickCaptureInput
             onSubmit={(value) => {
-              onAddItem(value)
+              onCapture(value)
               setDraftText('')
             }}
-            placeholder="Digite algo..."
+            placeholder="Digite algo... tarefa, nota, lembrete"
             value={draftText}
             onChange={setDraftText}
           />
