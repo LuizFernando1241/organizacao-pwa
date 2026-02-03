@@ -63,12 +63,14 @@ function TaskCard({ task, onSelect, onToggleDone, onStartTimer, onStopTimer }: T
   const seconds = totalSeconds % 60
   const timeSpentLabel = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 
+  const displayTitle = task.title?.trim() ? task.title : 'Tarefa sem título'
+
   return (
     <div
       className={`task-card ${stateClassMap[task.status]}${isGlow ? ' task-card--glow' : ''}`}
       role="button"
       tabIndex={0}
-      aria-label={task.title ? `Abrir tarefa ${task.title}` : 'Abrir tarefa'}
+      aria-label={displayTitle ? `Abrir tarefa ${displayTitle}` : 'Abrir tarefa'}
       onClick={() => onSelect?.(task)}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
@@ -89,7 +91,7 @@ function TaskCard({ task, onSelect, onToggleDone, onStartTimer, onStopTimer }: T
         }}
       />
       <div className="task-card__content">
-        <div className="task-card__title">{task.title}</div>
+        <div className="task-card__title">{displayTitle}</div>
         <div className="task-card__meta">{timeLabel}</div>
         {hasTime && (
           <div className={`task-card__timer${task.isTimerRunning ? ' task-card__timer--running' : ''}`}>
@@ -100,7 +102,7 @@ function TaskCard({ task, onSelect, onToggleDone, onStartTimer, onStopTimer }: T
       <button
         type="button"
         className={`task-card__timer-btn${task.isTimerRunning ? ' task-card__timer-btn--active' : ''}`}
-        aria-label={task.isTimerRunning ? 'Pausar cronometro' : 'Iniciar cronometro'}
+        aria-label={task.isTimerRunning ? 'Pausar cronômetro' : 'Iniciar cronômetro'}
         onClick={(event) => {
           event.stopPropagation()
           if (isDone) {

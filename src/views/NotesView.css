@@ -10,7 +10,7 @@
   gap: var(--space-4);
   width: 100%;
   flex: 1;
-  min-height: calc(100svh - var(--size-top-bar-height) - 88px);
+  min-height: calc(100svh - var(--size-top-bar-height) - var(--safe-area-top) - 88px);
 }
 
 .notes-hero {

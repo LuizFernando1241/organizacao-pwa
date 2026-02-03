@@ -1,6 +1,7 @@
 import type { Note } from '../types/note'
 import type { InboxItem } from '../types/inbox'
 import type { NoteTaskLink } from '../types/link'
+import type { Plan } from '../types/plan'
 import type { Task } from '../types/task'
 import type { OpsQueueStatus } from '../types/ops'
 import { db, getMetaValue, setMetaValue } from '../store/db'
@@ -19,6 +20,7 @@ type PullResponse = {
   tasks: Array<Record<string, unknown>>
   notes: Array<Record<string, unknown>>
   links: Array<Record<string, unknown>>
+  plans?: Array<Record<string, unknown>>
   inbox_items?: Array<Record<string, unknown>>
   inboxItems?: Array<Record<string, unknown>>
   meta?: Array<Record<string, unknown>>
@@ -27,7 +29,7 @@ type PullResponse = {
 }
 
 const API_BASE = import.meta.env.VITE_SYNC_API_URL ?? ''
-const syncableEntityTypes = new Set(['task', 'note', 'link', 'inbox', 'meta'])
+const syncableEntityTypes = new Set(['task', 'note', 'link', 'inbox', 'meta', 'plan'])
 const syncableMetaKeys = new Set([
   'selectedDayKey',
   'wakeTime',
@@ -154,6 +156,25 @@ const normalizeInboxItem = (row: Record<string, unknown>): InboxItem & { deleted
   }
 }
 
+const normalizePlan = (row: Record<string, unknown>): Plan & { deletedAt?: string | null } => {
+  return {
+    id: String(row.id),
+    title: String(row.title ?? ''),
+    subtitle: String(row.subtitle ?? ''),
+    status: (row.status as Plan['status']) ?? 'active',
+    startDate: String(row.start_date ?? row.startDate ?? ''),
+    endDate: String(row.end_date ?? row.endDate ?? ''),
+    goals: parseJsonArray<Plan['goals'][number]>(row.goals, []),
+    blocks: parseJsonArray<Plan['blocks'][number]>(row.blocks, []),
+    phases: parseJsonArray<Plan['phases'][number]>(row.phases, []),
+    decisions: parseJsonArray<Plan['decisions'][number]>(row.decisions, []),
+    linkedTaskIds: parseJsonArray<string>(row.linked_task_ids ?? row.linkedTaskIds, []),
+    createdAt: String(row.created_at ?? row.createdAt ?? row.updated_at ?? new Date().toISOString()),
+    updatedAt: String(row.updated_at ?? new Date().toISOString()),
+    deletedAt: row.deleted_at ? String(row.deleted_at) : null,
+  }
+}
+
 const normalizeMetaItem = (row: Record<string, unknown>) => {
   return {
     key: String(row.meta_key ?? row.key ?? ''),
@@ -161,6 +182,37 @@ const normalizeMetaItem = (row: Record<string, unknown>) => {
     updatedAt: row.updated_at ? String(row.updated_at) : undefined,
     deletedAt: row.deleted_at ? String(row.deleted_at) : null,
   }
+}
+
+const enqueuePlanBootstrap = async () => {
+  const alreadyBootstrapped = await getMetaValue('plansSyncBootstrapped')
+  if (alreadyBootstrapped === 'true') {
+    return
+  }
+  const plans = await db.plans.toArray()
+  if (plans.length === 0) {
+    await setMetaValue('plansSyncBootstrapped', 'true')
+    return
+  }
+  const pending = (await db.ops_queue.where('status').equals('pending').toArray()) as SyncOp[]
+  const pendingPlanIds = new Set(pending.filter((op) => op.entityType === 'plan').map((op) => op.entityId))
+  await Promise.all(
+    plans.map((plan) => {
+      if (pendingPlanIds.has(plan.id)) {
+        return Promise.resolve()
+      }
+      return db.ops_queue.add({
+        opId: crypto?.randomUUID ? crypto.randomUUID() : `${plan.id}-${Date.now()}`,
+        entityType: 'plan',
+        entityId: plan.id,
+        opType: 'create',
+        payload: plan as unknown as Record<string, unknown>,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+      })
+    }),
+  )
+  await setMetaValue('plansSyncBootstrapped', 'true')
 }
 
 export const pushChanges = async () => {
@@ -175,7 +227,7 @@ export const pushChanges = async () => {
   const unsupported = pending.filter((op) => !syncableEntityTypes.has(op.entityType))
   if (unsupported.length > 0) {
     const unsupportedIds = unsupported.map((op) => op.opId)
-    await db.ops_queue.where('opId').anyOf(unsupportedIds).modify({ status: 'acked' })
+    await db.ops_queue.where('opId').anyOf(unsupportedIds).delete()
   }
   if (syncable.length === 0) {
     return
@@ -199,13 +251,16 @@ export const pushChanges = async () => {
   }
   const data = (await response.json()) as { acked?: string[] }
   const acked = data.acked ?? []
-  await db.ops_queue.where('opId').anyOf(acked).modify({ status: 'acked' })
+  if (acked.length > 0) {
+    await db.ops_queue.where('opId').anyOf(acked).delete()
+  }
 }
 
 export const pullChanges = async () => {
   if (!API_BASE) {
     throw new Error('Sync API nao configurada.')
   }
+  await enqueuePlanBootstrap()
   const cursor = (await getMetaValue('lastSyncCursor')) ?? '1970-01-01T00:00:00.000Z'
   const response = await fetch(`${API_BASE}/sync/pull?cursor=${encodeURIComponent(cursor)}`, {
     headers: await buildHeaders(),
@@ -218,16 +273,18 @@ export const pullChanges = async () => {
   const taskRows = data.tasks ?? []
   const noteRows = data.notes ?? []
   const linkRows = data.links ?? []
+  const planRows = data.plans ?? []
   const inboxRows = data.inbox_items ?? data.inboxItems ?? []
   const metaRows = data.meta ?? data.settings ?? []
 
   const tasks = taskRows.map((row) => normalizeTask(row))
   const notes = noteRows.map((row) => normalizeNote(row))
   const links = linkRows.map((row) => normalizeLink(row))
+  const plans = planRows.map((row) => normalizePlan(row))
   const inboxItems = inboxRows.map((row) => normalizeInboxItem(row))
   const metaItems = metaRows.map((row) => normalizeMetaItem(row))
 
-  await db.transaction('rw', db.tasks, db.notes, db.links, async () => {
+  await db.transaction('rw', db.tasks, db.notes, db.links, db.plans, async () => {
     for (const task of tasks) {
       if (task.deletedAt) {
         await db.tasks.delete(task.id)
@@ -248,6 +305,13 @@ export const pullChanges = async () => {
       } else {
         await db.links.where('taskId').equals(link.taskId).and((row) => row.noteId === link.noteId).delete()
         await db.links.add({ noteId: link.noteId, taskId: link.taskId })
+      }
+    }
+    for (const plan of plans) {
+      if (plan.deletedAt) {
+        await db.plans.delete(plan.id)
+      } else {
+        await db.plans.put(plan)
       }
     }
   })

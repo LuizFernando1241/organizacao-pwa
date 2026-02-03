@@ -180,6 +180,7 @@ function App() {
   const [isSyncing, setIsSyncing] = useState(false)
   const autoSyncTimeoutRef = useRef<number | null>(null)
   const syncInFlightRef = useRef(false)
+  const bodyLockRef = useRef<{ overflow: string; touchAction: string } | null>(null)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [rolloverDismissed, setRolloverDismissed] = useState(false)
   const [pendingNoteId, setPendingNoteId] = useState<string | null>(null)
@@ -381,12 +382,48 @@ function App() {
     if (!isReady) {
       return
     }
-    const interval = window.setInterval(() => {
-      runTimeTick()
-    }, 60_000)
-    runTimeTick()
-    return () => window.clearInterval(interval)
+    let intervalId: number | null = null
+    const tick = () => runTimeTick()
+    const start = () => {
+      if (intervalId !== null) {
+        return
+      }
+      intervalId = window.setInterval(tick, 60_000)
+      tick()
+    }
+    const stop = () => {
+      if (intervalId !== null) {
+        window.clearInterval(intervalId)
+        intervalId = null
+      }
+    }
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        start()
+      } else {
+        stop()
+      }
+    }
+    handleVisibility()
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => {
+      stop()
+      document.removeEventListener('visibilitychange', handleVisibility)
+    }
   }, [isReady, runTimeTick])
+
+  useEffect(() => {
+    if (!isReady) {
+      return
+    }
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        void runSync('auto')
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [isReady, runSync])
 
   useEffect(() => {
     if (rolloverCandidates.length === 0 && rolloverDismissed) {
@@ -636,6 +673,29 @@ function App() {
     isLinkModalOpen
   const showFab = activeTab === 'today' && !hasOverlayOpen
   const showRolloverBanner = rolloverCandidates.length > 0 && !rolloverDismissed
+
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return
+    }
+    const body = document.body
+    if (hasOverlayOpen) {
+      if (!bodyLockRef.current) {
+        bodyLockRef.current = {
+          overflow: body.style.overflow,
+          touchAction: body.style.touchAction,
+        }
+      }
+      body.style.overflow = 'hidden'
+      body.style.touchAction = 'none'
+      return
+    }
+    if (bodyLockRef.current) {
+      body.style.overflow = bodyLockRef.current.overflow
+      body.style.touchAction = bodyLockRef.current.touchAction
+      bodyLockRef.current = null
+    }
+  }, [hasOverlayOpen])
 
   const handleCaptureSubmit = (value: string) => {
     const text = value.trim()

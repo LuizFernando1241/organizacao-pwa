@@ -58,7 +58,7 @@ function NoteModal({ isOpen, note, onSave, onClose, onLink }: NoteModalProps) {
                 type="button"
                 className={`note-modal__color${color === null ? ' note-modal__color--active' : ''}`}
                 onClick={() => setColor(null)}
-                aria-label="Cor automatica"
+                aria-label="Cor automática"
               >
                 Auto
               </button>
@@ -86,7 +86,7 @@ function NoteModal({ isOpen, note, onSave, onClose, onLink }: NoteModalProps) {
           <textarea
             className="note-modal__textarea"
             placeholder="Escreva sua nota..."
-            aria-label="Conteudo da nota"
+            aria-label="Conteúdo da nota"
             value={body}
             onChange={(event) => setBody(event.target.value)}
           />

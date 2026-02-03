@@ -1,4 +1,5 @@
 :root {
+  --safe-area-top: env(safe-area-inset-top, 0px);
   --bg-app: #0b0e12;
   --bg-surface: #141a23;
   --bg-surface-strong: #171f2b;

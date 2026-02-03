@@ -11,6 +11,11 @@ body {
   min-height: 100%;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   font-family: var(--font-family-sans);
   background: var(--app-background);
@@ -27,6 +32,7 @@ body {
 
 button {
   font-family: inherit;
+  touch-action: manipulation;
 }
 
 ::selection {
@@ -59,4 +65,12 @@ button {
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   border: 0;
+}
+
+@media (max-width: 640px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
 }

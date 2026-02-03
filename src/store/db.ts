@@ -126,7 +126,7 @@ const seedTasks: Task[] = [
 ]
 
 const seedInbox: InboxItem[] = [
-  { id: 'inbox-1', text: 'Ideia para nota rapida', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'inbox-1', text: 'Ideia para nota rápida', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
 ]
 
 const seedNotes: Note[] = [
@@ -151,7 +151,7 @@ const seedNotes: Note[] = [
 const seedPlans: Plan[] = [
   {
     id: 'plan-1',
-    title: 'Planejamento estrategico 2026',
+    title: 'Planejamento estratégico 2026',
     subtitle: 'Definir metas e iniciativas principais do ano',
     status: 'active',
     startDate: '',
@@ -164,7 +164,7 @@ const seedPlans: Plan[] = [
       {
         id: 'block-1',
         title: 'Contexto',
-        body: 'Este planejamento define os pilares para crescimento sustentavel e previsibilidade financeira.',
+        body: 'Este planejamento define os pilares para crescimento sustentável e previsibilidade financeira.',
       },
       {
         id: 'block-2',
@@ -191,7 +191,7 @@ const seedPlans: Plan[] = [
     decisions: [
       {
         id: 'decision-1',
-        summary: 'Priorizar canal de indicacao no primeiro trimestre.',
+        summary: 'Priorizar canal de indicação no primeiro trimestre.',
         decidedAt: new Date().toISOString().slice(0, 10),
       },
     ],
@@ -211,17 +211,22 @@ export const initDb = async () => {
   ])
   const planCount = await db.plans.count()
 
-  if (taskCount === 0) {
-    await db.tasks.bulkAdd(seedTasks)
-  }
-  if (noteCount === 0) {
-    await db.notes.bulkAdd(seedNotes)
-  }
-  if (inboxCount === 0) {
-    await db.inbox_items.bulkAdd(seedInbox)
-  }
-  if (planCount === 0) {
-    await db.plans.bulkAdd(seedPlans)
+  const shouldSeed =
+    Boolean(import.meta.env.DEV) || String(import.meta.env.VITE_SEED_DATA ?? '').toLowerCase() === 'true'
+
+  if (shouldSeed) {
+    if (taskCount === 0) {
+      await db.tasks.bulkAdd(seedTasks)
+    }
+    if (noteCount === 0) {
+      await db.notes.bulkAdd(seedNotes)
+    }
+    if (inboxCount === 0) {
+      await db.inbox_items.bulkAdd(seedInbox)
+    }
+    if (planCount === 0) {
+      await db.plans.bulkAdd(seedPlans)
+    }
   }
 
   const deviceId = await db.meta.get('deviceId')
@@ -272,7 +277,7 @@ export const setMetaValue = async (key: string, value: string, updatedAt?: strin
 }
 
 const buildOpId = () => (crypto?.randomUUID ? crypto.randomUUID() : buildId('op'))
-const syncableEntityTypes = new Set(['task', 'note', 'link', 'inbox', 'meta'])
+const syncableEntityTypes = new Set(['task', 'note', 'link', 'inbox', 'meta', 'plan'])
 
 const emitSyncQueueUpdated = () => {
   if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') {

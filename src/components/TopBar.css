@@ -3,10 +3,11 @@
   top: 0;
   left: 0;
   right: 0;
-  height: var(--size-top-bar-height);
+  height: calc(var(--size-top-bar-height) + var(--safe-area-top));
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding-top: var(--safe-area-top);
   padding-left: calc(var(--grid-page-padding-mobile) + env(safe-area-inset-left));
   padding-right: calc(var(--grid-page-padding-mobile) + env(safe-area-inset-right));
   background: var(--color-background-glass);

@@ -793,25 +793,43 @@ export const useAppStore = create<AppState>((set, get) => {
     }
     set((state) => ({ plans: [plan, ...state.plans] }))
     void db.plans.add(plan)
+    void enqueueOp({
+      entityType: 'plan',
+      entityId: plan.id,
+      opType: 'create',
+      payload: plan,
+    })
     return id
   },
   updatePlan: (id, updates) => {
+    const current = get().plans.find((plan) => plan.id === id)
+    if (!current) {
+      return
+    }
+    const updated = { ...current, ...updates, updatedAt: new Date().toISOString() }
     set((state) => ({
-      plans: state.plans.map((plan) => {
-        if (plan.id !== id) {
-          return plan
-        }
-        const updated = { ...plan, ...updates, updatedAt: new Date().toISOString() }
-        void db.plans.put(updated)
-        return updated
-      }),
+      plans: state.plans.map((plan) => (plan.id === id ? updated : plan)),
     }))
+    void db.plans.put(updated)
+    void enqueueOp({
+      entityType: 'plan',
+      entityId: updated.id,
+      opType: 'update',
+      payload: updated,
+    })
   },
   deletePlan: (id) => {
+    const now = new Date().toISOString()
     set((state) => ({
       plans: state.plans.filter((plan) => plan.id !== id),
     }))
     void db.plans.delete(id)
+    void enqueueOp({
+      entityType: 'plan',
+      entityId: id,
+      opType: 'delete',
+      payload: { updatedAt: now },
+    })
   },
   linkNoteToTask: (noteId, taskId) => {
     const task = get().tasks.find((item) => item.id === taskId)

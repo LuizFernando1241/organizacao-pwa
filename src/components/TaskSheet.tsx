@@ -306,7 +306,7 @@ function TaskSheet({
             </div>
             <div className="time-range">
               <label className="field">
-                <span className="field__label">Hora inicio</span>
+                <span className="field__label">Hora início</span>
                 <input
                   type="time"
                   className="field__input"
@@ -413,14 +413,14 @@ function TaskSheet({
           </div>
 
           <label className="field">
-            <span className="field__label">Recorrencia</span>
+            <span className="field__label">Recorrência</span>
             <select
               className="field__select"
               value={recurrence}
               onChange={(event) => handleRecurrenceChange(event.target.value as Recurrence)}
             >
               <option value="none">Nenhuma</option>
-              <option value="daily">Diaria</option>
+              <option value="daily">Diária</option>
               <option value="weekly">Semanal</option>
               <option value="monthly">Mensal</option>
             </select>

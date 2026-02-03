@@ -69,6 +69,29 @@
   align-self: end;
 }
 
+.plan-editor__status {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  justify-self: start;
+}
+
+.plan-editor__status--saving {
+  color: #dbeafe;
+  background: rgba(var(--primary-rgb), 0.18);
+  border-color: rgba(var(--primary-rgb), 0.35);
+}
+
+.plan-editor__status--saved {
+  color: #dcfce7;
+  background: rgba(var(--success-rgb), 0.16);
+  border-color: rgba(var(--success-rgb), 0.35);
+}
+
 .plan-editor__nav {
   display: inline-flex;
   flex-wrap: wrap;
@@ -274,6 +297,30 @@
 
 .plan-overview__empty {
   color: var(--color-text-muted);
+}
+
+.plan-overview__next {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  color: var(--color-text-primary);
+  font-size: 13px;
+}
+
+.plan-overview__next button {
+  border: none;
+  background: rgba(var(--primary-rgb), 0.18);
+  color: #dbeafe;
+  border-radius: 999px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.plan-overview__next button:hover {
+  background: rgba(var(--primary-rgb), 0.28);
 }
 
 .plan-section {

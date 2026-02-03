@@ -36,7 +36,7 @@
 .app-content {
   flex: 1;
   width: 100%;
-  padding-top: calc(var(--grid-page-padding-mobile) + var(--size-top-bar-height));
+  padding-top: calc(var(--grid-page-padding-mobile) + var(--size-top-bar-height) + var(--safe-area-top));
   padding-bottom: calc(var(--grid-page-padding-mobile) + 88px + env(safe-area-inset-bottom));
   padding-left: calc(var(--grid-page-padding-mobile) + env(safe-area-inset-left));
   padding-right: calc(var(--grid-page-padding-mobile) + env(safe-area-inset-right));
@@ -640,7 +640,7 @@
 
 @media (min-width: 960px) {
   .app-content {
-    padding-top: calc(var(--grid-page-padding-desktop) + var(--size-top-bar-height));
+    padding-top: calc(var(--grid-page-padding-desktop) + var(--size-top-bar-height) + var(--safe-area-top));
     padding-bottom: calc(var(--grid-page-padding-desktop) + 88px + env(safe-area-inset-bottom));
     padding-left: calc(var(--grid-page-padding-desktop) + env(safe-area-inset-left));
     padding-right: calc(var(--grid-page-padding-desktop) + env(safe-area-inset-right));
@@ -660,7 +660,7 @@
   }
 
   .app-content {
-    padding-top: calc(14px + var(--size-top-bar-height));
+    padding-top: calc(14px + var(--size-top-bar-height) + var(--safe-area-top));
     padding-bottom: calc(14px + 76px + env(safe-area-inset-bottom));
     padding-left: calc(14px + env(safe-area-inset-left));
     padding-right: calc(14px + env(safe-area-inset-right));

@@ -29,10 +29,17 @@ const jsonResponse = (data: unknown, init: ResponseInit = {}) =>
 const missingDbResponse = () => jsonResponse({ error: 'DB binding missing.' }, { status: 500 })
 
 const ensureUser = async (db: D1Database, userId: string) => {
-  await db.prepare('INSERT OR IGNORE INTO users (id, created_at) VALUES (?, ?)').bind(userId, new Date().toISOString()).run()
+  await db
+    .prepare('INSERT OR IGNORE INTO users (id, created_at) VALUES (?, ?)')
+    .bind(userId, new Date().toISOString())
+    .run()
 }
 
-const getUserId = (request: Request) => request.headers.get('x-user-id') ?? 'default-user'
+const getUserId = (request: Request) => {
+  const raw = request.headers.get('x-user-id') ?? ''
+  const trimmed = raw.trim()
+  return trimmed || 'default-user'
+}
 
 const getOpTimestamp = (payload: Record<string, unknown>) => {
   const updatedAt = payload.updatedAt ?? payload.updated_at
@@ -48,11 +55,14 @@ const parseJson = async (request: Request) => {
 }
 
 const shouldApplyUpdate = async (db: D1Database, table: string, id: string, opUpdatedAt: string) => {
-  const existing = await db.prepare(`SELECT updated_at FROM ${table} WHERE id = ?`).bind(id).first<{ updated_at: string }>()
-  if (!existing?.updated_at) {
+  const existing = await db
+    .prepare(`SELECT MAX(updated_at, deleted_at) as last_at FROM ${table} WHERE id = ?`)
+    .bind(id)
+    .first<{ last_at: string | null }>()
+  if (!existing?.last_at) {
     return true
   }
-  return existing.updated_at <= opUpdatedAt
+  return existing.last_at <= opUpdatedAt
 }
 
 const upsertTask = async (db: D1Database, userId: string, payload: Record<string, unknown>, opUpdatedAt: string) => {
@@ -176,6 +186,53 @@ const upsertInboxItem = async (db: D1Database, userId: string, payload: Record<s
     .run()
 }
 
+const upsertPlan = async (db: D1Database, userId: string, payload: Record<string, unknown>, opUpdatedAt: string) => {
+  const id = String(payload.id ?? '')
+  if (!id) {
+    return
+  }
+  const canUpdate = await shouldApplyUpdate(db, 'plans', id, opUpdatedAt)
+  if (!canUpdate) {
+    return
+  }
+  const createdAt = String(payload.createdAt ?? payload.created_at ?? opUpdatedAt)
+  await db
+    .prepare(
+      `INSERT INTO plans (id, user_id, title, subtitle, status, start_date, end_date, goals, blocks, phases, decisions, linked_task_ids, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET
+         title = excluded.title,
+         subtitle = excluded.subtitle,
+         status = excluded.status,
+         start_date = excluded.start_date,
+         end_date = excluded.end_date,
+         goals = excluded.goals,
+         blocks = excluded.blocks,
+         phases = excluded.phases,
+         decisions = excluded.decisions,
+         linked_task_ids = excluded.linked_task_ids,
+         updated_at = excluded.updated_at,
+         deleted_at = NULL`,
+    )
+    .bind(
+      id,
+      userId,
+      payload.title ?? '',
+      payload.subtitle ?? '',
+      payload.status ?? 'active',
+      payload.startDate ?? payload.start_date ?? '',
+      payload.endDate ?? payload.end_date ?? '',
+      JSON.stringify(payload.goals ?? []),
+      JSON.stringify(payload.blocks ?? []),
+      JSON.stringify(payload.phases ?? []),
+      JSON.stringify(payload.decisions ?? []),
+      JSON.stringify(payload.linkedTaskIds ?? payload.linked_task_ids ?? []),
+      createdAt,
+      opUpdatedAt,
+    )
+    .run()
+}
+
 const upsertMeta = async (db: D1Database, userId: string, entityId: string, payload: Record<string, unknown>, opUpdatedAt: string) => {
   const key = String(payload.key ?? entityId ?? '')
   if (!key) {
@@ -242,50 +299,69 @@ export default {
         await ensureUser(env.DB, userId)
         const acked: string[] = []
         for (const op of body as SyncOp[]) {
-          if (!op || !op.opId) {
+          if (!op || !op.opId || !op.entityType || !op.opType) {
             continue
           }
           const opUpdatedAt = getOpTimestamp(op.payload ?? {})
-      if (op.entityType === 'task') {
-        if (op.opType === 'delete') {
-          await markDeleted(env.DB, 'tasks', op.entityId, opUpdatedAt)
-        } else {
+          if (op.entityType === 'task') {
+            if (op.opType === 'delete') {
+              await markDeleted(env.DB, 'tasks', op.entityId, opUpdatedAt)
+            } else {
               await upsertTask(env.DB, userId, op.payload ?? {}, opUpdatedAt)
             }
             acked.push(op.opId)
-      } else if (op.entityType === 'note') {
-        if (op.opType === 'delete') {
-          await markDeleted(env.DB, 'notes', op.entityId, opUpdatedAt)
-        } else {
+            continue
+          }
+          if (op.entityType === 'note') {
+            if (op.opType === 'delete') {
+              await markDeleted(env.DB, 'notes', op.entityId, opUpdatedAt)
+            } else {
               await upsertNote(env.DB, userId, op.payload ?? {}, opUpdatedAt)
             }
             acked.push(op.opId)
-      } else if (op.entityType === 'link') {
-        if (op.opType === 'delete') {
-          await markDeleted(env.DB, 'links', op.entityId, opUpdatedAt)
-        } else {
+            continue
+          }
+          if (op.entityType === 'link') {
+            if (op.opType === 'delete') {
+              await markDeleted(env.DB, 'links', op.entityId, opUpdatedAt)
+            } else {
               await upsertLink(env.DB, userId, op.payload ?? {}, opUpdatedAt)
+            }
+            acked.push(op.opId)
+            continue
+          }
+          if (op.entityType === 'inbox') {
+            if (op.opType === 'delete') {
+              await markDeleted(env.DB, 'inbox_items', op.entityId, opUpdatedAt)
+            } else {
+              await upsertInboxItem(env.DB, userId, op.payload ?? {}, opUpdatedAt)
+            }
+            acked.push(op.opId)
+            continue
+          }
+          if (op.entityType === 'plan') {
+            if (op.opType === 'delete') {
+              await markDeleted(env.DB, 'plans', op.entityId, opUpdatedAt)
+            } else {
+              await upsertPlan(env.DB, userId, op.payload ?? {}, opUpdatedAt)
+            }
+            acked.push(op.opId)
+            continue
+          }
+          if (op.entityType === 'meta') {
+            if (op.opType === 'delete') {
+              const metaId = `${userId}:${op.entityId}`
+              await markDeleted(env.DB, 'user_meta', metaId, opUpdatedAt)
+            } else {
+              await upsertMeta(env.DB, userId, op.entityId, op.payload ?? {}, opUpdatedAt)
+            }
+            acked.push(op.opId)
+            continue
+          }
+          acked.push(op.opId)
         }
-        acked.push(op.opId)
-      } else if (op.entityType === 'inbox') {
-        if (op.opType === 'delete') {
-          await markDeleted(env.DB, 'inbox_items', op.entityId, opUpdatedAt)
-        } else {
-          await upsertInboxItem(env.DB, userId, op.payload ?? {}, opUpdatedAt)
-        }
-        acked.push(op.opId)
-      } else if (op.entityType === 'meta') {
-        if (op.opType === 'delete') {
-          const metaId = `${userId}:${op.entityId}`
-          await markDeleted(env.DB, 'user_meta', metaId, opUpdatedAt)
-        } else {
-          await upsertMeta(env.DB, userId, op.entityId, op.payload ?? {}, opUpdatedAt)
-        }
-        acked.push(op.opId)
+        return jsonResponse({ acked })
       }
-    }
-    return jsonResponse({ acked })
-  }
 
       if (url.pathname === '/sync/pull' && request.method === 'GET') {
         if (!env.DB) {
@@ -294,7 +370,7 @@ export default {
         const cursor = url.searchParams.get('cursor') ?? '1970-01-01T00:00:00.000Z'
         const userId = getUserId(request)
         await ensureUser(env.DB, userId)
-        const [tasks, notes, links, inboxItems, meta] = await Promise.all([
+        const [tasks, notes, links, inboxItems, meta, plans] = await Promise.all([
           env.DB.prepare(
             `SELECT * FROM tasks WHERE user_id = ? AND (updated_at > ? OR deleted_at > ?)`,
           )
@@ -320,6 +396,11 @@ export default {
           )
             .bind(userId, cursor, cursor)
             .all(),
+          env.DB.prepare(
+            `SELECT * FROM plans WHERE user_id = ? AND (updated_at > ? OR deleted_at > ?)`,
+          )
+            .bind(userId, cursor, cursor)
+            .all(),
         ])
         const newCursor = new Date().toISOString()
         return jsonResponse({
@@ -328,6 +409,7 @@ export default {
           links: links.results,
           inbox_items: inboxItems.results,
           meta: meta.results,
+          plans: plans.results,
           newCursor,
         })
       }

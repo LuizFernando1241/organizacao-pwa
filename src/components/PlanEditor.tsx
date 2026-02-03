@@ -1,5 +1,5 @@
 import { Plus, Trash2 } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import type { Plan, PlanBlock, PlanDecision, PlanGoal, PlanPhase } from '../types/plan'
 import type { Task } from '../types/task'
 import { getGoalProgress, getPlanGoalsProgress, getPlanOverallProgress, getPlanTasksProgress } from '../utils/planMetrics'
@@ -13,7 +13,7 @@ type PlanEditorProps = {
   onDelete: (plan: Plan) => void
 }
 
-type SectionId = 'overview' | 'goals' | 'blocks' | 'phases' | 'decisions' | 'tasks' | 'settings'
+type SectionId = 'overview' | 'execution' | 'context' | 'settings'
 
 const buildId = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`
 
@@ -26,21 +26,58 @@ const statusLabels: Record<Plan['status'], string> = {
 function PlanEditor({ plan, tasks, onUpdate, onDelete }: PlanEditorProps) {
   const [draft, setDraft] = useState<Plan>(plan)
   const [taskQuery, setTaskQuery] = useState('')
+  const deferredTaskQuery = useDeferredValue(taskQuery)
   const [activeSection, setActiveSection] = useState<SectionId>('overview')
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
   const saveTimeoutRef = useRef<number | null>(null)
+  const idleTimeoutRef = useRef<number | null>(null)
 
   const scheduleUpdate = (updates: Partial<Plan>) => {
     setDraft((prev) => {
-      const next = { ...prev, ...updates }
+      const next = { ...prev, ...updates, updatedAt: new Date().toISOString() }
       if (saveTimeoutRef.current !== null) {
         window.clearTimeout(saveTimeoutRef.current)
       }
+      if (idleTimeoutRef.current !== null) {
+        window.clearTimeout(idleTimeoutRef.current)
+      }
+      setSaveStatus('saving')
       saveTimeoutRef.current = window.setTimeout(() => {
         onUpdate(plan.id, next)
+        setSaveStatus('saved')
+        idleTimeoutRef.current = window.setTimeout(() => setSaveStatus('idle'), 1200)
       }, 400)
       return next
     })
   }
+
+  useEffect(() => {
+    setDraft(plan)
+    setSaveStatus('idle')
+    setActiveSection('overview')
+    setTaskQuery('')
+  }, [plan.id])
+
+  useEffect(() => {
+    if (saveStatus !== 'idle') {
+      return
+    }
+    if (plan.updatedAt === draft.updatedAt) {
+      return
+    }
+    setDraft(plan)
+  }, [plan.updatedAt, saveStatus, draft.updatedAt, plan])
+
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current !== null) {
+        window.clearTimeout(saveTimeoutRef.current)
+      }
+      if (idleTimeoutRef.current !== null) {
+        window.clearTimeout(idleTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const updateGoal = (goalId: string, updates: Partial<PlanGoal>) => {
     const goals = draft.goals.map((goal) => (goal.id === goalId ? { ...goal, ...updates } : goal))
@@ -114,12 +151,12 @@ function PlanEditor({ plan, tasks, onUpdate, onDelete }: PlanEditorProps) {
   )
 
   const filteredTasks = useMemo(() => {
-    const term = taskQuery.trim().toLowerCase()
+    const term = deferredTaskQuery.trim().toLowerCase()
     if (!term) {
       return tasks
     }
     return tasks.filter((task) => task.title.toLowerCase().includes(term))
-  }, [tasks, taskQuery])
+  }, [tasks, deferredTaskQuery])
 
   const toggleTaskLink = (taskId: string) => {
     const isLinked = draft.linkedTaskIds.includes(taskId)
@@ -137,13 +174,30 @@ function PlanEditor({ plan, tasks, onUpdate, onDelete }: PlanEditorProps) {
     [draft.decisions],
   )
 
+  const nextStep = useMemo(() => {
+    if (draft.goals.length === 0) {
+      return { label: 'Adicione sua primeira meta', section: 'execution' as SectionId }
+    }
+    if (draft.linkedTaskIds.length === 0) {
+      return { label: 'Vincule uma tarefa-chave', section: 'execution' as SectionId }
+    }
+    if (draft.phases.length === 0) {
+      return { label: 'Defina uma fase do roadmap', section: 'execution' as SectionId }
+    }
+    if (draft.decisions.length === 0) {
+      return { label: 'Registre uma decisão importante', section: 'context' as SectionId }
+    }
+    return { label: 'Atualize o status e os próximos passos', section: 'overview' as SectionId }
+  }, [draft.decisions.length, draft.goals.length, draft.linkedTaskIds.length, draft.phases.length])
+
   const sections: Array<{ id: SectionId; label: string; count?: number }> = [
-    { id: 'overview', label: 'Visão geral' },
-    { id: 'goals', label: 'Metas', count: draft.goals.length },
-    { id: 'phases', label: 'Roadmap', count: draft.phases.length },
-    { id: 'blocks', label: 'Blocos', count: draft.blocks.length },
-    { id: 'decisions', label: 'Decisões', count: draft.decisions.length },
-    { id: 'tasks', label: 'Tarefas', count: draft.linkedTaskIds.length },
+    { id: 'overview', label: 'Resumo' },
+    {
+      id: 'execution',
+      label: 'Execução',
+      count: draft.goals.length + draft.phases.length + draft.linkedTaskIds.length,
+    },
+    { id: 'context', label: 'Contexto', count: draft.blocks.length + draft.decisions.length },
     { id: 'settings', label: 'Gerenciar' },
   ]
 
@@ -156,12 +210,14 @@ function PlanEditor({ plan, tasks, onUpdate, onDelete }: PlanEditorProps) {
             value={draft.title}
             onChange={(event) => scheduleUpdate({ title: event.target.value })}
             placeholder="Título do planejamento"
+            aria-label="Título do planejamento"
           />
           <input
             className="plan-editor__subtitle"
             value={draft.subtitle}
             onChange={(event) => scheduleUpdate({ subtitle: event.target.value })}
             placeholder="Resumo curto do objetivo"
+            aria-label="Resumo curto do objetivo"
           />
         </div>
         <div className="plan-editor__meta">
@@ -193,6 +249,11 @@ function PlanEditor({ plan, tasks, onUpdate, onDelete }: PlanEditorProps) {
             />
           </label>
           <div className="plan-editor__updated">Atualizado {formatRelativeTime(draft.updatedAt)}</div>
+          {saveStatus !== 'idle' && (
+            <div className={`plan-editor__status plan-editor__status--${saveStatus}`}>
+              {saveStatus === 'saving' ? 'Salvando...' : 'Salvo'}
+            </div>
+          )}
         </div>
       </header>
 
@@ -240,7 +301,20 @@ function PlanEditor({ plan, tasks, onUpdate, onDelete }: PlanEditorProps) {
                 </div>
               </div>
               <div className="plan-overview__card">
-                <h3>Visão rápida</h3>
+                <div className="plan-overview__card-header">
+                  <h3>Próximo passo</h3>
+                </div>
+                <div className="plan-overview__next">
+                  <span>{nextStep.label}</span>
+                  {nextStep.section !== 'overview' && (
+                    <button type="button" onClick={() => setActiveSection(nextStep.section)}>
+                      Ir agora
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="plan-overview__card">
+                <h3>Resumo rápido</h3>
                 <div className="plan-overview__stats">
                   <div>
                     <span>Metas</span>
@@ -275,7 +349,7 @@ function PlanEditor({ plan, tasks, onUpdate, onDelete }: PlanEditorProps) {
               <div className="plan-overview__card">
                 <div className="plan-overview__card-header">
                   <h3>Tarefas vinculadas</h3>
-                  <button type="button" className="plan-overview__link" onClick={() => setActiveSection('tasks')}>
+                  <button type="button" className="plan-overview__link" onClick={() => setActiveSection('execution')}>
                     Gerenciar
                   </button>
                 </div>
@@ -294,7 +368,7 @@ function PlanEditor({ plan, tasks, onUpdate, onDelete }: PlanEditorProps) {
               <div className="plan-overview__card">
                 <div className="plan-overview__card-header">
                   <h3>Decisões recentes</h3>
-                  <button type="button" className="plan-overview__link" onClick={() => setActiveSection('decisions')}>
+                  <button type="button" className="plan-overview__link" onClick={() => setActiveSection('context')}>
                     Ver todas
                   </button>
                 </div>
@@ -315,251 +389,287 @@ function PlanEditor({ plan, tasks, onUpdate, onDelete }: PlanEditorProps) {
           </section>
         )}
 
-        {activeSection === 'goals' && (
-          <section className="plan-section">
-            <div className="plan-section__header">
-              <div>
-                <h2>Metas numéricas</h2>
-                <p className="plan-section__subtitle">Mantenha números claros para medir progresso.</p>
-              </div>
-              <button type="button" className="plan-section__add" onClick={addGoal}>
-                <Plus size={16} aria-hidden="true" /> Nova meta
-              </button>
-            </div>
-            {draft.goals.length === 0 ? (
-              <div className="plan-section__empty">Adicione metas para medir o progresso.</div>
-            ) : (
-              <div className="plan-goals">
-                {draft.goals.map((goal) => {
-                  const progress = getGoalProgress(goal)
-                  return (
-                    <div key={goal.id} className="plan-goal">
-                      <input
-                        className="plan-goal__label"
-                        value={goal.label}
-                        onChange={(event) => updateGoal(goal.id, { label: event.target.value })}
-                        placeholder="Nome da meta"
-                      />
-                      <div className="plan-goal__values">
-                        <input
-                          type="number"
-                          value={goal.currentValue}
-                          onChange={(event) => updateGoal(goal.id, { currentValue: Number(event.target.value) })}
-                          placeholder="Atual"
-                        />
-                        <span className="plan-goal__sep">/</span>
-                        <input
-                          type="number"
-                          value={goal.targetValue}
-                          onChange={(event) => updateGoal(goal.id, { targetValue: Number(event.target.value) })}
-                          placeholder="Meta"
-                        />
-                        <input
-                          value={goal.unit}
-                          onChange={(event) => updateGoal(goal.id, { unit: event.target.value })}
-                          placeholder="Unidade"
-                        />
-                        <button type="button" className="plan-goal__remove" onClick={() => removeGoal(goal.id)}>
-                          <Trash2 size={14} aria-hidden="true" />
-                        </button>
-                      </div>
-                      <div className="plan-goal__progress">
-                        <div className="plan-goal__progress-bar">
-                          <span style={{ width: `${progress * 100}%` }} />
-                        </div>
-                        <span className="plan-goal__progress-label">{Math.round(progress * 100)}%</span>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </section>
-        )}
-
-        {activeSection === 'blocks' && (
-          <section className="plan-section">
-            <div className="plan-section__header">
-              <div>
-                <h2>Blocos livres</h2>
-                <p className="plan-section__subtitle">Contexto, estratégia, riscos e aprendizados.</p>
-              </div>
-              <button type="button" className="plan-section__add" onClick={addBlock}>
-                <Plus size={16} aria-hidden="true" /> Novo bloco
-              </button>
-            </div>
-            {draft.blocks.length === 0 ? (
-              <div className="plan-section__empty">Adicione contexto, estratégia ou riscos.</div>
-            ) : (
-              <div className="plan-blocks">
-                {draft.blocks.map((block) => (
-                  <div key={block.id} className="plan-block">
-                    <div className="plan-block__header">
-                      <input
-                        value={block.title}
-                        onChange={(event) => updateBlock(block.id, { title: event.target.value })}
-                        placeholder="Título do bloco"
-                      />
-                      <button type="button" className="plan-block__remove" onClick={() => removeBlock(block.id)}>
-                        <Trash2 size={14} aria-hidden="true" />
-                      </button>
-                    </div>
-                    <textarea
-                      value={block.body}
-                      onChange={(event) => updateBlock(block.id, { body: event.target.value })}
-                      placeholder="Escreva livremente..."
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        )}
-
-        {activeSection === 'phases' && (
-          <section className="plan-section">
-            <div className="plan-section__header">
-              <div>
-                <h2>Roadmap e fases</h2>
-                <p className="plan-section__subtitle">Defina etapas claras para executar o plano.</p>
-              </div>
-              <button type="button" className="plan-section__add" onClick={addPhase}>
-                <Plus size={16} aria-hidden="true" /> Nova fase
-              </button>
-            </div>
-            {draft.phases.length === 0 ? (
-              <div className="plan-section__empty">Defina etapas para executar o plano.</div>
-            ) : (
-              <div className="plan-phases">
-                {draft.phases.map((phase) => (
-                  <div key={phase.id} className="plan-phase">
-                    <input
-                      value={phase.title}
-                      onChange={(event) => updatePhase(phase.id, { title: event.target.value })}
-                      placeholder="Nome da fase"
-                    />
-                    <div className="plan-phase__row">
-                      <input
-                        type="date"
-                        value={phase.startDate}
-                        onChange={(event) => updatePhase(phase.id, { startDate: event.target.value })}
-                      />
-                      <input
-                        type="date"
-                        value={phase.endDate}
-                        onChange={(event) => updatePhase(phase.id, { endDate: event.target.value })}
-                      />
-                      <select
-                        value={phase.status}
-                        onChange={(event) =>
-                          updatePhase(phase.id, { status: event.target.value as PlanPhase['status'] })
-                        }
-                      >
-                        <option value="planned">Planejado</option>
-                        <option value="active">Em andamento</option>
-                        <option value="done">Concluído</option>
-                      </select>
-                      <button type="button" className="plan-phase__remove" onClick={() => removePhase(phase.id)}>
-                        <Trash2 size={14} aria-hidden="true" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        )}
-
-        {activeSection === 'decisions' && (
-          <section className="plan-section">
-            <div className="plan-section__header">
-              <div>
-                <h2>Decisões</h2>
-                <p className="plan-section__subtitle">Guarde decisões importantes para referência.</p>
-              </div>
-              <button type="button" className="plan-section__add" onClick={addDecision}>
-                <Plus size={16} aria-hidden="true" /> Nova decisão
-              </button>
-            </div>
-            {draft.decisions.length === 0 ? (
-              <div className="plan-section__empty">Registre decisões importantes para o histórico.</div>
-            ) : (
-              <div className="plan-decisions">
-                {draft.decisions.map((decision) => (
-                  <div key={decision.id} className="plan-decision">
-                    <textarea
-                      value={decision.summary}
-                      onChange={(event) => updateDecision(decision.id, { summary: event.target.value })}
-                      placeholder="Descreva a decisão..."
-                    />
-                    <div className="plan-decision__row">
-                      <input
-                        type="date"
-                        value={decision.decidedAt}
-                        onChange={(event) => updateDecision(decision.id, { decidedAt: event.target.value })}
-                      />
-                      <button type="button" className="plan-decision__remove" onClick={() => removeDecision(decision.id)}>
-                        <Trash2 size={14} aria-hidden="true" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        )}
-
-        {activeSection === 'tasks' && (
-          <section className="plan-section">
-            <div className="plan-section__header">
-              <div>
-                <h2>Tarefas vinculadas</h2>
-                <p className="plan-section__subtitle">Selecione tarefas que representam a execução do plano.</p>
-              </div>
-            </div>
-            <div className="plan-task-manager">
-              <div className="plan-task-manager__linked">
-                <div className="plan-task-manager__title">
-                  <h3>Vinculadas</h3>
-                  <span>{linkedTasks.length}</span>
+        {activeSection === 'execution' && (
+          <>
+            <section className="plan-section">
+              <div className="plan-section__header">
+                <div>
+                  <h2>Metas numéricas</h2>
+                  <p className="plan-section__subtitle">Mantenha números claros para medir progresso.</p>
                 </div>
-                {linkedTasks.length === 0 ? (
-                  <div className="plan-task-manager__empty">Nenhuma tarefa vinculada ainda.</div>
-                ) : (
-                  <ul className="plan-task-manager__list">
-                    {linkedTasks.map((task) => (
-                      <li key={task.id} className={task.status === 'done' ? 'is-done' : ''}>
-                        <span>{task.title || 'Tarefa sem título'}</span>
-                        <button type="button" onClick={() => toggleTaskLink(task.id)}>
-                          Remover
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <button type="button" className="plan-section__add" onClick={addGoal}>
+                  <Plus size={16} aria-hidden="true" /> Nova meta
+                </button>
               </div>
-              <div className="plan-task-manager__all">
-                <div className="plan-task-manager__search">
-                  <input
-                    value={taskQuery}
-                    onChange={(event) => setTaskQuery(event.target.value)}
-                    placeholder="Buscar tarefas..."
-                  />
-                </div>
-                <div className="plan-task-manager__options">
-                  {filteredTasks.map((task) => {
-                    const checked = draft.linkedTaskIds.includes(task.id)
+              {draft.goals.length === 0 ? (
+                <div className="plan-section__empty">Adicione metas para medir o progresso.</div>
+              ) : (
+                <div className="plan-goals">
+                  {draft.goals.map((goal) => {
+                    const progress = getGoalProgress(goal)
                     return (
-                      <label key={task.id} className={`plan-task-option${checked ? ' is-checked' : ''}`}>
-                        <input type="checkbox" checked={checked} onChange={() => toggleTaskLink(task.id)} />
-                        <span>{task.title || 'Tarefa sem título'}</span>
-                      </label>
+                      <div key={goal.id} className="plan-goal">
+                        <input
+                          className="plan-goal__label"
+                          value={goal.label}
+                          onChange={(event) => updateGoal(goal.id, { label: event.target.value })}
+                          placeholder="Nome da meta"
+                          aria-label="Nome da meta"
+                        />
+                        <div className="plan-goal__values">
+                          <input
+                            type="number"
+                            value={goal.currentValue}
+                            onChange={(event) => updateGoal(goal.id, { currentValue: Number(event.target.value) })}
+                            placeholder="Atual"
+                            aria-label="Valor atual"
+                          />
+                          <span className="plan-goal__sep">/</span>
+                          <input
+                            type="number"
+                            value={goal.targetValue}
+                            onChange={(event) => updateGoal(goal.id, { targetValue: Number(event.target.value) })}
+                            placeholder="Meta"
+                            aria-label="Valor da meta"
+                          />
+                          <input
+                            value={goal.unit}
+                            onChange={(event) => updateGoal(goal.id, { unit: event.target.value })}
+                            placeholder="Unidade"
+                            aria-label="Unidade da meta"
+                          />
+                          <button
+                            type="button"
+                            className="plan-goal__remove"
+                            onClick={() => removeGoal(goal.id)}
+                            aria-label="Remover meta"
+                          >
+                            <Trash2 size={14} aria-hidden="true" />
+                          </button>
+                        </div>
+                        <div className="plan-goal__progress">
+                          <div className="plan-goal__progress-bar">
+                            <span style={{ width: `${progress * 100}%` }} />
+                          </div>
+                          <span className="plan-goal__progress-label">{Math.round(progress * 100)}%</span>
+                        </div>
+                      </div>
                     )
                   })}
                 </div>
+              )}
+            </section>
+
+            <section className="plan-section">
+              <div className="plan-section__header">
+                <div>
+                  <h2>Tarefas vinculadas</h2>
+                  <p className="plan-section__subtitle">Selecione tarefas que representam a execução do plano.</p>
+                </div>
               </div>
-            </div>
-          </section>
+              <div className="plan-task-manager">
+                <div className="plan-task-manager__linked">
+                  <div className="plan-task-manager__title">
+                    <h3>Vinculadas</h3>
+                    <span>{linkedTasks.length}</span>
+                  </div>
+                  {linkedTasks.length === 0 ? (
+                    <div className="plan-task-manager__empty">Nenhuma tarefa vinculada ainda.</div>
+                  ) : (
+                    <ul className="plan-task-manager__list">
+                      {linkedTasks.map((task) => (
+                        <li key={task.id} className={task.status === 'done' ? 'is-done' : ''}>
+                          <span>{task.title || 'Tarefa sem título'}</span>
+                          <button type="button" onClick={() => toggleTaskLink(task.id)} aria-label="Remover tarefa vinculada">
+                            Remover
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div className="plan-task-manager__all">
+                  <div className="plan-task-manager__search">
+                    <input
+                      value={taskQuery}
+                      onChange={(event) => setTaskQuery(event.target.value)}
+                      placeholder="Buscar tarefas..."
+                      aria-label="Buscar tarefas"
+                    />
+                  </div>
+                  <div className="plan-task-manager__options">
+                    {filteredTasks.map((task) => {
+                      const checked = draft.linkedTaskIds.includes(task.id)
+                      return (
+                      <label key={task.id} className={`plan-task-option${checked ? ' is-checked' : ''}`}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleTaskLink(task.id)}
+                          aria-label={`Vincular tarefa: ${task.title || 'Tarefa sem título'}`}
+                        />
+                        <span>{task.title || 'Tarefa sem título'}</span>
+                      </label>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="plan-section">
+              <div className="plan-section__header">
+                <div>
+                  <h2>Roadmap e fases</h2>
+                  <p className="plan-section__subtitle">Defina etapas claras para executar o plano.</p>
+                </div>
+                <button type="button" className="plan-section__add" onClick={addPhase}>
+                  <Plus size={16} aria-hidden="true" /> Nova fase
+                </button>
+              </div>
+              {draft.phases.length === 0 ? (
+                <div className="plan-section__empty">Defina etapas para executar o plano.</div>
+              ) : (
+                <div className="plan-phases">
+                  {draft.phases.map((phase) => (
+                    <div key={phase.id} className="plan-phase">
+                      <input
+                        value={phase.title}
+                        onChange={(event) => updatePhase(phase.id, { title: event.target.value })}
+                        placeholder="Nome da fase"
+                        aria-label="Nome da fase"
+                      />
+                      <div className="plan-phase__row">
+                        <input
+                          type="date"
+                          value={phase.startDate}
+                          onChange={(event) => updatePhase(phase.id, { startDate: event.target.value })}
+                          aria-label="Início da fase"
+                        />
+                        <input
+                          type="date"
+                          value={phase.endDate}
+                          onChange={(event) => updatePhase(phase.id, { endDate: event.target.value })}
+                          aria-label="Fim da fase"
+                        />
+                        <select
+                          value={phase.status}
+                          onChange={(event) =>
+                            updatePhase(phase.id, { status: event.target.value as PlanPhase['status'] })
+                          }
+                          aria-label="Status da fase"
+                        >
+                          <option value="planned">Planejado</option>
+                          <option value="active">Em andamento</option>
+                          <option value="done">Concluído</option>
+                        </select>
+                        <button
+                          type="button"
+                          className="plan-phase__remove"
+                          onClick={() => removePhase(phase.id)}
+                          aria-label="Remover fase"
+                        >
+                          <Trash2 size={14} aria-hidden="true" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </>
+        )}
+
+        {activeSection === 'context' && (
+          <>
+            <section className="plan-section">
+              <div className="plan-section__header">
+                <div>
+                  <h2>Blocos livres</h2>
+                  <p className="plan-section__subtitle">Contexto, estratégia, riscos e aprendizados.</p>
+                </div>
+                <button type="button" className="plan-section__add" onClick={addBlock}>
+                  <Plus size={16} aria-hidden="true" /> Novo bloco
+                </button>
+              </div>
+              {draft.blocks.length === 0 ? (
+                <div className="plan-section__empty">Adicione contexto, estratégia ou riscos.</div>
+              ) : (
+                <div className="plan-blocks">
+                  {draft.blocks.map((block) => (
+                    <div key={block.id} className="plan-block">
+                      <div className="plan-block__header">
+                        <input
+                          value={block.title}
+                          onChange={(event) => updateBlock(block.id, { title: event.target.value })}
+                          placeholder="Título do bloco"
+                          aria-label="Título do bloco"
+                        />
+                        <button
+                          type="button"
+                          className="plan-block__remove"
+                          onClick={() => removeBlock(block.id)}
+                          aria-label="Remover bloco"
+                        >
+                          <Trash2 size={14} aria-hidden="true" />
+                        </button>
+                      </div>
+                      <textarea
+                        value={block.body}
+                        onChange={(event) => updateBlock(block.id, { body: event.target.value })}
+                        placeholder="Escreva livremente..."
+                        aria-label="Conteúdo do bloco"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            <section className="plan-section">
+              <div className="plan-section__header">
+                <div>
+                  <h2>Decisões</h2>
+                  <p className="plan-section__subtitle">Guarde decisões importantes para referência.</p>
+                </div>
+                <button type="button" className="plan-section__add" onClick={addDecision}>
+                  <Plus size={16} aria-hidden="true" /> Nova decisão
+                </button>
+              </div>
+              {draft.decisions.length === 0 ? (
+                <div className="plan-section__empty">Registre decisões importantes para o histórico.</div>
+              ) : (
+                <div className="plan-decisions">
+                  {draft.decisions.map((decision) => (
+                    <div key={decision.id} className="plan-decision">
+                      <textarea
+                        value={decision.summary}
+                        onChange={(event) => updateDecision(decision.id, { summary: event.target.value })}
+                        placeholder="Descreva a decisão..."
+                        aria-label="Descrição da decisão"
+                      />
+                      <div className="plan-decision__row">
+                        <input
+                          type="date"
+                          value={decision.decidedAt}
+                          onChange={(event) => updateDecision(decision.id, { decidedAt: event.target.value })}
+                          aria-label="Data da decisão"
+                        />
+                        <button
+                          type="button"
+                          className="plan-decision__remove"
+                          onClick={() => removeDecision(decision.id)}
+                          aria-label="Remover decisão"
+                        >
+                          <Trash2 size={14} aria-hidden="true" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </>
         )}
 
         {activeSection === 'settings' && (

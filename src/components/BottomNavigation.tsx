@@ -8,7 +8,7 @@ type BottomNavigationProps = {
 
 function BottomNavigation({ activeTab, onSelect }: BottomNavigationProps) {
   return (
-    <nav className="bottom-nav" aria-label="Navegacao">
+    <nav className="bottom-nav" aria-label="Navegação">
       <button
         type="button"
         className={`bottom-nav__item${activeTab === 'today' ? ' bottom-nav__item--active' : ''}`}

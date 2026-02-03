@@ -58,7 +58,7 @@
 
 @media (min-width: 1100px) {
   .bottom-nav {
-    top: calc(var(--size-top-bar-height) + var(--space-3));
+    top: calc(var(--size-top-bar-height) + var(--safe-area-top) + var(--space-3));
     bottom: var(--space-4);
     left: var(--space-4);
     right: auto;
