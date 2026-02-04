@@ -9,6 +9,14 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 html,
@@ -24,11 +32,15 @@ body {
   line-height: var(--font-line-height-base);
   color-scheme: dark;
   background-attachment: fixed;
-  overflow-x: hidden;
+  overscroll-behavior-x: none;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 #root {
   min-height: 100svh;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 button {
@@ -69,6 +81,15 @@ button {
 }
 
 @media (max-width: 640px) {
+  html,
+  body {
+    touch-action: manipulation;
+  }
+
+  body {
+    background-attachment: scroll;
+  }
+
   input,
   textarea,
   select {
