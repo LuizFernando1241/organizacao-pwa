@@ -475,6 +475,32 @@ function App() {
   }, [])
 
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+    const applyZoomFix = () => {
+      const viewport = window.visualViewport
+      if (!viewport) {
+        return
+      }
+      const scale = viewport.scale ?? 1
+      if (scale > 1.01 || scale < 0.99) {
+        const normalized = 1 / scale
+        document.documentElement.style.zoom = String(Number(normalized.toFixed(3)))
+      } else {
+        document.documentElement.style.zoom = ''
+      }
+    }
+    applyZoomFix()
+    window.visualViewport?.addEventListener('resize', applyZoomFix)
+    window.visualViewport?.addEventListener('scroll', applyZoomFix)
+    return () => {
+      window.visualViewport?.removeEventListener('resize', applyZoomFix)
+      window.visualViewport?.removeEventListener('scroll', applyZoomFix)
+    }
+  }, [])
+
+  useEffect(() => {
     if (rolloverCandidates.length === 0 && rolloverDismissed) {
       setRolloverDismissed(false)
     }
