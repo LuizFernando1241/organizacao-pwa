@@ -184,6 +184,13 @@ function App() {
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [rolloverDismissed, setRolloverDismissed] = useState(false)
   const [pendingNoteId, setPendingNoteId] = useState<string | null>(null)
+  const [debugViewport, setDebugViewport] = useState(false)
+  const [viewportInfo, setViewportInfo] = useState({
+    scale: 1,
+    width: 0,
+    height: 0,
+    dpr: 1,
+  })
 
   const todayKeyActual = formatLocalDayKey(new Date())
   const baseTasks = useMemo(() => tasks.filter((task) => !task.recurrenceParentId), [tasks])
@@ -424,6 +431,48 @@ function App() {
     document.addEventListener('visibilitychange', handleVisibility)
     return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [isReady, runSync])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+    const url = new URL(window.location.href)
+    const queryEnabled =
+      url.searchParams.get('debug') === '1' || url.searchParams.get('debugViewport') === '1'
+    let storedEnabled = false
+    try {
+      storedEnabled = window.localStorage.getItem('debugViewport') === '1'
+    } catch {
+      storedEnabled = false
+    }
+    const enabled = queryEnabled || storedEnabled
+    setDebugViewport(enabled)
+    if (!enabled) {
+      return
+    }
+    const update = () => {
+      const viewport = window.visualViewport
+      const scale = viewport?.scale ?? 1
+      const width = viewport?.width ?? window.innerWidth
+      const height = viewport?.height ?? window.innerHeight
+      const dpr = window.devicePixelRatio || 1
+      setViewportInfo({
+        scale: Number(scale.toFixed(2)),
+        width: Math.round(width),
+        height: Math.round(height),
+        dpr: Number(dpr.toFixed(2)),
+      })
+    }
+    update()
+    window.visualViewport?.addEventListener('resize', update)
+    window.visualViewport?.addEventListener('scroll', update)
+    window.addEventListener('resize', update)
+    return () => {
+      window.visualViewport?.removeEventListener('resize', update)
+      window.visualViewport?.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [])
 
   useEffect(() => {
     if (rolloverCandidates.length === 0 && rolloverDismissed) {
@@ -738,6 +787,15 @@ function App() {
 
   return (
     <div className="app-shell">
+      {debugViewport && (
+        <div className="viewport-debug" role="status" aria-live="polite">
+          <div>scale: {viewportInfo.scale}</div>
+          <div>
+            size: {viewportInfo.width}×{viewportInfo.height}
+          </div>
+          <div>dpr: {viewportInfo.dpr}</div>
+        </div>
+      )}
       {toast && (
         <div className={`toast toast--${toast.type}`} role="status" aria-live="polite" aria-atomic="true">
           {toast.message}

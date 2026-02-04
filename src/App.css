@@ -500,6 +500,22 @@
   border-color: rgba(var(--danger-rgb), 0.6);
 }
 
+.viewport-debug {
+  position: fixed;
+  right: 12px;
+  top: calc(var(--size-top-bar-height) + var(--safe-area-top) + 8px);
+  z-index: 3000;
+  background: rgba(12, 16, 24, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 11px;
+  color: var(--color-text-primary);
+  display: grid;
+  gap: 2px;
+  box-shadow: var(--shadow-soft);
+}
+
 @keyframes toast-in {
   from {
     opacity: 0;
