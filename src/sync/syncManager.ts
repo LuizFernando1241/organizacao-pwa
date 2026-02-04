@@ -170,7 +170,7 @@ const normalizePlan = (row: Record<string, unknown>): Plan & { deletedAt?: strin
     decisions: parseJsonArray<Plan['decisions'][number]>(row.decisions, []),
     linkedTaskIds: parseJsonArray<string>(row.linked_task_ids ?? row.linkedTaskIds, []),
     createdAt: String(row.created_at ?? row.createdAt ?? row.updated_at ?? new Date().toISOString()),
-    updatedAt: String(row.updated_at ?? new Date().toISOString()),
+    updatedAt: String(row.updated_at ?? row.updatedAt ?? new Date().toISOString()),
     deletedAt: row.deleted_at ? String(row.deleted_at) : null,
   }
 }

@@ -54,6 +54,16 @@ const parseJson = async (request: Request) => {
   }
 }
 
+const stringifyJsonArray = (value: unknown) => {
+  if (typeof value === 'string') {
+    return value
+  }
+  if (Array.isArray(value)) {
+    return JSON.stringify(value)
+  }
+  return JSON.stringify([])
+}
+
 const shouldApplyUpdate = async (db: D1Database, table: string, id: string, opUpdatedAt: string) => {
   const existing = await db
     .prepare(`SELECT MAX(updated_at, deleted_at) as last_at FROM ${table} WHERE id = ?`)
@@ -222,11 +232,11 @@ const upsertPlan = async (db: D1Database, userId: string, payload: Record<string
       payload.status ?? 'active',
       payload.startDate ?? payload.start_date ?? '',
       payload.endDate ?? payload.end_date ?? '',
-      JSON.stringify(payload.goals ?? []),
-      JSON.stringify(payload.blocks ?? []),
-      JSON.stringify(payload.phases ?? []),
-      JSON.stringify(payload.decisions ?? []),
-      JSON.stringify(payload.linkedTaskIds ?? payload.linked_task_ids ?? []),
+      stringifyJsonArray(payload.goals),
+      stringifyJsonArray(payload.blocks),
+      stringifyJsonArray(payload.phases),
+      stringifyJsonArray(payload.decisions),
+      stringifyJsonArray(payload.linkedTaskIds ?? payload.linked_task_ids),
       createdAt,
       opUpdatedAt,
     )
